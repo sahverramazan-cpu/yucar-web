@@ -106,6 +106,8 @@
     box-shadow: 0 1px 3px rgba(16,34,31,0.04), 0 8px 24px rgba(16,34,31,0.03);
   }
   .panel h2 { margin: 0 0 3px; font-size: 16px; font-weight: 700; }
+  .panel-head-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; flex-wrap: wrap; margin-bottom: 4px; }
+  .panel-head-row h2 { margin-bottom: 3px; }
   .panel .desc { margin: 0 0 16px; font-size: 13px; color: var(--ink-soft); }
 
   /* stat cards */
@@ -638,8 +640,13 @@
   <!-- ================= CUSTOMERS ================= -->
   <section class="tabpage" id="tab-customers">
     <div class="panel list-view" id="customersList">
-      <h2>Müştərilər</h2>
-      <p class="desc">Bütün müştərilər — üstünə klikləyin, tam tarixçəsini görün.</p>
+      <div class="panel-head-row">
+        <div>
+          <h2>Müştərilər</h2>
+          <p class="desc">Bütün müştərilər — üstünə klikləyin, tam tarixçəsini görün.</p>
+        </div>
+        <button class="btn-primary" id="addCustomerBtn" style="width:auto; margin-top:0;">+ Yeni müştəri</button>
+      </div>
       <input class="search-bar" id="custSearch" type="text" placeholder="Axtar: ad soyad və ya nömrə">
       <div id="custListBody"><div class="empty">Yüklənir…</div></div>
     </div>
@@ -811,6 +818,26 @@
         <div style="flex:1;"></div>
         <button class="btn-ghost" id="vvCloseBtn">Bağla</button>
       </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="newCustomerOverlay">
+    <div class="modal-box">
+      <h3>Yeni müştəri əlavə et</h3>
+      <div class="field"><label>Ad, soyad</label><input id="nc2Name" type="text"></div>
+      <div class="field"><label>Əlaqə nömrəsi</label>
+        <div class="phone-input">
+          <span class="phone-prefix">+994</span>
+          <input id="nc2Phone" type="tel" placeholder="50 123 45 67" inputmode="numeric" maxlength="15">
+        </div>
+      </div>
+      <div class="field"><label>Məkan</label><input id="nc2Location" type="text" placeholder="Ünvan / rayon"></div>
+      <div class="modal-actions">
+        <button class="btn-ghost" id="nc2CancelBtn">Ləğv et</button>
+        <div style="flex:1;"></div>
+        <button class="btn-primary" id="nc2SaveBtn" style="width:auto; margin-top:0;">Əlavə et</button>
+      </div>
+      <div class="save-msg" id="nc2Msg"></div>
     </div>
   </div>
 </div>
@@ -1571,6 +1598,59 @@ function closeEditCustomer() {
   document.getElementById('editCustomerOverlay').classList.remove('show');
 }
 document.getElementById('detEditBtn').addEventListener('click', openEditCustomer);
+
+/* ---------- ADD NEW CUSTOMER (from Customers tab) ---------- */
+function openNewCustomerModal() {
+  document.getElementById('nc2Name').value = '';
+  document.getElementById('nc2Phone').value = '';
+  document.getElementById('nc2Location').value = '';
+  document.getElementById('nc2Msg').className = 'save-msg';
+  document.getElementById('newCustomerOverlay').classList.add('show');
+}
+function closeNewCustomerModal() {
+  document.getElementById('newCustomerOverlay').classList.remove('show');
+}
+document.getElementById('addCustomerBtn').addEventListener('click', openNewCustomerModal);
+document.getElementById('nc2CancelBtn').addEventListener('click', closeNewCustomerModal);
+document.getElementById('newCustomerOverlay').addEventListener('click', (e) => {
+  if (e.target.id === 'newCustomerOverlay') closeNewCustomerModal();
+});
+
+async function saveNewCustomer() {
+  const msg = document.getElementById('nc2Msg');
+  msg.className = 'save-msg';
+  if (!db) { msg.textContent = 'Verilənlər bazasına qoşulma yoxdur.'; msg.className = 'save-msg show err'; return; }
+  const name = document.getElementById('nc2Name').value.trim();
+  const phoneRaw = document.getElementById('nc2Phone').value.trim();
+  const key = digitsOnlyLocal(phoneRaw);
+  if (!name || key.length !== 9) {
+    msg.textContent = 'Ad daxil edin və nömrəni tam yazın (9 rəqəm, +994-dən sonra).';
+    msg.className = 'save-msg show err';
+    return;
+  }
+  const existing = customerDirectory().find(c => c.id === key);
+  if (existing) {
+    msg.textContent = `Bu nömrə ilə artıq müştəri var: ${existing.name}.`;
+    msg.className = 'save-msg show err';
+    return;
+  }
+  const location = document.getElementById('nc2Location').value.trim();
+  const btn = document.getElementById('nc2SaveBtn');
+  btn.disabled = true; btn.textContent = 'Saxlanılır…';
+  try {
+    await db.doc('customers/' + key).set({
+      name, phone: formatPhoneAZ(key), location, createdAt: new Date().toISOString(),
+    });
+    closeNewCustomerModal();
+    showCustomerList();
+  } catch (e) {
+    msg.textContent = 'Xəta baş verdi, yenidən cəhd edin.';
+    msg.className = 'save-msg show err';
+  } finally {
+    btn.disabled = false; btn.textContent = 'Əlavə et';
+  }
+}
+document.getElementById('nc2SaveBtn').addEventListener('click', saveNewCustomer);
 document.getElementById('ecCancelBtn').addEventListener('click', closeEditCustomer);
 document.getElementById('editCustomerOverlay').addEventListener('click', (e) => {
   if (e.target.id === 'editCustomerOverlay') closeEditCustomer();
