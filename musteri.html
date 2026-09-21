@@ -428,6 +428,19 @@
   }
 
   .m-empty { font-size: 13.5px; color: var(--ink-faint); text-align: center; padding: 20px 0; }
+
+  .m-redeem-item {
+    display: flex; justify-content: space-between; align-items: center; gap: 12px;
+    padding: 12px 0; border-top: 1px solid var(--line);
+  }
+  .m-redeem-item:first-of-type { border-top: none; }
+  .mr-name { font-size: 14px; font-weight: 700; color: var(--ink); }
+  .mr-need { font-size: 12px; color: var(--ink-soft); margin-top: 2px; }
+  .mr-status {
+    font-size: 12px; font-weight: 700; padding: 5px 11px; border-radius: 100px; white-space: nowrap;
+    background: var(--surface-2); color: var(--ink-soft);
+  }
+  .m-redeem-item.ok .mr-status { background: var(--teal); color: #fff; }
   .m-footer-hint { text-align: center; color: var(--ink-faint); font-size: 12px; margin-top: 20px; }
 
   #mLoginView, #mProfileView { display: none; }
@@ -486,12 +499,18 @@
           <div class="mp-azn-label">endirim dəyəri</div>
         </div>
       </div>
-      <div class="mp-hint">1 ₼ xərcləmə = 10 xal · 100 xal = 1 ₼ endirim</div>
+      <div class="mp-hint">1 ₼ xərcləmə = 10 xal · 100 xal = 0.5 ₼ endirim</div>
     </div>
 
     <div class="m-progress-box">
       <div class="m-progress-msg" id="mProgressMsg"></div>
       <div class="m-progress-track" id="mProgressTrack"></div>
+    </div>
+
+    <div class="m-card">
+      <div class="m-title" style="font-size:16px;">Xallarla nə əldə edə bilərəm?</div>
+      <p class="m-sub" style="margin-bottom:6px;">Topladığınız xallarla aşağıdakı yumaları pulsuz əldə edə bilərsiniz.</p>
+      <div id="mRedeemList"></div>
     </div>
 
     <div class="m-card">
@@ -533,8 +552,32 @@ function escapeHtml(s) {
 }
 
 function pointsForVisit(v) { return Math.round((Number(v.priceFinal) || 0) * 10); }
-function pointsToAzn(points) { return points / 100; }
+function pointsToAzn(points) { return points / 200; }
 function fmtAzn(n) { return n.toLocaleString('az-AZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+
+const REDEEM_OPTIONS = [
+  { label: 'Sedan yuması', price: 15 },
+  { label: 'SUV yuması', price: 20 },
+  { label: 'Böyük Avtomobil yuması', price: 25 },
+];
+function pointsNeededForAzn(azn) { return Math.round(azn * 200); }
+function renderRedeemOptions(points) {
+  const body = document.getElementById('mRedeemList');
+  if (!body) return;
+  body.innerHTML = REDEEM_OPTIONS.map(opt => {
+    const need = pointsNeededForAzn(opt.price);
+    const enough = points >= need;
+    const statusText = enough ? '✅ Kifayət edir' : `Daha ${(need - points).toLocaleString('az-AZ')} xal`;
+    return `
+      <div class="m-redeem-item${enough ? ' ok' : ''}">
+        <div>
+          <div class="mr-name">${opt.label}</div>
+          <div class="mr-need">${need.toLocaleString('az-AZ')} xal = ${fmtAzn(opt.price)} ₼ (tam pulsuz)</div>
+        </div>
+        <div class="mr-status">${statusText}</div>
+      </div>`;
+  }).join('');
+}
 
 const loginView = document.getElementById('mLoginView');
 const profileView = document.getElementById('mProfileView');
@@ -622,6 +665,7 @@ function renderProfile(visitsAsc) {
   document.getElementById('mSpent').textContent = fmtAzn(spent);
   document.getElementById('mPointsAmount').textContent = points.toLocaleString('az-AZ');
   document.getElementById('mPointsAzn').textContent = fmtAzn(pointsToAzn(points)) + ' ₼';
+  renderRedeemOptions(points);
 
   const posInCycle = count % 6;
   const remaining = 5 - posInCycle;

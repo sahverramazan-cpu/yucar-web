@@ -874,7 +874,7 @@ let allVisits = [];
 let allCustomers = [];
 let selectedCustomerId = null; // for sale tab
 function pointsForVisit(v) { return Math.round((Number(v.priceFinal) || 0) * 10); }
-function pointsToAzn(points) { return points / 100; }
+function pointsToAzn(points) { return points / 200; }
 function fmtAzn(n) { return n.toLocaleString('az-AZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
 
 /* ---------- helpers ---------- */
