@@ -464,9 +464,9 @@ function formatPhoneAZ(phone) {
 function normName(n) { return (n || '').toLowerCase().trim().replace(/\s+/g, ' '); }
 function fmtDate(iso) {
   if (!iso) return '—';
-  const d = new Date(iso + 'T00:00:00');
-  if (isNaN(d)) return iso;
-  return d.toLocaleDateString('az-AZ', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso);
+  if (!m) return iso;
+  return `${m[3]}.${m[2]}.${m[1]}`;
 }
 function initials(name) {
   return (name || '?').trim().split(/\s+/).slice(0, 2).map(w => w[0]).join('').toUpperCase();
