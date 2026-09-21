@@ -43,7 +43,11 @@
   * { box-sizing: border-box; }
   html, body { height: 100%; }
   body {
-    margin: 0; background: var(--bg); color: var(--ink);
+    margin: 0; color: var(--ink);
+    background:
+      radial-gradient(1100px 480px at 12% -8%, rgba(5,187,52,0.07), transparent 60%),
+      radial-gradient(900px 420px at 100% 0%, rgba(241,144,21,0.06), transparent 55%),
+      var(--bg);
     font-family: 'Manrope', system-ui, sans-serif;
     font-size: 15px; line-height: 1.5;
   }
@@ -309,9 +313,15 @@
   .m-header { display: flex; justify-content: center; margin-bottom: 28px; }
   .m-header img { height: 32px; }
 
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes fadeSlideUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes fadeSlideDown { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+
   .m-card {
     background: var(--surface); border: 1px solid var(--line); border-radius: 18px;
     padding: 26px 24px; margin-bottom: 16px;
+    box-shadow: 0 1px 3px rgba(16,34,31,0.04), 0 8px 24px rgba(16,34,31,0.03);
+    animation: fadeSlideUp .35s cubic-bezier(.2,.8,.2,1);
   }
   .m-title { font-size: 19px; font-weight: 700; margin: 0 0 4px; }
   .m-sub { font-size: 13.5px; color: var(--ink-soft); margin: 0 0 20px; }
@@ -321,61 +331,80 @@
   .m-field input {
     width: 100%; padding: 12px 13px; border-radius: 10px; border: 1px solid var(--line);
     background: var(--bg); color: var(--ink); font-family: inherit; font-size: 15px;
+    transition: border-color .15s ease, box-shadow .15s ease;
   }
+  .m-field input:focus { outline: none; border-color: var(--teal); box-shadow: 0 0 0 3px rgba(5,187,52,0.13); }
   .m-phone-input {
     display: flex; align-items: stretch; border-radius: 10px; border: 1px solid var(--line);
-    background: var(--bg); overflow: hidden;
+    background: var(--bg); overflow: hidden; transition: border-color .15s ease, box-shadow .15s ease;
   }
+  .m-phone-input:focus-within { border-color: var(--teal); box-shadow: 0 0 0 3px rgba(5,187,52,0.13); }
   .m-phone-input .prefix {
     display: flex; align-items: center; padding: 0 12px; font-size: 15px; font-weight: 600;
     color: var(--ink-soft); background: var(--surface-2); border-right: 1px solid var(--line);
   }
   .m-phone-input input { border: none; background: transparent; flex: 1; padding: 12px 13px; font-family: inherit; font-size: 15px; color: var(--ink); }
-  .m-phone-input input:focus { outline: none; }
+  .m-phone-input input:focus { outline: none; box-shadow: none; }
 
   .m-btn {
-    width: 100%; padding: 13px; border-radius: 11px; border: none;
-    background: var(--teal); color: #fff; font-weight: 700; font-size: 15px; cursor: pointer; margin-top: 4px;
+    width: 100%; padding: 14px; border-radius: 12px; border: none;
+    background: linear-gradient(135deg, var(--teal), var(--teal-deep)); color: #fff; font-weight: 700; font-size: 15px;
+    cursor: pointer; margin-top: 4px; font-family: inherit;
+    box-shadow: 0 4px 14px rgba(5,187,52,0.3); transition: transform .15s ease, box-shadow .15s ease;
   }
-  .m-btn:hover { background: var(--teal-deep); }
-  .m-err { color: var(--danger); font-size: 13px; margin-top: 10px; display: none; }
-  .m-err.show { display: block; }
+  .m-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(5,187,52,0.38); }
+  .m-btn:active { transform: translateY(0) scale(.98); }
+  .m-err { color: var(--danger); font-size: 13px; margin-top: 10px; display: none; background: #f6dcd4; padding: 9px 11px; border-radius: 9px; }
+  .m-err.show { display: block; animation: fadeSlideDown .2s ease; }
 
   .m-profile-head { display: flex; align-items: center; gap: 14px; margin-bottom: 4px; }
   .m-avatar {
-    width: 50px; height: 50px; border-radius: 50%; background: var(--teal); color: #fff;
+    width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, var(--teal), var(--teal-deep)); color: #fff;
     display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 18px; flex-shrink: 0;
+    box-shadow: 0 4px 14px rgba(5,187,52,0.3);
   }
   .m-profile-head .nm { font-size: 18px; font-weight: 700; }
   .m-profile-head .ph { font-size: 13px; color: var(--ink-soft); }
   .m-logout {
-    margin-left: auto; background: none; border: 1px solid var(--line); border-radius: 9px;
-    padding: 7px 12px; font-size: 12.5px; color: var(--ink-soft); cursor: pointer; font-family: inherit;
+    margin-left: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 8px 14px; font-size: 12.5px; color: var(--ink-soft); cursor: pointer; font-family: inherit;
+    font-weight: 600; transition: all .15s ease;
   }
+  .m-logout:hover { border-color: var(--danger); color: var(--danger); background: #fbeae6; }
 
   .m-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 18px 0; }
 
   .m-points-card {
     background: linear-gradient(135deg, var(--teal-deep), var(--teal));
     border-radius: 18px; padding: 20px 22px; margin-bottom: 16px; color: #eafff2;
-    box-shadow: 0 10px 28px rgba(5,187,52,0.28);
+    box-shadow: 0 12px 30px rgba(5,187,52,0.3);
+    animation: fadeSlideUp .4s cubic-bezier(.2,.8,.2,1);
   }
   .mp-row { display: flex; justify-content: space-between; align-items: flex-end; gap: 14px; flex-wrap: wrap; }
   .mp-label { font-size: 13px; color: rgba(234,255,242,0.85); margin-bottom: 4px; font-weight: 600; }
   .mp-amount { font-size: 34px; font-weight: 800; font-family: 'Manrope', sans-serif; line-height: 1.1; }
-  .mp-azn-box { text-align: right; background: rgba(255,255,255,0.16); padding: 10px 15px; border-radius: 13px; }
+  .mp-azn-box { text-align: right; background: rgba(255,255,255,0.18); padding: 10px 16px; border-radius: 13px; }
   .mp-azn-amount { font-size: 19px; font-weight: 800; font-family: 'Manrope', sans-serif; }
-  .mp-azn-label { font-size: 10.5px; color: rgba(234,255,242,0.8); margin-top: 1px; }
-  .mp-hint { font-size: 11.5px; color: rgba(234,255,242,0.75); margin-top: 14px; }
-  .m-stat { background: var(--surface-2); border-radius: 13px; padding: 14px 15px; }
+  .mp-azn-label { font-size: 10.5px; color: rgba(234,255,242,0.85); margin-top: 1px; }
+  .mp-hint { font-size: 11.5px; color: rgba(234,255,242,0.8); margin-top: 14px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.18); }
+  .m-stat {
+    background: var(--surface-2); border-radius: 13px; padding: 15px 16px;
+    transition: transform .15s ease;
+  }
+  .m-stat:hover { transform: translateY(-2px); }
   .m-stat .v { font-size: 22px; font-weight: 800; font-family: 'Manrope', sans-serif; color: var(--teal-deep); }
   .m-stat .l { font-size: 12px; color: var(--ink-soft); margin-top: 2px; }
 
-  .m-progress-box { background: var(--amber-soft); border-radius: 14px; padding: 16px 18px; margin-bottom: 6px; }
-  .m-progress-msg { font-size: 14px; font-weight: 600; color: #6b4413; margin-bottom: 10px; }
+  .m-progress-box {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 16px;
+    padding: 18px 20px; margin-bottom: 16px;
+    box-shadow: 0 1px 3px rgba(16,34,31,0.04), 0 8px 24px rgba(16,34,31,0.03);
+    animation: fadeSlideUp .45s cubic-bezier(.2,.8,.2,1);
+  }
+  .m-progress-msg { font-size: 14px; font-weight: 700; color: var(--ink); margin-bottom: 12px; }
   .m-progress-track { display: flex; gap: 6px; }
-  .m-progress-seg { flex: 1; height: 8px; border-radius: 100px; background: rgba(255,255,255,0.6); }
-  .m-progress-seg.filled { background: var(--amber); }
+  .m-progress-seg { flex: 1; height: 9px; border-radius: 100px; background: var(--surface-2); transition: background .2s ease; }
+  .m-progress-seg.filled { background: linear-gradient(135deg, var(--amber), #f3b862); }
 
   .m-history-item {
     padding: 14px 0; border-top: 1px solid var(--line);
@@ -401,7 +430,7 @@
   .m-footer-hint { text-align: center; color: var(--ink-faint); font-size: 12px; margin-top: 20px; }
 
   #mLoginView, #mProfileView { display: none; }
-  #mLoginView.show, #mProfileView.show { display: block; }
+  #mLoginView.show, #mProfileView.show { display: block; animation: fadeIn .3s ease; }
 </style>
 </head>
 <body>
