@@ -812,7 +812,7 @@
 
   <div class="modal-overlay" id="viewVisitOverlay">
     <div class="modal-box">
-      <h3>Yuma məlumatları</h3>
+      <h3 id="viewModalTitle">Yuma məlumatları</h3>
       <div id="viewVisitBody"></div>
       <div class="modal-actions">
         <div style="flex:1;"></div>
@@ -915,6 +915,7 @@ const ICON_EDIT = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" s
 const ICON_TRASH = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>';
 const ICON_WA = '<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2c-5.46 0-9.9 4.44-9.9 9.9 0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38c1.45.79 3.08 1.21 4.79 1.21 5.46 0 9.9-4.44 9.9-9.9S17.5 2 12.04 2zm5.71 14.13c-.24.68-1.19 1.25-1.94 1.41-.52.11-1.2.2-3.48-.75-2.92-1.21-4.8-4.17-4.94-4.36-.14-.19-1.18-1.57-1.18-3 0-1.43.75-2.13 1.02-2.42.27-.29.59-.36.79-.36.2 0 .39 0 .56.01.18.01.42-.07.66.5.24.58.82 2 .89 2.14.07.14.12.31.02.5-.1.19-.15.31-.29.48-.15.17-.31.38-.44.51-.15.15-.3.31-.13.6.17.29.76 1.25 1.63 2.03 1.12 1 2.06 1.31 2.35 1.46.29.15.46.13.63-.05.17-.19.71-.83.9-1.11.19-.29.38-.24.63-.14.27.09 1.68.79 1.97.94.29.14.48.21.55.33.07.12.07.68-.17 1.36z"/></svg>';
 const ICON_EYE = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg>';
+const ICON_HISTORY = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v5h5"/><path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"/><path d="M12 7v5l4 2"/></svg>';
 
 document.getElementById('fDate').value = todayStr();
 
@@ -1484,6 +1485,14 @@ function openCustomerDetail(id) {
 /* ---------- EDIT / DELETE VISIT ---------- */
 let currentEditVisitId = null;
 
+function renderViewModal(title, rows) {
+  document.getElementById('viewModalTitle').textContent = title;
+  document.getElementById('viewVisitBody').innerHTML = rows.map(([l, val]) =>
+    `<div class="view-row"><span class="vl">${escapeHtml(l)}</span><span class="vv">${escapeHtml(String(val))}</span></div>`
+  ).join('');
+  document.getElementById('viewVisitOverlay').classList.add('show');
+}
+
 function openViewVisit(id) {
   const v = allVisits.find(x => x.id === id);
   if (!v) return;
@@ -1502,11 +1511,25 @@ function openViewVisit(id) {
     ['Təyin edilən əməkdaş', v.employee || '—'],
     ['Qeyd', v.note || '—'],
   ];
-  document.getElementById('viewVisitBody').innerHTML = rows.map(([l, val]) =>
-    `<div class="view-row"><span class="vl">${escapeHtml(l)}</span><span class="vv">${escapeHtml(String(val))}</span></div>`
-  ).join('');
-  document.getElementById('viewVisitOverlay').classList.add('show');
+  renderViewModal('Yuma məlumatları', rows);
 }
+
+function openViewCustomer(id) {
+  const c = customerDirectory().find(x => x.id === id);
+  if (!c) return;
+  const st = statsFor(id);
+  const rows = [
+    ['Ad, soyad', c.name || '—'],
+    ['Əlaqə nömrəsi', formatPhoneAZ(c.phone)],
+    ['Məkan', c.location || '—'],
+    ['Yuma sayı', st.count],
+    ['Xərclənib', fmtAzn(st.spent) + ' ₼'],
+    ['Xal', st.points + ` (≈ ${fmtAzn(pointsToAzn(st.points))} ₼)`],
+    ['Son yuma', fmtDate(st.lastDate)],
+  ];
+  renderViewModal('Müştəri məlumatları', rows);
+}
+
 document.getElementById('vvCloseBtn').addEventListener('click', () => {
   document.getElementById('viewVisitOverlay').classList.remove('show');
 });
@@ -1584,9 +1607,11 @@ async function deleteVisitDirect(id) {
 }
 
 /* ---------- EDIT / DELETE CUSTOMER ---------- */
-function openEditCustomer() {
-  if (!currentDetailCustomerId) return;
-  const c = customerDirectory().find(x => x.id === currentDetailCustomerId);
+function openEditCustomer(id) {
+  const targetId = id || currentDetailCustomerId;
+  if (!targetId) return;
+  currentDetailCustomerId = targetId;
+  const c = customerDirectory().find(x => x.id === targetId);
   if (!c) return;
   document.getElementById('ecName').value = c.name || '';
   document.getElementById('ecPhone').value = digitsOnlyLocal(c.phone);
@@ -1682,7 +1707,9 @@ async function saveEditCustomer() {
       currentDetailCustomerId = key;
     }
     closeEditCustomer();
-    openCustomerDetail(currentDetailCustomerId);
+    if (document.getElementById('customerDetail').classList.contains('show')) {
+      openCustomerDetail(currentDetailCustomerId);
+    }
   } catch (e) {
     msg.textContent = 'Xəta baş verdi, yenidən cəhd edin.';
     msg.className = 'save-msg show err';
@@ -1690,23 +1717,26 @@ async function saveEditCustomer() {
 }
 document.getElementById('ecSaveBtn').addEventListener('click', saveEditCustomer);
 
-document.getElementById('detDeleteBtn').addEventListener('click', async () => {
-  if (!currentDetailCustomerId || !db) return;
-  const c = customerDirectory().find(x => x.id === currentDetailCustomerId);
-  const st = statsFor(currentDetailCustomerId);
+async function deleteCustomer(id) {
+  if (!id || !db) return;
+  const c = customerDirectory().find(x => x.id === id);
+  const st = statsFor(id);
   const ok = confirm(`${c ? c.name : 'Bu müştəri'} silinsin? Onun ${st.count} yuma qeydi də BİRLİKDƏ silinəcək. Bu geri qaytarıla bilməz.`);
   if (!ok) return;
   try {
     const batch = db.batch();
     st.visits.forEach(v => batch.delete(db.doc('visits/' + v.id)));
-    batch.delete(db.doc('customers/' + currentDetailCustomerId));
+    batch.delete(db.doc('customers/' + id));
     await batch.commit();
-    document.getElementById('customerDetail').classList.remove('show');
-    showCustomerList();
+    if (document.getElementById('customerDetail').classList.contains('show')) {
+      document.getElementById('customerDetail').classList.remove('show');
+      showCustomerList();
+    }
   } catch (e) {
     alert('Silinmə zamanı xəta baş verdi.');
   }
-});
+}
+document.getElementById('detDeleteBtn').addEventListener('click', () => deleteCustomer(currentDetailCustomerId));
 
 /* ---------- boot ---------- */
 /* ---------- DATA TAB ---------- */
@@ -1787,7 +1817,12 @@ function renderDataTab() {
       <td>${escapeHtml(g.name || '—')}</td>
       <td>${escapeHtml(formatPhoneAZ(g.phone))}</td>
       <td>${g.count}</td>
-      <td><button class="expand-btn" data-cid="${g.id}">▸</button></td>
+      <td><div class="row-actions">
+        <button class="icon-btn" data-view-cust="${g.id}" title="Müştəriyə bax">${ICON_EYE}</button>
+        <button class="icon-btn" data-edit-cust="${g.id}" title="Müştərini redaktə et">${ICON_EDIT}</button>
+        <button class="icon-btn danger" data-del-cust="${g.id}" title="Müştərini sil">${ICON_TRASH}</button>
+        <button class="expand-btn" data-cid="${g.id}" title="Tarixçəyə bax">${ICON_HISTORY}</button>
+      </div></td>
     </tr>
     <tr class="data-detail-row hidden" data-detail-cid="${g.id}">
       <td colspan="4">${lineItems}</td>
@@ -1797,6 +1832,9 @@ function renderDataTab() {
   body.querySelectorAll('[data-view-visit]').forEach(b => b.addEventListener('click', () => openViewVisit(b.getAttribute('data-view-visit'))));
   body.querySelectorAll('[data-edit-visit]').forEach(b => b.addEventListener('click', () => openEditVisit(b.getAttribute('data-edit-visit'))));
   body.querySelectorAll('[data-del-visit]').forEach(b => b.addEventListener('click', () => deleteVisitDirect(b.getAttribute('data-del-visit'))));
+  body.querySelectorAll('[data-view-cust]').forEach(b => b.addEventListener('click', () => openViewCustomer(b.getAttribute('data-view-cust'))));
+  body.querySelectorAll('[data-edit-cust]').forEach(b => b.addEventListener('click', () => openEditCustomer(b.getAttribute('data-edit-cust'))));
+  body.querySelectorAll('[data-del-cust]').forEach(b => b.addEventListener('click', () => deleteCustomer(b.getAttribute('data-del-cust'))));
 
   body.querySelectorAll('.expand-btn').forEach(btn => {
     btn.addEventListener('click', () => {
