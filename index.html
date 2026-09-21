@@ -183,6 +183,49 @@
   .new-customer-box.show { display: block; }
   .new-customer-box .lbl { font-size: 13px; font-weight: 500; margin-bottom: 10px; color: var(--ink-soft); }
 
+  .free-wash-banner {
+    display: none; margin-top: 14px; padding: 14px 16px; border-radius: 12px;
+    background: linear-gradient(135deg, var(--amber-soft), var(--surface-2));
+    border: 1px solid var(--amber);
+  }
+  .free-wash-banner.show { display: block; }
+  .free-wash-banner .fw-text { font-size: 14px; font-weight: 700; color: #6b4413; margin-bottom: 8px; }
+  .free-wash-banner .fw-check {
+    display: flex; align-items: center; gap: 8px; font-size: 13px; color: #6b4413; cursor: pointer;
+  }
+  .free-wash-banner .fw-check input { width: auto; accent-color: var(--amber); }
+
+  .modal-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(16,34,31,0.55);
+    z-index: 200; align-items: center; justify-content: center; padding: 20px;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal-box {
+    background: var(--surface); border-radius: 16px; padding: 22px; max-width: 460px;
+    width: 100%; max-height: 88vh; overflow-y: auto;
+  }
+  .modal-box h3 { margin: 0 0 16px; font-size: 16px; font-weight: 600; }
+  .modal-actions { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+  .btn-danger {
+    padding: 10px 14px; border-radius: 9px; border: 1px solid var(--danger);
+    background: transparent; color: var(--danger); font-weight: 600; font-size: 13.5px;
+    cursor: pointer; font-family: inherit;
+  }
+  .btn-danger:hover { background: var(--danger); color: #fff; }
+  .btn-ghost {
+    padding: 10px 14px; border-radius: 9px; border: 1px solid var(--line);
+    background: transparent; color: var(--ink-soft); font-weight: 600; font-size: 13.5px;
+    cursor: pointer; font-family: inherit;
+  }
+  .row-actions { display: flex; gap: 6px; white-space: nowrap; }
+  .icon-btn {
+    background: none; border: 1px solid var(--line); border-radius: 7px; width: 28px; height: 28px;
+    cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: center;
+    color: var(--ink-soft); font-family: inherit;
+  }
+  .icon-btn:hover { border-color: var(--teal); color: var(--teal-deep); }
+  .icon-btn.danger:hover { border-color: var(--danger); color: var(--danger); background: none; }
+
   .sale-form { margin-top: 18px; display: none; }
   .sale-form.show { display: block; }
   .field { margin-bottom: 12px; }
@@ -301,6 +344,13 @@
   }
   .mini-table td { padding: 6px 8px; border-bottom: 1px solid var(--line); }
   .mini-table tr:last-child td { border-bottom: none; }
+  .dt-history-item {
+    display: flex; justify-content: space-between; align-items: center; gap: 10px;
+    padding: 10px 4px; border-top: 1px solid var(--line);
+  }
+  .dt-history-item:first-of-type { border-top: none; }
+  .dt-line { font-size: 13px; line-height: 1.5; color: var(--ink); }
+  .dt-line b { font-weight: 600; }
 
   footer.hint { text-align: center; color: var(--ink-faint); font-size: 12px; margin-top: 26px; }
 </style>
@@ -398,6 +448,14 @@
         </div>
       </div>
 
+      <div class="free-wash-banner" id="freeWashBanner">
+        <div class="fw-text" id="freeWashText"></div>
+        <label class="fw-check">
+          <input type="checkbox" id="freeWashCheck" checked>
+          Pulsuz yuma kimi qeyd et (qiymət 0 olsun)
+        </label>
+      </div>
+
       <div class="new-customer-box" id="newCustomerBox">
         <div class="lbl">Yeni müştəri məlumatları</div>
         <div class="row2">
@@ -483,6 +541,8 @@
           <div class="ph" id="detPhone"></div>
         </div>
         <button class="change-btn wa-btn" id="detWaBtn" style="text-decoration:none; padding:9px 14px; border-radius:9px;">WhatsApp yaz</button>
+        <button class="icon-btn" id="detEditBtn" title="Redaktə et">✏️</button>
+        <button class="icon-btn danger" id="detDeleteBtn" title="Müştərini sil">🗑</button>
       </div>
       <div class="detail-stats">
         <div class="dcard"><div class="v" id="detVisits">—</div><div class="l">Yuma sayı</div></div>
@@ -492,7 +552,7 @@
       </div>
       <div class="table-scroll">
         <table>
-          <thead><tr><th>Tarix</th><th>Avtomobil</th><th>Xidmət</th><th>Əlavə xidmət</th><th>Yekun</th><th>Ödəniş</th><th>Əməkdaş</th></tr></thead>
+          <thead><tr><th>Tarix</th><th>Avtomobil</th><th>Xidmət</th><th>Əlavə xidmət</th><th>Yekun</th><th>Ödəniş</th><th>Əməkdaş</th><th></th></tr></thead>
           <tbody id="detHistoryBody"></tbody>
         </table>
       </div>
@@ -548,11 +608,10 @@
         <table>
           <thead>
             <tr>
-              <th>Ad, soyad</th><th>Nömrə</th><th>Məkan</th><th>Yuma sayı</th>
-              <th>Son tarix</th><th>Yekun məbləğ (₼)</th><th></th>
+              <th>Ad, soyad</th><th>Nömrə</th><th>Yuma sayı</th><th></th>
             </tr>
           </thead>
-          <tbody id="dataTableBody"><tr><td colspan="7" class="empty">Yüklənir…</td></tr></tbody>
+          <tbody id="dataTableBody"><tr><td colspan="4" class="empty">Yüklənir…</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -562,6 +621,70 @@
     Məlumat yalnız YuCar komandası üçün saxlanılır və paylaşılmır.<br>
     010 111 2026 · yucar.az · Instagram @yucar.azerbaijan · TikTok @yucar_azerbaijan
   </footer>
+
+  <div class="modal-overlay" id="editVisitOverlay">
+    <div class="modal-box">
+      <h3>Yumanı redaktə et</h3>
+      <div class="row2">
+        <div class="field"><label>Tarix</label><input id="evDate" type="date"></div>
+        <div class="field"><label>Avtomobil</label><input id="evCar" type="text"></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>Xidmət</label>
+          <select id="evService">
+            <option value="">Seçin</option>
+            <option value="Sedan">Sedan</option>
+            <option value="SUV">SUV</option>
+            <option value="Böyük Avtomobil">Böyük Avtomobil</option>
+          </select>
+        </div>
+        <div class="field"><label>Əlavə xidmət</label><input id="evAddon" type="text"></div>
+      </div>
+      <div class="row3">
+        <div class="field"><label>Ümumi (₼)</label><input id="evPriceGross" type="number" step="0.01"></div>
+        <div class="field"><label>Endirim (₼)</label><input id="evDiscount" type="number" step="0.01"></div>
+        <div class="field"><label>Yekun (₼)</label><input id="evPriceFinal" type="number" step="0.01"></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>Ödəniş üsulu</label>
+          <select id="evPayment">
+            <option value="Nağd">Nağd</option>
+            <option value="Kart">Kart</option>
+            <option value="Bank köçürməsi">Bank köçürməsi</option>
+          </select>
+        </div>
+        <div class="field"><label>Əməkdaş</label><input id="evEmployee" type="text"></div>
+      </div>
+      <div class="field"><label>Qeyd</label><textarea id="evNote"></textarea></div>
+      <div class="modal-actions">
+        <button class="btn-danger" id="evDeleteBtn">Sil</button>
+        <div style="flex:1;"></div>
+        <button class="btn-ghost" id="evCancelBtn">Ləğv et</button>
+        <button class="btn-primary" id="evSaveBtn" style="width:auto; margin-top:0;">Yadda saxla</button>
+      </div>
+      <div class="save-msg" id="evMsg"></div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="editCustomerOverlay">
+    <div class="modal-box">
+      <h3>Müştəri məlumatlarını redaktə et</h3>
+      <div class="field"><label>Ad, soyad</label><input id="ecName" type="text"></div>
+      <div class="field"><label>Əlaqə nömrəsi</label>
+        <div class="phone-input">
+          <span class="phone-prefix">+994</span>
+          <input id="ecPhone" type="tel" inputmode="numeric" maxlength="15">
+        </div>
+      </div>
+      <div class="field"><label>Məkan</label><input id="ecLocation" type="text"></div>
+      <div class="modal-actions">
+        <button class="btn-ghost" id="ecCancelBtn">Ləğv et</button>
+        <div style="flex:1;"></div>
+        <button class="btn-primary" id="ecSaveBtn" style="width:auto; margin-top:0;">Yadda saxla</button>
+      </div>
+      <div class="save-msg" id="ecMsg"></div>
+    </div>
+  </div>
 </div>
 
 </div>
@@ -673,9 +796,17 @@ function recalcPrice() {
   addonsSum += HEADLIGHT_PRICES[hv] || 0;
   const gross = base + addonsSum;
   document.getElementById('fPriceGross').value = gross || '';
-  const discount = parseFloat(document.getElementById('fDiscount').value) || 0;
-  document.getElementById('fPriceFinal').value = gross ? Math.max(gross - discount, 0) : '';
+  const freeCheck = document.getElementById('freeWashCheck');
+  const isFreeMode = document.getElementById('freeWashBanner').classList.contains('show') && freeCheck && freeCheck.checked;
+  if (isFreeMode) {
+    document.getElementById('fDiscount').value = gross || 0;
+    document.getElementById('fPriceFinal').value = 0;
+  } else {
+    const discount = parseFloat(document.getElementById('fDiscount').value) || 0;
+    document.getElementById('fPriceFinal').value = gross ? Math.max(gross - discount, 0) : '';
+  }
 }
+document.getElementById('freeWashCheck').addEventListener('change', recalcPrice);
 document.getElementById('fService').addEventListener('change', recalcPrice);
 document.querySelectorAll('.sizeAddonCk').forEach(cb => cb.addEventListener('change', recalcPrice));
 document.getElementById('fHeadlight').addEventListener('change', recalcPrice);
@@ -840,6 +971,19 @@ document.addEventListener('click', (e) => {
   if (!e.target.closest('.search-wrap')) suggBox.classList.remove('show');
 });
 
+function updateFreeWashBanner(nextSeq, name) {
+  const banner = document.getElementById('freeWashBanner');
+  const eligible = nextSeq > 0 && nextSeq % 6 === 0;
+  if (eligible) {
+    document.getElementById('freeWashText').textContent =
+      `🎉 Bu, ${name} üçün ${nextSeq}-cı yumadır — hər 5 yumadan sonra 6-cı pulsuzdur!`;
+    document.getElementById('freeWashCheck').checked = true;
+    banner.classList.add('show');
+  } else {
+    banner.classList.remove('show');
+  }
+}
+
 function selectCustomer(id) {
   const dir = customerDirectory();
   const c = dir.find(x => x.id === id);
@@ -855,6 +999,8 @@ function selectCustomer(id) {
   document.getElementById('selectedCustomerBox').classList.add('show');
   document.getElementById('saleForm').classList.add('show');
   saleSearch.value = c.name;
+  updateFreeWashBanner(st.count + 1, c.name);
+  recalcPrice();
 }
 
 function startNewCustomer(typedName) {
@@ -864,6 +1010,7 @@ function startNewCustomer(typedName) {
   document.getElementById('newCustomerBox').classList.add('show');
   document.getElementById('ncName').value = typedName || '';
   document.getElementById('saleForm').classList.add('show');
+  document.getElementById('freeWashBanner').classList.remove('show');
 }
 
 function resetSelection(clearSearch) {
@@ -871,6 +1018,7 @@ function resetSelection(clearSearch) {
   document.getElementById('selectedCustomerBox').classList.remove('show');
   document.getElementById('newCustomerBox').classList.remove('show');
   document.getElementById('saleForm').classList.remove('show');
+  document.getElementById('freeWashBanner').classList.remove('show');
   document.getElementById('ncPhone').value = '';
   document.getElementById('ncLocation').value = '';
   if (clearSearch) saleSearch.value = '';
@@ -991,9 +1139,12 @@ document.getElementById('backToList').addEventListener('click', () => {
   document.getElementById('customerDetail').classList.remove('show');
 });
 
+let currentDetailCustomerId = null;
+
 function openCustomerDetail(id) {
   const c = customerDirectory().find(x => x.id === id);
   if (!c) return;
+  currentDetailCustomerId = id;
   const st = statsFor(id);
   document.getElementById('detAvatar').textContent = initials(c.name);
   document.getElementById('detName').textContent = c.name || '—';
@@ -1020,9 +1171,159 @@ function openCustomerDetail(id) {
       <td>${v.priceFinal ? Number(v.priceFinal).toLocaleString('az-AZ') + ' ₼' : '—'}</td>
       <td>${escapeHtml(v.payment || '—')}</td>
       <td>${escapeHtml(v.employee || '—')}</td>
-    </tr>`).join('') || '<tr><td colspan="7" class="empty">Tarixçə yoxdur.</td></tr>';
+      <td><div class="row-actions">
+        <button class="icon-btn" data-edit-visit="${v.id}" title="Redaktə et">✏️</button>
+        <button class="icon-btn danger" data-del-visit="${v.id}" title="Sil">🗑</button>
+      </div></td>
+    </tr>`).join('') || '<tr><td colspan="8" class="empty">Tarixçə yoxdur.</td></tr>';
+  body.querySelectorAll('[data-edit-visit]').forEach(b => b.addEventListener('click', () => openEditVisit(b.getAttribute('data-edit-visit'))));
+  body.querySelectorAll('[data-del-visit]').forEach(b => b.addEventListener('click', () => deleteVisitDirect(b.getAttribute('data-del-visit'))));
   document.getElementById('customerDetail').classList.add('show');
 }
+
+/* ---------- EDIT / DELETE VISIT ---------- */
+let currentEditVisitId = null;
+
+function openEditVisit(id) {
+  const v = allVisits.find(x => x.id === id);
+  if (!v) return;
+  currentEditVisitId = id;
+  document.getElementById('evDate').value = v.date || '';
+  document.getElementById('evCar').value = v.car || '';
+  document.getElementById('evService').value = v.service || '';
+  document.getElementById('evAddon').value = v.addon || '';
+  document.getElementById('evPriceGross').value = v.priceGross || '';
+  document.getElementById('evDiscount').value = v.discount || '';
+  document.getElementById('evPriceFinal').value = v.priceFinal || '';
+  document.getElementById('evPayment').value = v.payment || 'Nağd';
+  document.getElementById('evEmployee').value = v.employee || '';
+  document.getElementById('evNote').value = v.note || '';
+  document.getElementById('evMsg').className = 'save-msg';
+  document.getElementById('editVisitOverlay').classList.add('show');
+}
+function closeEditVisit() {
+  document.getElementById('editVisitOverlay').classList.remove('show');
+  currentEditVisitId = null;
+}
+document.getElementById('evCancelBtn').addEventListener('click', closeEditVisit);
+document.getElementById('editVisitOverlay').addEventListener('click', (e) => {
+  if (e.target.id === 'editVisitOverlay') closeEditVisit();
+});
+
+async function saveEditVisit() {
+  const msg = document.getElementById('evMsg');
+  if (!currentEditVisitId || !db) return;
+  const updated = {
+    date: document.getElementById('evDate').value,
+    car: document.getElementById('evCar').value.trim(),
+    service: document.getElementById('evService').value,
+    addon: document.getElementById('evAddon').value.trim(),
+    priceGross: parseFloat(document.getElementById('evPriceGross').value) || 0,
+    discount: parseFloat(document.getElementById('evDiscount').value) || 0,
+    priceFinal: parseFloat(document.getElementById('evPriceFinal').value) || 0,
+    payment: document.getElementById('evPayment').value,
+    employee: document.getElementById('evEmployee').value.trim(),
+    note: document.getElementById('evNote').value.trim(),
+  };
+  try {
+    await db.doc('visits/' + currentEditVisitId).update(updated);
+    closeEditVisit();
+  } catch (e) {
+    msg.textContent = 'Xəta baş verdi, yenidən cəhd edin.';
+    msg.className = 'save-msg show err';
+  }
+}
+document.getElementById('evSaveBtn').addEventListener('click', saveEditVisit);
+
+document.getElementById('evDeleteBtn').addEventListener('click', async () => {
+  if (!currentEditVisitId || !db) return;
+  if (!confirm('Bu yuma qeydini silmək istədiyinizə əminsiniz? Bu geri qaytarıla bilməz.')) return;
+  try {
+    await db.doc('visits/' + currentEditVisitId).delete();
+    closeEditVisit();
+  } catch (e) {
+    document.getElementById('evMsg').textContent = 'Silinmə zamanı xəta baş verdi.';
+    document.getElementById('evMsg').className = 'save-msg show err';
+  }
+});
+
+async function deleteVisitDirect(id) {
+  if (!db) return;
+  if (!confirm('Bu yuma qeydini silmək istədiyinizə əminsiniz? Bu geri qaytarıla bilməz.')) return;
+  try { await db.doc('visits/' + id).delete(); } catch (e) { alert('Silinmə zamanı xəta baş verdi.'); }
+}
+
+/* ---------- EDIT / DELETE CUSTOMER ---------- */
+function openEditCustomer() {
+  if (!currentDetailCustomerId) return;
+  const c = customerDirectory().find(x => x.id === currentDetailCustomerId);
+  if (!c) return;
+  document.getElementById('ecName').value = c.name || '';
+  document.getElementById('ecPhone').value = digitsOnlyLocal(c.phone);
+  document.getElementById('ecLocation').value = c.location || '';
+  document.getElementById('ecMsg').className = 'save-msg';
+  document.getElementById('editCustomerOverlay').classList.add('show');
+}
+function closeEditCustomer() {
+  document.getElementById('editCustomerOverlay').classList.remove('show');
+}
+document.getElementById('detEditBtn').addEventListener('click', openEditCustomer);
+document.getElementById('ecCancelBtn').addEventListener('click', closeEditCustomer);
+document.getElementById('editCustomerOverlay').addEventListener('click', (e) => {
+  if (e.target.id === 'editCustomerOverlay') closeEditCustomer();
+});
+
+async function saveEditCustomer() {
+  const msg = document.getElementById('ecMsg');
+  if (!currentDetailCustomerId || !db) return;
+  const name = document.getElementById('ecName').value.trim();
+  const key = digitsOnlyLocal(document.getElementById('ecPhone').value);
+  if (!name || key.length !== 9) {
+    msg.textContent = 'Ad daxil edin və nömrəni tam yazın (9 rəqəm).';
+    msg.className = 'save-msg show err';
+    return;
+  }
+  const phone = formatPhoneAZ(key);
+  const location = document.getElementById('ecLocation').value.trim();
+  try {
+    if (key === currentDetailCustomerId) {
+      await db.doc('customers/' + currentDetailCustomerId).update({ name, phone, location });
+    } else {
+      // phone number changed → move to a new document id, update linked visits
+      await db.doc('customers/' + key).set({ name, phone, location, createdAt: new Date().toISOString() });
+      const oldVisits = allVisits.filter(v => (v.customerId || v.phoneKey) === currentDetailCustomerId);
+      const batch = db.batch();
+      oldVisits.forEach(v => batch.update(db.doc('visits/' + v.id), { customerId: key, phoneKey: key, name, phone }));
+      await batch.commit();
+      await db.doc('customers/' + currentDetailCustomerId).delete();
+      currentDetailCustomerId = key;
+    }
+    closeEditCustomer();
+    openCustomerDetail(currentDetailCustomerId);
+  } catch (e) {
+    msg.textContent = 'Xəta baş verdi, yenidən cəhd edin.';
+    msg.className = 'save-msg show err';
+  }
+}
+document.getElementById('ecSaveBtn').addEventListener('click', saveEditCustomer);
+
+document.getElementById('detDeleteBtn').addEventListener('click', async () => {
+  if (!currentDetailCustomerId || !db) return;
+  const c = customerDirectory().find(x => x.id === currentDetailCustomerId);
+  const st = statsFor(currentDetailCustomerId);
+  const ok = confirm(`${c ? c.name : 'Bu müştəri'} silinsin? Onun ${st.count} yuma qeydi də BİRLİKDƏ silinəcək. Bu geri qaytarıla bilməz.`);
+  if (!ok) return;
+  try {
+    const batch = db.batch();
+    st.visits.forEach(v => batch.delete(db.doc('visits/' + v.id)));
+    batch.delete(db.doc('customers/' + currentDetailCustomerId));
+    await batch.commit();
+    document.getElementById('customerDetail').classList.remove('show');
+    showCustomerList();
+  } catch (e) {
+    alert('Silinmə zamanı xəta baş verdi.');
+  }
+});
 
 /* ---------- boot ---------- */
 /* ---------- DATA TAB ---------- */
@@ -1064,7 +1365,7 @@ function renderDataTab() {
 
   const body = document.getElementById('dataTableBody');
   if (rows.length === 0) {
-    body.innerHTML = '<tr><td colspan="7" class="empty">Bu filtrlərə uyğun nəticə yoxdur.</td></tr>';
+    body.innerHTML = '<tr><td colspan="4" class="empty">Bu filtrlərə uyğun nəticə yoxdur.</td></tr>';
     return;
   }
 
@@ -1082,36 +1383,35 @@ function renderDataTab() {
 
   body.innerHTML = groups.map(g => {
     const sortedVisits = [...g.visits].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
-    const miniRows = sortedVisits.map(v => `
-      <tr>
-        <td>${fmtDate(v.date)}</td>
-        <td>${escapeHtml(v.car || '—')}</td>
-        <td>${escapeHtml(v.service || '—')}</td>
-        <td>${escapeHtml(v.addon || '—')}</td>
-        <td>${v.priceFinal ? Number(v.priceFinal).toLocaleString('az-AZ') + ' ₼' : '—'}</td>
-        <td>${escapeHtml(v.payment || '—')}</td>
-        <td>${escapeHtml(v.employee || '—')}</td>
-        <td>${escapeHtml(v.note || '—')}</td>
-      </tr>`).join('');
+    const lineItems = sortedVisits.map(v => {
+      const parts = [v.car, v.service, v.addon].filter(Boolean);
+      const priceTxt = v.priceFinal ? Number(v.priceFinal).toLocaleString('az-AZ') + ' ₼' : '—';
+      return `
+      <div class="dt-history-item">
+        <div class="dt-line">
+          <b>${fmtDate(v.date)}</b> · ${escapeHtml(parts.join(' · ') || 'Yuma')} · ${priceTxt} ·
+          ${escapeHtml(v.payment || '—')} · ${escapeHtml(v.employee || '—')}
+        </div>
+        <div class="row-actions">
+          <button class="icon-btn" data-edit-visit="${v.id}" title="Redaktə et">✏️</button>
+          <button class="icon-btn danger" data-del-visit="${v.id}" title="Sil">🗑</button>
+        </div>
+      </div>`;
+    }).join('');
     return `
     <tr class="data-row" data-cid="${g.id}">
-      <td>${escapeHtml(g.name || '—')}${g.count > 1 ? ` <span class="badge pts">${g.count} yuma</span>` : ''}</td>
+      <td>${escapeHtml(g.name || '—')}</td>
       <td>${escapeHtml(formatPhoneAZ(g.phone))}</td>
-      <td>${escapeHtml(g.location || '—')}</td>
       <td>${g.count}</td>
-      <td>${fmtDate(g.lastDate)}</td>
-      <td>${g.total.toLocaleString('az-AZ')} ₼</td>
       <td><button class="expand-btn" data-cid="${g.id}">▸</button></td>
     </tr>
     <tr class="data-detail-row hidden" data-detail-cid="${g.id}">
-      <td colspan="7">
-        <table class="mini-table">
-          <thead><tr><th>Tarix</th><th>Avtomobil</th><th>Xidmət</th><th>Əlavə xidmət</th><th>Yekun</th><th>Ödəniş</th><th>Əməkdaş</th><th>Qeyd</th></tr></thead>
-          <tbody>${miniRows}</tbody>
-        </table>
-      </td>
+      <td colspan="4">${lineItems}</td>
     </tr>`;
   }).join('');
+
+  body.querySelectorAll('[data-edit-visit]').forEach(b => b.addEventListener('click', () => openEditVisit(b.getAttribute('data-edit-visit'))));
+  body.querySelectorAll('[data-del-visit]').forEach(b => b.addEventListener('click', () => deleteVisitDirect(b.getAttribute('data-del-visit'))));
 
   body.querySelectorAll('.expand-btn').forEach(btn => {
     btn.addEventListener('click', () => {
