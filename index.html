@@ -118,6 +118,7 @@
   .stat-card:hover { transform: translateY(-3px); box-shadow: 0 10px 24px rgba(16,34,31,0.09); }
   .stat-card .v { font-size: 25px; font-weight: 800; font-family: 'Manrope', sans-serif; background: linear-gradient(135deg, var(--teal-deep), var(--teal)); -webkit-background-clip: text; background-clip: text; color: transparent; }
   .stat-card .l { font-size: 12px; color: var(--ink-soft); margin-top: 3px; }
+  .stat-card .stat-sub { display: block; font-size: 10.5px; color: var(--ink-faint); margin-top: 1px; }
 
   /* leaderboard */
   .lb-item {
@@ -480,7 +481,7 @@
       <div class="stat-card"><div class="v" id="statCustomers">—</div><div class="l">Müştəri</div></div>
       <div class="stat-card"><div class="v" id="statVisits">—</div><div class="l">Ümumi yuma</div></div>
       <div class="stat-card"><div class="v" id="statRevenue">—</div><div class="l">Ümumi gəlir (₼)</div></div>
-      <div class="stat-card"><div class="v" id="statPoints">—</div><div class="l">Verilmiş xal</div></div>
+      <div class="stat-card"><div class="v" id="statPoints">—</div><div class="l">Verilmiş xal <span id="statPointsAzn" class="stat-sub"></span></div></div>
     </div>
 
     <div class="panel">
@@ -639,7 +640,7 @@
       <div class="detail-stats">
         <div class="dcard"><div class="v" id="detVisits">—</div><div class="l">Yuma sayı</div></div>
         <div class="dcard"><div class="v" id="detSpent">—</div><div class="l">Ödənilib (₼)</div></div>
-        <div class="dcard"><div class="v" id="detPoints">—</div><div class="l">Xal</div></div>
+        <div class="dcard"><div class="v" id="detPoints">—</div><div class="l">Xal <span id="detPointsAzn" class="stat-sub"></span></div></div>
         <div class="dcard"><div class="v" id="detLast">—</div><div class="l">Son yuma</div></div>
       </div>
       <div class="table-scroll">
@@ -810,7 +811,9 @@
 let allVisits = [];
 let allCustomers = [];
 let selectedCustomerId = null; // for sale tab
-const POINTS_PER_VISIT = 5;
+function pointsForVisit(v) { return Math.round((Number(v.priceFinal) || 0) * 10); }
+function pointsToAzn(points) { return points / 100; }
+function fmtAzn(n) { return n.toLocaleString('az-AZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
 
 /* ---------- helpers ---------- */
 function normPhone(p) { return (p || '').replace(/\D/g, ''); }
@@ -938,7 +941,7 @@ function statsFor(customerId) {
   const vs = visitsFor(customerId).sort((a, b) => (a.date || '').localeCompare(b.date || ''));
   const count = vs.length;
   const spent = vs.reduce((s, v) => s + (Number(v.priceFinal) || 0), 0);
-  const points = count * POINTS_PER_VISIT;
+  const points = vs.reduce((s, v) => s + pointsForVisit(v), 0);
   const lastDate = count ? vs[vs.length - 1].date : null;
   return { visits: vs, count, spent, points, lastDate };
 }
@@ -1071,7 +1074,9 @@ function renderHome() {
   document.getElementById('statVisits').textContent = allVisits.length;
   const revenue = allVisits.reduce((s, v) => s + (Number(v.priceFinal) || 0), 0);
   document.getElementById('statRevenue').textContent = revenue.toLocaleString('az-AZ', { maximumFractionDigits: 0 });
-  document.getElementById('statPoints').textContent = (allVisits.length * POINTS_PER_VISIT).toLocaleString('az-AZ');
+  const totalPoints = allVisits.reduce((s, v) => s + pointsForVisit(v), 0);
+  document.getElementById('statPoints').textContent = totalPoints.toLocaleString('az-AZ');
+  document.getElementById('statPointsAzn').textContent = `(≈ ${fmtAzn(pointsToAzn(totalPoints))} ₼)`;
   renderHomeChart();
 
   const ranked = dir.map(c => ({ ...c, ...statsFor(c.id) }))
@@ -1279,6 +1284,8 @@ async function saveSale() {
   }
 
   const date = document.getElementById('fDate').value || todayStr();
+  const priceFinalVal = parseFloat(document.getElementById('fPriceFinal').value) || 0;
+  const earnedPts = Math.round(priceFinalVal * 10);
   const record = {
     customerId, phoneKey: customerId,
     name: customerName, phone: customerPhone, location: customerLocation,
@@ -1287,20 +1294,21 @@ async function saveSale() {
     addon: selectedAddons().join(', '),
     priceGross: parseFloat(document.getElementById('fPriceGross').value) || 0,
     discount: parseFloat(document.getElementById('fDiscount').value) || 0,
-    priceFinal: parseFloat(document.getElementById('fPriceFinal').value) || 0,
+    priceFinal: priceFinalVal,
     payment: document.getElementById('fPayment').value,
     employee: document.getElementById('fEmployee').value.trim(),
     note: document.getElementById('fNote').value.trim(),
-    date, reminded: false, pointsEarned: POINTS_PER_VISIT,
+    date, reminded: false, pointsEarned: earnedPts,
     createdAt: new Date().toISOString(),
   };
 
   btn.disabled = true; btn.textContent = 'Saxlanılır…';
   try {
-    const priorCount = statsFor(customerId).count;
+    const priorStats = statsFor(customerId);
     await db.collection('visits').add(record);
-    const n = priorCount + 1;
-    msg.textContent = `✅ Satış yaddaşa verildi — ${customerName} üçün ${n}-cı yumadır. +${POINTS_PER_VISIT} xal qazandı (cəmi ${n * POINTS_PER_VISIT} xal).`;
+    const n = priorStats.count + 1;
+    const totalPts = priorStats.points + earnedPts;
+    msg.textContent = `✅ Satış yaddaşa verildi — ${customerName} üçün ${n}-cı yumadır. +${earnedPts} xal qazandı (cəmi ${totalPts} xal ≈ ${fmtAzn(pointsToAzn(totalPts))} ₼).`;
     msg.className = 'save-msg show ok';
     ['fCar','fPriceGross','fDiscount','fPriceFinal','fEmployee','fNote'].forEach(id => document.getElementById(id).value = '');
     document.getElementById('fService').value = '';
@@ -1381,6 +1389,7 @@ function openCustomerDetail(id) {
   document.getElementById('detVisits').textContent = st.count;
   document.getElementById('detSpent').textContent = st.spent.toLocaleString('az-AZ', { maximumFractionDigits: 0 });
   document.getElementById('detPoints').textContent = st.points;
+  document.getElementById('detPointsAzn').textContent = `(≈ ${fmtAzn(pointsToAzn(st.points))} ₼)`;
   document.getElementById('detLast').textContent = fmtDate(st.lastDate);
   const body = document.getElementById('detHistoryBody');
   const sorted = [...st.visits].sort((a, b) => (b.date || '').localeCompare(a.date || ''));

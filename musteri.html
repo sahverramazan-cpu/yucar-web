@@ -354,6 +354,19 @@
   }
 
   .m-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 18px 0; }
+
+  .m-points-card {
+    background: linear-gradient(135deg, var(--teal-deep), var(--teal));
+    border-radius: 18px; padding: 20px 22px; margin-bottom: 16px; color: #eafff2;
+    box-shadow: 0 10px 28px rgba(5,187,52,0.28);
+  }
+  .mp-row { display: flex; justify-content: space-between; align-items: flex-end; gap: 14px; flex-wrap: wrap; }
+  .mp-label { font-size: 13px; color: rgba(234,255,242,0.85); margin-bottom: 4px; font-weight: 600; }
+  .mp-amount { font-size: 34px; font-weight: 800; font-family: 'Manrope', sans-serif; line-height: 1.1; }
+  .mp-azn-box { text-align: right; background: rgba(255,255,255,0.16); padding: 10px 15px; border-radius: 13px; }
+  .mp-azn-amount { font-size: 19px; font-weight: 800; font-family: 'Manrope', sans-serif; }
+  .mp-azn-label { font-size: 10.5px; color: rgba(234,255,242,0.8); margin-top: 1px; }
+  .mp-hint { font-size: 11.5px; color: rgba(234,255,242,0.75); margin-top: 14px; }
   .m-stat { background: var(--surface-2); border-radius: 13px; padding: 14px 15px; }
   .m-stat .v { font-size: 22px; font-weight: 800; font-family: 'Manrope', sans-serif; color: var(--teal-deep); }
   .m-stat .l { font-size: 12px; color: var(--ink-soft); margin-top: 2px; }
@@ -428,8 +441,22 @@
       </div>
       <div class="m-stats">
         <div class="m-stat"><div class="v" id="mVisitCount">—</div><div class="l">Ümumi yuma</div></div>
-        <div class="m-stat"><div class="v" id="mPoints">—</div><div class="l">Xal</div></div>
+        <div class="m-stat"><div class="v" id="mSpent">—</div><div class="l">Xərclənib (₼)</div></div>
       </div>
+    </div>
+
+    <div class="m-points-card">
+      <div class="mp-row">
+        <div>
+          <div class="mp-label">Xal balansım</div>
+          <div class="mp-amount" id="mPointsAmount">—</div>
+        </div>
+        <div class="mp-azn-box">
+          <div class="mp-azn-amount" id="mPointsAzn">—</div>
+          <div class="mp-azn-label">endirim dəyəri</div>
+        </div>
+      </div>
+      <div class="mp-hint">1 ₼ xərcləmə = 10 xal · 100 xal = 1 ₼ endirim</div>
     </div>
 
     <div class="m-progress-box">
@@ -475,7 +502,9 @@ function escapeHtml(s) {
   return (s || '').toString().replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
-const POINTS_PER_VISIT = 5;
+function pointsForVisit(v) { return Math.round((Number(v.priceFinal) || 0) * 10); }
+function pointsToAzn(points) { return points / 100; }
+function fmtAzn(n) { return n.toLocaleString('az-AZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
 
 const loginView = document.getElementById('mLoginView');
 const profileView = document.getElementById('mProfileView');
@@ -557,9 +586,12 @@ function loadProfile(customerId) {
 
 function renderProfile(visitsAsc) {
   const count = visitsAsc.length;
-  const points = count * POINTS_PER_VISIT;
+  const spent = visitsAsc.reduce((s, v) => s + (Number(v.priceFinal) || 0), 0);
+  const points = visitsAsc.reduce((s, v) => s + pointsForVisit(v), 0);
   document.getElementById('mVisitCount').textContent = count;
-  document.getElementById('mPoints').textContent = points;
+  document.getElementById('mSpent').textContent = fmtAzn(spent);
+  document.getElementById('mPointsAmount').textContent = points.toLocaleString('az-AZ');
+  document.getElementById('mPointsAzn').textContent = fmtAzn(pointsToAzn(points)) + ' ₼';
 
   const posInCycle = count % 6;
   const remaining = 5 - posInCycle;
@@ -595,7 +627,7 @@ function renderProfile(visitsAsc) {
         </div>
         <div class="m-history-desc">${escapeHtml(parts.join(' · ') || 'Yuma')}</div>
         <div class="m-history-bottom">
-          <span class="m-history-pts">+${POINTS_PER_VISIT} xal</span>
+          <span class="m-history-pts">+${pointsForVisit(v)} xal</span>
           ${isFree ? '<span class="m-history-free-tag">6-cı yuma</span>' : ''}
         </div>
       </div>`;
