@@ -276,6 +276,8 @@
   }
   .btn-ghost:hover { background: var(--surface-2); color: var(--ink); }
   .row-actions { display: flex; gap: 6px; white-space: nowrap; }
+  .col-actions { text-align: right; }
+  .col-actions .row-actions { justify-content: flex-end; }
   .icon-btn {
     background: var(--surface); border: 1px solid var(--line); border-radius: 9px; width: 30px; height: 30px;
     cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: center;
@@ -670,7 +672,7 @@
       </div>
       <div class="table-scroll">
         <table>
-          <thead><tr><th>Tarix</th><th>Avtomobil</th><th>Xidmət</th><th>Əlavə xidmət</th><th>Yekun</th><th>Ödəniş</th><th>Əməkdaş</th><th></th></tr></thead>
+          <thead><tr><th>Tarix</th><th>Avtomobil</th><th>Xidmət</th><th>Əlavə xidmət</th><th>Yekun</th><th>Ödəniş</th><th>Əməkdaş</th><th class="col-actions"></th></tr></thead>
           <tbody id="detHistoryBody"></tbody>
         </table>
       </div>
@@ -732,7 +734,7 @@
         <table>
           <thead>
             <tr>
-              <th>Ad, soyad</th><th>Nömrə</th><th>Yuma sayı</th><th></th>
+              <th>Ad, soyad</th><th>Nömrə</th><th>Yuma sayı</th><th class="col-actions"></th>
             </tr>
           </thead>
           <tbody id="dataTableBody"><tr><td colspan="4" class="empty">Yüklənir…</td></tr></tbody>
@@ -838,6 +840,17 @@
         <button class="btn-primary" id="nc2SaveBtn" style="width:auto; margin-top:0;">Əlavə et</button>
       </div>
       <div class="save-msg" id="nc2Msg"></div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="historyOverlay">
+    <div class="modal-box" style="max-width: 560px;">
+      <h3 id="historyModalTitle">Tarixçə</h3>
+      <div id="historyModalBody"></div>
+      <div class="modal-actions">
+        <div style="flex:1;"></div>
+        <button class="btn-ghost" id="historyCloseBtn">Bağla</button>
+      </div>
     </div>
   </div>
 </div>
@@ -1470,7 +1483,7 @@ function openCustomerDetail(id) {
       <td>${v.priceFinal ? Number(v.priceFinal).toLocaleString('az-AZ') + ' ₼' : '—'}</td>
       <td>${escapeHtml(v.payment || '—')}</td>
       <td>${escapeHtml(v.employee || '—')}</td>
-      <td><div class="row-actions">
+      <td class="col-actions"><div class="row-actions">
         <button class="icon-btn" data-view-visit="${v.id}" title="Bax">${ICON_EYE}</button>
         <button class="icon-btn" data-edit-visit="${v.id}" title="Redaktə et">${ICON_EDIT}</button>
         <button class="icon-btn danger" data-del-visit="${v.id}" title="Sil">${ICON_TRASH}</button>
@@ -1529,6 +1542,53 @@ function openViewCustomer(id) {
   ];
   renderViewModal('Müştəri məlumatları', rows);
 }
+
+function openHistoryModal(id) {
+  const c = customerDirectory().find(x => x.id === id);
+  if (!c) return;
+  const visits = visitsFor(id).sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  document.getElementById('historyModalTitle').textContent = `${c.name || 'Müştəri'} — Tarixçə`;
+  const body = document.getElementById('historyModalBody');
+  if (visits.length === 0) {
+    body.innerHTML = '<div class="empty">Tarixçə yoxdur.</div>';
+  } else {
+    body.innerHTML = visits.map(v => {
+      const parts = [v.car, v.service, v.addon].filter(Boolean);
+      const priceTxt = v.priceFinal ? Number(v.priceFinal).toLocaleString('az-AZ') + ' ₼' : '—';
+      return `
+      <div class="dt-history-item">
+        <div class="dt-line">
+          <b>${fmtDate(v.date)}</b> · ${escapeHtml(parts.join(' · ') || 'Yuma')} · ${priceTxt} ·
+          ${escapeHtml(v.payment || '—')} · ${escapeHtml(v.employee || '—')}
+        </div>
+        <div class="row-actions">
+          <button class="icon-btn" data-hv-view="${v.id}" title="Bax">${ICON_EYE}</button>
+          <button class="icon-btn" data-hv-edit="${v.id}" title="Redaktə et">${ICON_EDIT}</button>
+          <button class="icon-btn danger" data-hv-del="${v.id}" title="Sil">${ICON_TRASH}</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+  body.querySelectorAll('[data-hv-view]').forEach(b => b.addEventListener('click', () => {
+    document.getElementById('historyOverlay').classList.remove('show');
+    openViewVisit(b.getAttribute('data-hv-view'));
+  }));
+  body.querySelectorAll('[data-hv-edit]').forEach(b => b.addEventListener('click', () => {
+    document.getElementById('historyOverlay').classList.remove('show');
+    openEditVisit(b.getAttribute('data-hv-edit'));
+  }));
+  body.querySelectorAll('[data-hv-del]').forEach(b => b.addEventListener('click', () => {
+    deleteVisitDirect(b.getAttribute('data-hv-del'));
+    setTimeout(() => openHistoryModal(id), 300);
+  }));
+  document.getElementById('historyOverlay').classList.add('show');
+}
+document.getElementById('historyCloseBtn').addEventListener('click', () => {
+  document.getElementById('historyOverlay').classList.remove('show');
+});
+document.getElementById('historyOverlay').addEventListener('click', (e) => {
+  if (e.target.id === 'historyOverlay') document.getElementById('historyOverlay').classList.remove('show');
+});
 
 document.getElementById('vvCloseBtn').addEventListener('click', () => {
   document.getElementById('viewVisitOverlay').classList.remove('show');
@@ -1795,56 +1855,24 @@ function renderDataTab() {
   }).sort((a, b) => b.lastDate.localeCompare(a.lastDate));
 
   body.innerHTML = groups.map(g => {
-    const sortedVisits = [...g.visits].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
-    const lineItems = sortedVisits.map(v => {
-      const parts = [v.car, v.service, v.addon].filter(Boolean);
-      const priceTxt = v.priceFinal ? Number(v.priceFinal).toLocaleString('az-AZ') + ' ₼' : '—';
-      return `
-      <div class="dt-history-item">
-        <div class="dt-line">
-          <b>${fmtDate(v.date)}</b> · ${escapeHtml(parts.join(' · ') || 'Yuma')} · ${priceTxt} ·
-          ${escapeHtml(v.payment || '—')} · ${escapeHtml(v.employee || '—')}
-        </div>
-        <div class="row-actions">
-          <button class="icon-btn" data-view-visit="${v.id}" title="Bax">${ICON_EYE}</button>
-          <button class="icon-btn" data-edit-visit="${v.id}" title="Redaktə et">${ICON_EDIT}</button>
-          <button class="icon-btn danger" data-del-visit="${v.id}" title="Sil">${ICON_TRASH}</button>
-        </div>
-      </div>`;
-    }).join('');
     return `
     <tr class="data-row" data-cid="${g.id}">
       <td>${escapeHtml(g.name || '—')}</td>
       <td>${escapeHtml(formatPhoneAZ(g.phone))}</td>
       <td>${g.count}</td>
-      <td><div class="row-actions">
+      <td class="col-actions"><div class="row-actions">
         <button class="icon-btn" data-view-cust="${g.id}" title="Müştəriyə bax">${ICON_EYE}</button>
         <button class="icon-btn" data-edit-cust="${g.id}" title="Müştərini redaktə et">${ICON_EDIT}</button>
         <button class="icon-btn danger" data-del-cust="${g.id}" title="Müştərini sil">${ICON_TRASH}</button>
-        <button class="expand-btn" data-cid="${g.id}" title="Tarixçəyə bax">${ICON_HISTORY}</button>
+        <button class="icon-btn" data-history-cid="${g.id}" title="Tarixçəyə bax">${ICON_HISTORY}</button>
       </div></td>
-    </tr>
-    <tr class="data-detail-row hidden" data-detail-cid="${g.id}">
-      <td colspan="4">${lineItems}</td>
     </tr>`;
   }).join('');
 
-  body.querySelectorAll('[data-view-visit]').forEach(b => b.addEventListener('click', () => openViewVisit(b.getAttribute('data-view-visit'))));
-  body.querySelectorAll('[data-edit-visit]').forEach(b => b.addEventListener('click', () => openEditVisit(b.getAttribute('data-edit-visit'))));
-  body.querySelectorAll('[data-del-visit]').forEach(b => b.addEventListener('click', () => deleteVisitDirect(b.getAttribute('data-del-visit'))));
   body.querySelectorAll('[data-view-cust]').forEach(b => b.addEventListener('click', () => openViewCustomer(b.getAttribute('data-view-cust'))));
   body.querySelectorAll('[data-edit-cust]').forEach(b => b.addEventListener('click', () => openEditCustomer(b.getAttribute('data-edit-cust'))));
   body.querySelectorAll('[data-del-cust]').forEach(b => b.addEventListener('click', () => deleteCustomer(b.getAttribute('data-del-cust'))));
-
-  body.querySelectorAll('.expand-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const cid = btn.getAttribute('data-cid');
-      const detail = body.querySelector(`.data-detail-row[data-detail-cid="${CSS.escape(cid)}"]`);
-      if (!detail) return;
-      const nowHidden = detail.classList.toggle('hidden');
-      btn.classList.toggle('open', !nowHidden);
-    });
-  });
+  body.querySelectorAll('[data-history-cid]').forEach(b => b.addEventListener('click', () => openHistoryModal(b.getAttribute('data-history-cid'))));
 }
 ['dataSearch','dfName','dfPhone','dfCar','dfEmployee'].forEach(id => {
   document.getElementById(id).addEventListener('input', renderDataTab);
