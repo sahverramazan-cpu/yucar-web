@@ -346,12 +346,13 @@
     color: #fff; display: flex; align-items: center; justify-content: center;
     font-weight: 700; font-size: 14px; flex-shrink: 0;
   }
-  .cust-main { flex: 1; min-width: 0; }
-  .cust-main .nm { font-size: 14.5px; font-weight: 600; }
-  .cust-main .nm .cust-phone-inline { font-weight: 400; color: var(--ink-soft); font-size: 13px; }
+  .cust-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+  .cust-main .nm { font-size: 14.5px; font-weight: 700; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .cust-main .ph { font-size: 12.5px; color: var(--ink-soft); }
   .cust-stats { text-align: right; flex-shrink: 0; }
-  .cust-stats .cnt { font-size: 14px; font-weight: 700; color: var(--teal-deep); }
-  .cust-stats .lastv { font-size: 11.5px; color: var(--ink-faint); }
+  .cust-stats .cnt { font-size: 13.5px; font-weight: 700; color: var(--teal-deep); }
+  .cust-stats .cnt.zero { color: var(--ink-faint); font-weight: 500; }
+  .cust-stats .lastv { font-size: 11.5px; color: var(--ink-faint); margin-top: 2px; }
 
   .detail-view { display: none; }
   .detail-view.show { display: block; animation: fadeSlideUp .3s ease; }
@@ -1342,8 +1343,14 @@ function renderCustomerList() {
   body.innerHTML = rows.map(c => `
     <div class="cust-row" data-id="${c.id}">
       <div class="cust-avatar">${initials(c.name)}</div>
-      <div class="cust-main"><div class="nm">${escapeHtml(c.name || '—')} <span class="cust-phone-inline">${escapeHtml(formatPhoneAZ(c.phone))}</span></div></div>
-      <div class="cust-stats"><div class="cnt">${c.count} yuma · ${c.points} xal</div><div class="lastv">Son: ${fmtDate(c.lastDate)}</div></div>
+      <div class="cust-main">
+        <div class="nm">${escapeHtml(c.name || '—')}</div>
+        <div class="ph">${escapeHtml(formatPhoneAZ(c.phone))}</div>
+      </div>
+      <div class="cust-stats">
+        <div class="cnt${c.count === 0 ? ' zero' : ''}">${c.count} yuma · ${c.points} xal</div>
+        <div class="lastv">Son: ${fmtDate(c.lastDate)}</div>
+      </div>
     </div>`).join('');
   body.querySelectorAll('.cust-row').forEach(el => {
     el.addEventListener('click', () => openCustomerDetail(el.getAttribute('data-id')));
