@@ -437,12 +437,16 @@
   .mini-table td { padding: 6px 8px; border-bottom: 1px solid var(--line); }
   .mini-table tr:last-child td { border-bottom: none; }
   .dt-history-item {
-    display: flex; justify-content: space-between; align-items: center; gap: 10px;
-    padding: 10px 4px; border-top: 1px solid var(--line);
+    padding: 13px 2px; border-top: 1px solid var(--line);
+    display: flex; flex-direction: column; gap: 7px;
   }
   .dt-history-item:first-of-type { border-top: none; }
-  .dt-line { font-size: 13px; line-height: 1.5; color: var(--ink); }
-  .dt-line b { font-weight: 600; }
+  .dt-h-top { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+  .dt-h-date { font-weight: 700; font-size: 14px; color: var(--ink); }
+  .dt-h-price { font-weight: 700; font-size: 14px; color: var(--teal-deep); white-space: nowrap; }
+  .dt-h-desc { font-size: 12.5px; color: var(--ink-soft); line-height: 1.5; }
+  .dt-h-bottom { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .dt-h-meta { font-size: 11.5px; color: var(--ink-faint); }
 
   footer.hint { text-align: center; color: var(--ink-faint); font-size: 12px; margin-top: 26px; }
 </style>
@@ -1557,14 +1561,18 @@ function openHistoryModal(id) {
       const priceTxt = v.priceFinal ? Number(v.priceFinal).toLocaleString('az-AZ') + ' ₼' : '—';
       return `
       <div class="dt-history-item">
-        <div class="dt-line">
-          <b>${fmtDate(v.date)}</b> · ${escapeHtml(parts.join(' · ') || 'Yuma')} · ${priceTxt} ·
-          ${escapeHtml(v.payment || '—')} · ${escapeHtml(v.employee || '—')}
+        <div class="dt-h-top">
+          <span class="dt-h-date">${fmtDate(v.date)}</span>
+          <span class="dt-h-price">${priceTxt}</span>
         </div>
-        <div class="row-actions">
-          <button class="icon-btn" data-hv-view="${v.id}" title="Bax">${ICON_EYE}</button>
-          <button class="icon-btn" data-hv-edit="${v.id}" title="Redaktə et">${ICON_EDIT}</button>
-          <button class="icon-btn danger" data-hv-del="${v.id}" title="Sil">${ICON_TRASH}</button>
+        <div class="dt-h-desc">${escapeHtml(parts.join(' · ') || 'Yuma')}</div>
+        <div class="dt-h-bottom">
+          <span class="dt-h-meta">${escapeHtml(v.payment || '—')} · ${escapeHtml(v.employee || 'Əməkdaş qeyd olunmayıb')}</span>
+          <div class="row-actions">
+            <button class="icon-btn" data-hv-view="${v.id}" title="Bax">${ICON_EYE}</button>
+            <button class="icon-btn" data-hv-edit="${v.id}" title="Redaktə et">${ICON_EDIT}</button>
+            <button class="icon-btn danger" data-hv-del="${v.id}" title="Sil">${ICON_TRASH}</button>
+          </div>
         </div>
       </div>`;
     }).join('');
