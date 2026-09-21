@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="format-detection" content="telephone=no, date=no, address=no, email=no">
 <title>YuCar — Satış paneli</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -343,6 +344,15 @@
     transition: border-color .15s ease, box-shadow .15s ease;
   }
   .search-bar:focus { outline: none; border-color: var(--teal); box-shadow: 0 0 0 3px rgba(5,187,52,0.13); }
+  .filter-toggle {
+    display: flex; align-items: center; gap: 6px; margin-top: 10px;
+    background: none; border: none; color: var(--teal-deep); font-family: inherit;
+    font-size: 13px; font-weight: 700; cursor: pointer; padding: 4px 0;
+  }
+  .ft-chevron { transition: transform .2s ease; }
+  .filter-toggle.open .ft-chevron { transform: rotate(180deg); }
+  .filter-panel { display: none; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line); }
+  .filter-panel.show { display: block; animation: fadeSlideDown .25s ease; }
   .cust-row {
     display: flex; align-items: center; gap: 12px; padding: 13px 10px;
     border-top: 1px solid var(--line); cursor: pointer; border-radius: 12px;
@@ -395,7 +405,7 @@
     text-align: left; font-weight: 600; color: var(--ink-soft); font-size: 12px;
     padding: 8px; border-bottom: 1px solid var(--line);
   }
-  tbody td { padding: 10px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  tbody td { padding: 10px 8px; border-bottom: 1px solid var(--line); vertical-align: middle; }
   tbody tr:last-child td { border-bottom: none; }
   tbody tr { transition: background .12s ease; }
   .badge {
@@ -405,12 +415,12 @@
   .badge.pts { background: var(--amber-soft); color: #6b4413; }
   .table-scroll { overflow-x: auto; }
   .expand-btn {
-    background: var(--surface); border: 1px solid var(--line); border-radius: 9px;
+    background: var(--surface-2); border: 1px solid var(--line); border-radius: 9px;
     width: 28px; height: 28px; color: var(--ink-soft); cursor: pointer;
     font-size: 12px; font-family: inherit; display: flex; align-items: center; justify-content: center;
     transition: transform .2s ease, border-color .15s ease, color .15s ease, background .15s ease;
   }
-  .expand-btn:hover { border-color: var(--teal); color: var(--teal-deep); background: var(--surface-2); }
+  .expand-btn:hover { border-color: var(--teal); color: var(--teal-deep); background: var(--surface); }
   .expand-btn.open { transform: rotate(90deg); }
   .data-row { cursor: default; }
   .data-detail-row.hidden { display: none; }
@@ -664,37 +674,43 @@
   <section class="tabpage" id="tab-data">
     <div class="panel">
       <h2>Data</h2>
-      <p class="desc">Bütün qeydlər bir cədvəldə. Sərbəst axtarış edin (məs. "Mazda") və ya sütunlara görə dəqiq filtrləyin.</p>
+      <p class="desc">Bütün qeydlər bir cədvəldə. Sərbəst axtarış edin (məs. "Mazda") və ya dəqiq filtrlərdən istifadə edin.</p>
       <input class="search-bar" id="dataSearch" type="text" placeholder='Sərbəst axtarış: ad, nömrə, avtomobil, xidmət, əməkdaş…'>
-      <div class="row3">
-        <div class="field"><label>Ad, soyad</label><input id="dfName" type="text"></div>
-        <div class="field"><label>Nömrə</label><input id="dfPhone" type="text"></div>
-        <div class="field"><label>Avtomobil</label><input id="dfCar" type="text" placeholder="Məs. Mazda"></div>
-      </div>
-      <div class="row3">
-        <div class="field"><label>Xidmət</label>
-          <select id="dfService">
-            <option value="">Hamısı</option>
-            <option value="Sedan">Sedan</option>
-            <option value="SUV">SUV</option>
-            <option value="Böyük Avtomobil">Böyük Avtomobil</option>
-          </select>
+      <button class="filter-toggle" id="dfToggle">
+        <span>Ətraflı filtrlər</span>
+        <svg class="ft-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="filter-panel" id="dfPanel">
+        <div class="row3">
+          <div class="field"><label>Ad, soyad</label><input id="dfName" type="text"></div>
+          <div class="field"><label>Nömrə</label><input id="dfPhone" type="text"></div>
+          <div class="field"><label>Avtomobil</label><input id="dfCar" type="text" placeholder="Məs. Mazda"></div>
         </div>
-        <div class="field"><label>Əməkdaş</label><input id="dfEmployee" type="text"></div>
-        <div class="field"><label>Ödəniş üsulu</label>
-          <select id="dfPayment">
-            <option value="">Hamısı</option>
-            <option value="Nağd">Nağd</option>
-            <option value="Kart">Kart</option>
-            <option value="Bank köçürməsi">Bank köçürməsi</option>
-          </select>
+        <div class="row3">
+          <div class="field"><label>Xidmət</label>
+            <select id="dfService">
+              <option value="">Hamısı</option>
+              <option value="Sedan">Sedan</option>
+              <option value="SUV">SUV</option>
+              <option value="Böyük Avtomobil">Böyük Avtomobil</option>
+            </select>
+          </div>
+          <div class="field"><label>Əməkdaş</label><input id="dfEmployee" type="text"></div>
+          <div class="field"><label>Ödəniş üsulu</label>
+            <select id="dfPayment">
+              <option value="">Hamısı</option>
+              <option value="Nağd">Nağd</option>
+              <option value="Kart">Kart</option>
+              <option value="Bank köçürməsi">Bank köçürməsi</option>
+            </select>
+          </div>
         </div>
+        <div class="row2">
+          <div class="field"><label>Tarixdən</label><input id="dfDateFrom" type="date"></div>
+          <div class="field"><label>Tarixədək</label><input id="dfDateTo" type="date"></div>
+        </div>
+        <button class="btn-ghost" id="dfClear">Filtrləri təmizlə</button>
       </div>
-      <div class="row2">
-        <div class="field"><label>Tarixdən</label><input id="dfDateFrom" type="date"></div>
-        <div class="field"><label>Tarixədək</label><input id="dfDateTo" type="date"></div>
-      </div>
-      <button class="change-btn" id="dfClear">Filtrləri təmizlə</button>
     </div>
 
     <div class="stat-row">
@@ -1722,6 +1738,12 @@ document.getElementById('dfClear').addEventListener('click', () => {
   ['dataSearch','dfName','dfPhone','dfCar','dfEmployee'].forEach(id => document.getElementById(id).value = '');
   ['dfService','dfPayment','dfDateFrom','dfDateTo'].forEach(id => document.getElementById(id).value = '');
   renderDataTab();
+});
+document.getElementById('dfToggle').addEventListener('click', () => {
+  const panel = document.getElementById('dfPanel');
+  const btn = document.getElementById('dfToggle');
+  panel.classList.toggle('show');
+  btn.classList.toggle('open');
 });
 
 function setStatus(ok, text) {
