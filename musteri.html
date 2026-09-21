@@ -365,17 +365,24 @@
   .m-progress-seg.filled { background: var(--amber); }
 
   .m-history-item {
-    padding: 13px 0; border-top: 1px solid var(--line);
-    display: flex; flex-direction: column; gap: 3px;
+    padding: 14px 0; border-top: 1px solid var(--line);
+    display: flex; flex-direction: column; gap: 6px;
   }
   .m-history-item:first-of-type { border-top: none; }
-  .m-history-line { font-size: 13.5px; line-height: 1.5; }
-  .m-history-line b { font-weight: 600; }
-  .m-history-free {
-    display: inline-block; font-size: 11px; font-weight: 700; color: #6b4413;
-    background: var(--amber-soft); padding: 2px 9px; border-radius: 100px; margin-top: 3px;
+  .m-history-top { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+  .m-history-date { font-size: 14.5px; font-weight: 700; color: var(--ink); }
+  .m-history-price { font-size: 14.5px; font-weight: 700; color: var(--teal-deep); white-space: nowrap; }
+  .m-history-price.free { color: #6b4413; }
+  .m-history-desc { font-size: 13px; color: var(--ink-soft); line-height: 1.5; }
+  .m-history-bottom { display: flex; align-items: center; gap: 8px; }
+  .m-history-pts {
+    font-size: 11.5px; font-weight: 700; color: var(--teal-deep); background: var(--surface-2);
+    padding: 3px 10px; border-radius: 100px;
   }
-  .m-history-pts { color: var(--teal-deep); font-weight: 600; }
+  .m-history-free-tag {
+    font-size: 11.5px; font-weight: 700; color: #6b4413; background: var(--amber-soft);
+    padding: 3px 10px; border-radius: 100px;
+  }
 
   .m-empty { font-size: 13.5px; color: var(--ink-faint); text-align: center; padding: 20px 0; }
   .m-footer-hint { text-align: center; color: var(--ink-faint); font-size: 12px; margin-top: 20px; }
@@ -579,14 +586,18 @@ function renderProfile(visitsAsc) {
     const seq = count - idxDesc; // sequence number (1-indexed, ascending)
     const isFree = seq % 6 === 0;
     const parts = [v.car, v.service, v.addon].filter(Boolean);
-    const priceTxt = isFree ? 'Pulsuz yuma 🎉' : (v.priceFinal ? Number(v.priceFinal).toLocaleString('az-AZ') + ' ₼' : '—');
+    const priceTxt = isFree ? 'Pulsuz 🎉' : (v.priceFinal ? Number(v.priceFinal).toLocaleString('az-AZ') + ' ₼' : '—');
     return `
       <div class="m-history-item">
-        <div class="m-history-line">
-          <b>${fmtDate(v.date)}</b> · ${escapeHtml(parts.join(' · ') || 'Yuma')} · ${priceTxt} ·
-          <span class="m-history-pts">+${POINTS_PER_VISIT} xal</span>
+        <div class="m-history-top">
+          <span class="m-history-date">${fmtDate(v.date)}</span>
+          <span class="m-history-price${isFree ? ' free' : ''}">${priceTxt}</span>
         </div>
-        ${isFree ? '<span class="m-history-free">6-cı yuma — pulsuz</span>' : ''}
+        <div class="m-history-desc">${escapeHtml(parts.join(' · ') || 'Yuma')}</div>
+        <div class="m-history-bottom">
+          <span class="m-history-pts">+${POINTS_PER_VISIT} xal</span>
+          ${isFree ? '<span class="m-history-free-tag">6-cı yuma</span>' : ''}
+        </div>
       </div>`;
   }).join('');
 }
