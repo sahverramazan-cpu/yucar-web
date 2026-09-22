@@ -431,6 +431,7 @@
     font-size: 11.5px; font-weight: 700; color: var(--teal-deep); background: var(--surface-2);
     padding: 3px 10px; border-radius: 100px;
   }
+  .m-history-pts.spend { color: #6b4413; background: var(--amber-soft); }
   .m-history-free-tag {
     font-size: 11.5px; font-weight: 700; color: #6b4413; background: var(--amber-soft);
     padding: 3px 10px; border-radius: 100px;
@@ -446,6 +447,44 @@
   }
   .m-social-link:hover { background: var(--teal); color: #fff; border-color: var(--teal); transform: translateY(-2px); box-shadow: 0 6px 14px rgba(5,187,52,0.3); }
   .m-social-caption { text-align: center; font-size: 12px; color: var(--ink-faint); margin-top: 10px; }
+
+  @keyframes modalPop { from { opacity: 0; transform: scale(.93) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+  .modal-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(16,34,31,0.55);
+    z-index: 200; align-items: center; justify-content: center; padding: 20px;
+    backdrop-filter: blur(2px);
+  }
+  .modal-overlay.show { display: flex; animation: fadeIn .18s ease; }
+  .modal-box {
+    background: var(--surface); border-radius: 18px; padding: 22px; max-width: 460px;
+    width: 100%; max-height: 88vh; overflow-y: auto;
+    box-shadow: 0 24px 60px rgba(10,30,27,0.28);
+    animation: modalPop .26s cubic-bezier(.2,.8,.2,1);
+  }
+  .modal-box h3 { margin: 0 0 16px; font-size: 16px; font-weight: 700; }
+  .modal-actions { display: flex; align-items: center; gap: 10px; margin-top: 14px; }
+  .btn-ghost {
+    padding: 10px 15px; border-radius: 10px; border: 1px solid var(--line);
+    background: transparent; color: var(--ink-soft); font-weight: 700; font-size: 13.5px;
+    cursor: pointer; font-family: inherit; transition: all .15s ease;
+  }
+  .btn-ghost:hover { background: var(--surface-2); color: var(--ink); }
+  .order-total {
+    background: var(--amber-soft); color: #6b4413; font-weight: 800; font-size: 15px;
+    padding: 12px 14px; border-radius: 12px; text-align: center; margin-top: 6px;
+  }
+  .wa-order-btn { background: #25D366; box-shadow: 0 4px 14px rgba(37,211,102,0.3); }
+  .wa-order-btn:hover { background: #1ebd59; }
+
+  .order-fab {
+    position: fixed; right: 18px; bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+    z-index: 90; display: inline-flex; align-items: center; gap: 8px;
+    background: linear-gradient(135deg, var(--teal), var(--teal-deep)); color: #fff;
+    border: none; border-radius: 100px; padding: 13px 20px; font-weight: 800; font-size: 14px;
+    font-family: inherit; cursor: pointer; box-shadow: 0 8px 22px rgba(5,187,52,0.4);
+    transition: transform .15s ease, box-shadow .15s ease;
+  }
+  .order-fab:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(5,187,52,0.48); }
 
   .m-redeem-item {
     display: flex; justify-content: space-between; align-items: center; gap: 12px;
@@ -491,6 +530,10 @@
   </div>
 
   <div id="mProfileView">
+    <button class="order-fab" id="orderFab" title="Sifariş et">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+      <span>Sifariş et</span>
+    </button>
     <div class="m-card">
       <div class="m-profile-head">
         <div class="m-avatar" id="mAvatar"></div>
@@ -549,6 +592,51 @@
     </a>
   </div>
   <div class="m-social-caption">010 111 2026 · yucar.az</div>
+
+  <div class="modal-overlay" id="orderOverlay">
+    <div class="modal-box">
+      <h3>Sifariş et</h3>
+      <div class="field">
+        <label>Avtomobil markası</label>
+        <div class="search-wrap"><input id="ordCarBrand" type="text" placeholder="Məs. Toyota" autocomplete="off"><div class="suggestions" id="ordCarBrandSugg"></div></div>
+      </div>
+      <div class="field">
+        <label>Model</label>
+        <div class="search-wrap"><input id="ordCarModel" type="text" placeholder="Məs. Camry" autocomplete="off"><div class="suggestions" id="ordCarModelSugg"></div></div>
+      </div>
+      <div class="field">
+        <label>Xidmət</label>
+        <select id="ordService">
+          <option value="">Seçin</option>
+          <option value="Sedan">🚗 Sedan — 15 AZN</option>
+          <option value="SUV">🚙 SUV — 20 AZN</option>
+          <option value="Böyük Avtomobil">🚐 Böyük Avtomobil — 25 AZN</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Əlavə xidmətlər (istəyə bağlı)</label>
+        <div class="addon-group" id="ordAddonGroup">
+          <label class="addon-chk"><input type="checkbox" class="ordSizeAddonCk" data-key="steamLight"> <span class="addon-lbl">Buxarlı daxili təmizlik (yüngül)</span> <span class="addon-price" data-ordkey="steamLight"></span></label>
+          <label class="addon-chk"><input type="checkbox" class="ordSizeAddonCk" data-key="steamDeep"> <span class="addon-lbl">Buxarlı daxili dərin təmizlik</span> <span class="addon-price" data-ordkey="steamDeep"></span></label>
+          <label class="addon-chk"><input type="checkbox" class="ordSizeAddonCk" data-key="engineBay"> <span class="addon-lbl">Motorxana təmizliyi</span> <span class="addon-price" data-ordkey="engineBay"></span></label>
+        </div>
+      </div>
+      <div class="field">
+        <label>Fara polirovkası</label>
+        <select id="ordHeadlight">
+          <option value="">Yoxdur</option>
+          <option value="1">1 ədəd — 20 AZN</option>
+          <option value="2">2 ədəd — 35 AZN</option>
+        </select>
+      </div>
+      <div class="order-total" id="orderTotal">Hesablanan məbləğ: 0 ₼</div>
+      <div class="modal-actions">
+        <button class="btn-ghost" id="ordCancelBtn">Ləğv et</button>
+        <div style="flex:1;"></div>
+        <button class="m-btn wa-order-btn" id="ordSendBtn" style="width:auto; margin-top:0;">WhatsApp ilə göndər</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
@@ -582,9 +670,192 @@ function escapeHtml(s) {
   return (s || '').toString().replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
-function pointsForVisit(v) { return Math.round((Number(v.priceFinal) || 0) * 10); }
+function pointsForVisit(v) { return v.paidWithPoints ? 0 : Math.round((Number(v.priceFinal) || 0) * 10); }
+function pointsRedeemedForVisit(v) { return v.paidWithPoints ? (Number(v.pointsRedeemed) || 0) : 0; }
 function pointsToAzn(points) { return points / 200; }
 function fmtAzn(n) { return n.toLocaleString('az-AZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+
+/* ---------- ORDER (Sifariş et) ---------- */
+const CAR_DATA = {
+  'Mercedes-Benz': ['C-Class','E-Class','S-Class','GLE','GLC','GLA','GLB','G-Class','A-Class','CLA','Sprinter','Vito'],
+  'BMW': ['1 Series','2 Series','3 Series','4 Series','5 Series','7 Series','X1','X3','X5','X6','X7'],
+  'Audi': ['A3','A4','A5','A6','A7','A8','Q3','Q5','Q7','Q8'],
+  'Toyota': ['Camry','Corolla','RAV4','Land Cruiser','Land Cruiser Prado','Highlander','Yaris','Hilux','Avalon','C-HR'],
+  'Hyundai': ['Elantra','Sonata','Tucson','Santa Fe','Accent','i20','i30','Creta','Palisade'],
+  'Kia': ['Rio','Cerato','Sportage','Sorento','Optima','Picanto','Seltos','Soul'],
+  'Mazda': ['2','3','6','CX-3','CX-5','CX-9','CX-30'],
+  'Nissan': ['Altima','Sentra','X-Trail','Qashqai','Patrol','Juke','Murano','Maxima'],
+  'Volkswagen': ['Golf','Passat','Polo','Tiguan','Jetta','Touareg','Caddy'],
+  'Chevrolet': ['Malibu','Cruze','Cobalt','Lacetti','Captiva','Tahoe','Epica'],
+  'LADA (VAZ)': ['Granta','Vesta','Priora','2107','2114','2115','Niva','Kalina'],
+  'GAZ': ['GAZelle','Volga'],
+  'Opel': ['Astra','Insignia','Corsa','Vectra','Zafira'],
+  'Ford': ['Focus','Fusion','Explorer','F-150','Mondeo','Transit','Kuga'],
+  'Honda': ['Civic','Accord','CR-V','Pilot','HR-V'],
+  'Mitsubishi': ['Lancer','Outlander','Pajero','ASX','L200'],
+  'Renault': ['Logan','Duster','Megane','Symbol','Sandero'],
+  'Peugeot': ['301','308','2008','3008','508'],
+  'Skoda': ['Octavia','Superb','Rapid','Kodiaq','Fabia'],
+  'Lexus': ['RX','ES','LX','NX','GX','IS'],
+  'Land Rover': ['Range Rover','Range Rover Sport','Range Rover Evoque','Discovery','Defender'],
+  'Porsche': ['Cayenne','Macan','Panamera','911','Taycan'],
+  'Jeep': ['Grand Cherokee','Wrangler','Compass','Cherokee','Renegade'],
+  'Infiniti': ['Q50','Q60','QX50','QX60','QX80'],
+  'Genesis': ['G70','G80','G90','GV70','GV80'],
+  'Chery': ['Tiggo 7','Tiggo 8','Arrizo 5'],
+  'Geely': ['Coolray','Atlas','Emgrand','Monjaro'],
+  'Haval': ['H6','Jolion','F7','Dargo'],
+  'Suzuki': ['Vitara','Swift','SX4','Grand Vitara'],
+  'Subaru': ['Forester','Outback','Impreza','XV'],
+  'Volvo': ['XC40','XC60','XC90','S60','S90'],
+  'Cadillac': ['Escalade','XT5','XT6','CT5'],
+  'GMC': ['Yukon','Sierra','Acadia'],
+  'Bentley': ['Continental GT','Bentayga','Flying Spur'],
+  'Rolls-Royce': ['Phantom','Cullinan','Ghost'],
+  'Maserati': ['Ghibli','Levante','Quattroporte'],
+  'Tesla': ['Model 3','Model S','Model X','Model Y'],
+  'Great Wall': ['Poer','Hover'],
+  'Daewoo': ['Nexia','Matiz','Lanos'],
+};
+const CAR_BRAND_LIST = Object.keys(CAR_DATA).sort();
+const PACKAGE_PRICES = { 'Sedan': 15, 'SUV': 20, 'Böyük Avtomobil': 25 };
+const SIZE_ADDONS = [
+  { key: 'steamLight', label: 'Buxarlı daxili təmizlik (yüngül)', prices: { 'Sedan': 15, 'SUV': 20, 'Böyük Avtomobil': 25 } },
+  { key: 'steamDeep', label: 'Buxarlı daxili dərin təmizlik', prices: { 'Sedan': 50, 'SUV': 60, 'Böyük Avtomobil': 70 } },
+  { key: 'engineBay', label: 'Motorxana təmizliyi', prices: { 'Sedan': 15, 'SUV': 20, 'Böyük Avtomobil': 25 } },
+];
+const HEADLIGHT_PRICES = { '1': 20, '2': 35 };
+const HEADLIGHT_LABELS = { '1': 'Fara polirovkası (1 ədəd)', '2': 'Fara polirovkası (2 ədəd)' };
+
+function setupCarAutocomplete(brandInputId, brandSuggId, modelInputId, modelSuggId) {
+  const brandInput = document.getElementById(brandInputId);
+  const brandSugg = document.getElementById(brandSuggId);
+  const modelInput = document.getElementById(modelInputId);
+  const modelSugg = document.getElementById(modelSuggId);
+  if (!brandInput || !modelInput) return;
+
+  function showBrandSuggestions() {
+    const q = brandInput.value.trim().toLowerCase();
+    if (!q) { brandSugg.classList.remove('show'); return; }
+    const matches = CAR_BRAND_LIST.filter(b => b.toLowerCase().includes(q)).slice(0, 8);
+    if (matches.length === 0) { brandSugg.classList.remove('show'); return; }
+    brandSugg.innerHTML = matches.map(b => `<div class="sug" data-brand="${escapeHtml(b)}"><span class="nm">${escapeHtml(b)}</span></div>`).join('');
+    brandSugg.classList.add('show');
+    brandSugg.querySelectorAll('[data-brand]').forEach(el => {
+      el.addEventListener('click', () => {
+        brandInput.value = el.getAttribute('data-brand');
+        brandSugg.classList.remove('show');
+        modelInput.value = '';
+        modelInput.focus();
+      });
+    });
+  }
+  function showModelSuggestions() {
+    const q = modelInput.value.trim().toLowerCase();
+    const brandRaw = brandInput.value.trim().toLowerCase();
+    const matchedBrandKey = CAR_BRAND_LIST.find(b => b.toLowerCase() === brandRaw);
+    const models = matchedBrandKey ? CAR_DATA[matchedBrandKey] : [];
+    const pool = [...new Set(models)];
+    if (pool.length === 0) { modelSugg.classList.remove('show'); return; }
+    const matches = q ? pool.filter(m => m.toLowerCase().includes(q)).slice(0, 8) : pool.slice(0, 8);
+    if (matches.length === 0) { modelSugg.classList.remove('show'); return; }
+    modelSugg.innerHTML = matches.map(m => `<div class="sug" data-model="${escapeHtml(m)}"><span class="nm">${escapeHtml(m)}</span></div>`).join('');
+    modelSugg.classList.add('show');
+    modelSugg.querySelectorAll('[data-model]').forEach(el => {
+      el.addEventListener('click', () => {
+        modelInput.value = el.getAttribute('data-model');
+        modelSugg.classList.remove('show');
+      });
+    });
+  }
+  brandInput.addEventListener('input', showBrandSuggestions);
+  brandInput.addEventListener('focus', showBrandSuggestions);
+  modelInput.addEventListener('input', showModelSuggestions);
+  modelInput.addEventListener('focus', showModelSuggestions);
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('#' + brandInputId) && !e.target.closest('#' + brandSuggId)) brandSugg.classList.remove('show');
+    if (!e.target.closest('#' + modelInputId) && !e.target.closest('#' + modelSuggId)) modelSugg.classList.remove('show');
+  });
+}
+setupCarAutocomplete('ordCarBrand', 'ordCarBrandSugg', 'ordCarModel', 'ordCarModelSugg');
+
+function updateOrdAddonLabels() {
+  const svc = document.getElementById('ordService').value || 'Sedan';
+  SIZE_ADDONS.forEach(a => {
+    const el = document.querySelector(`.addon-price[data-ordkey="${a.key}"]`);
+    if (el) el.textContent = '+' + (a.prices[svc] || a.prices['Sedan']) + ' AZN';
+  });
+}
+function selectedOrdAddons() {
+  const parts = [];
+  document.querySelectorAll('.ordSizeAddonCk:checked').forEach(cb => {
+    const a = SIZE_ADDONS.find(x => x.key === cb.dataset.key);
+    if (a) parts.push(a.label);
+  });
+  const hv = document.getElementById('ordHeadlight').value;
+  if (hv) parts.push(HEADLIGHT_LABELS[hv]);
+  return parts;
+}
+function recalcOrderTotal() {
+  updateOrdAddonLabels();
+  const svc = document.getElementById('ordService').value;
+  const base = PACKAGE_PRICES[svc] || 0;
+  let addonsSum = 0;
+  document.querySelectorAll('.ordSizeAddonCk:checked').forEach(cb => {
+    const a = SIZE_ADDONS.find(x => x.key === cb.dataset.key);
+    if (a) addonsSum += (a.prices[svc] || a.prices['Sedan'] || 0);
+  });
+  const hv = document.getElementById('ordHeadlight').value;
+  addonsSum += HEADLIGHT_PRICES[hv] || 0;
+  const total = base + addonsSum;
+  document.getElementById('orderTotal').textContent = `Hesablanan məbləğ: ${total} ₼`;
+  return total;
+}
+document.getElementById('ordService').addEventListener('change', recalcOrderTotal);
+document.querySelectorAll('.ordSizeAddonCk').forEach(cb => cb.addEventListener('change', recalcOrderTotal));
+document.getElementById('ordHeadlight').addEventListener('change', recalcOrderTotal);
+updateOrdAddonLabels();
+
+function openOrderModal() {
+  document.getElementById('ordCarBrand').value = '';
+  document.getElementById('ordCarModel').value = '';
+  document.getElementById('ordService').value = '';
+  document.querySelectorAll('.ordSizeAddonCk').forEach(cb => cb.checked = false);
+  document.getElementById('ordHeadlight').value = '';
+  recalcOrderTotal();
+  document.getElementById('orderOverlay').classList.add('show');
+}
+function closeOrderModal() {
+  document.getElementById('orderOverlay').classList.remove('show');
+}
+document.getElementById('orderFab').addEventListener('click', openOrderModal);
+document.getElementById('ordCancelBtn').addEventListener('click', closeOrderModal);
+document.getElementById('orderOverlay').addEventListener('click', (e) => {
+  if (e.target.id === 'orderOverlay') closeOrderModal();
+});
+document.getElementById('ordSendBtn').addEventListener('click', () => {
+  const brand = document.getElementById('ordCarBrand').value.trim();
+  const model = document.getElementById('ordCarModel').value.trim();
+  const svc = document.getElementById('ordService').value;
+  if (!svc) { alert('Zəhmət olmasa xidmət seçin.'); return; }
+  const addons = selectedOrdAddons();
+  const total = recalcOrderTotal();
+  const nameEl = document.getElementById('mName2');
+  const custName = nameEl ? nameEl.textContent.trim() : '';
+  const carLine = [brand, model].filter(Boolean).join(' ') || '—';
+  const serviceLine = [svc, ...addons].join(' + ');
+  const lines = [
+    'Salam, YuCar xidmətinə sifariş vermək istəyirəm.',
+    '',
+    `Ad, soyad: ${custName || '—'}`,
+    `Avtomobil: ${carLine}`,
+    `Xidmətlər: ${serviceLine}`,
+    `Hesablanan məbləğ: ${total} ₼`,
+  ];
+  const waUrl = `https://wa.me/994101112026?text=${encodeURIComponent(lines.join('\n'))}`;
+  window.open(waUrl, '_blank');
+  closeOrderModal();
+});
 
 const REDEEM_OPTIONS = [
   { label: 'Sedan yuması', price: 15 },
@@ -691,7 +962,7 @@ function loadProfile(customerId) {
 function renderProfile(visitsAsc) {
   const count = visitsAsc.length;
   const spent = visitsAsc.reduce((s, v) => s + (Number(v.priceFinal) || 0), 0);
-  const points = visitsAsc.reduce((s, v) => s + pointsForVisit(v), 0);
+  const points = visitsAsc.reduce((s, v) => s + pointsForVisit(v) - pointsRedeemedForVisit(v), 0);
   document.getElementById('mVisitCount').textContent = count;
   document.getElementById('mSpent').textContent = fmtAzn(spent);
   document.getElementById('mPointsAmount').textContent = points.toLocaleString('az-AZ');
@@ -722,17 +993,24 @@ function renderProfile(visitsAsc) {
   body.innerHTML = desc.map((v, idxDesc) => {
     const seq = count - idxDesc; // sequence number (1-indexed, ascending)
     const isFree = seq % 6 === 0;
+    const isPointsPaid = !!v.paidWithPoints;
     const parts = [v.car, v.service, v.addon].filter(Boolean);
-    const priceTxt = isFree ? 'Pulsuz 🎉' : (v.priceFinal ? Number(v.priceFinal).toLocaleString('az-AZ') + ' ₼' : '—');
+    let priceTxt;
+    if (isPointsPaid) priceTxt = `-${(v.pointsRedeemed || 0).toLocaleString('az-AZ')} xal`;
+    else if (isFree) priceTxt = 'Pulsuz 🎉';
+    else priceTxt = v.priceFinal ? Number(v.priceFinal).toLocaleString('az-AZ') + ' ₼' : '—';
+    const ptsBadge = isPointsPaid
+      ? `<span class="m-history-pts spend">-${(v.pointsRedeemed || 0).toLocaleString('az-AZ')} xal</span>`
+      : `<span class="m-history-pts">+${pointsForVisit(v)} xal</span>`;
     return `
       <div class="m-history-item">
         <div class="m-history-top">
           <span class="m-history-date">${fmtDate(v.date)}</span>
-          <span class="m-history-price${isFree ? ' free' : ''}">${priceTxt}</span>
+          <span class="m-history-price${isFree || isPointsPaid ? ' free' : ''}">${priceTxt}</span>
         </div>
         <div class="m-history-desc">${escapeHtml(parts.join(' · ') || 'Yuma')}</div>
         <div class="m-history-bottom">
-          <span class="m-history-pts">+${pointsForVisit(v)} xal</span>
+          ${ptsBadge}
           ${isFree ? '<span class="m-history-free-tag">6-cı yuma</span>' : ''}
         </div>
       </div>`;
