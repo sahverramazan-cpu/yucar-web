@@ -498,6 +498,11 @@
     background: var(--surface-2); color: var(--ink-soft);
   }
   .m-redeem-item.ok .mr-status { background: var(--teal); color: #fff; }
+  button.mr-btn {
+    border: none; cursor: pointer; font-family: inherit; transition: all .15s ease;
+    box-shadow: 0 3px 10px rgba(5,187,52,0.3);
+  }
+  button.mr-btn:hover { background: var(--teal-deep); transform: translateY(-1px); }
   .m-footer-hint { text-align: center; color: var(--ink-faint); font-size: 12px; margin-top: 20px; }
 
   #mLoginView, #mProfileView { display: none; }
@@ -869,16 +874,36 @@ function renderRedeemOptions(points) {
   body.innerHTML = REDEEM_OPTIONS.map(opt => {
     const need = pointsNeededForAzn(opt.price);
     const enough = points >= need;
-    const statusText = enough ? '✅ Kifayət edir' : `Daha ${(need - points).toLocaleString('az-AZ')} xal`;
+    const remain = points - need;
+    const statusEl = enough
+      ? `<button class="mr-status mr-btn" data-redeem-label="${escapeHtml(opt.label)}" data-redeem-need="${need}">✅ Kifayət edir · qalıq ${remain.toLocaleString('az-AZ')}</button>`
+      : `<div class="mr-status">Daha ${(need - points).toLocaleString('az-AZ')} xal</div>`;
     return `
       <div class="m-redeem-item${enough ? ' ok' : ''}">
         <div>
           <div class="mr-name">${opt.label}</div>
           <div class="mr-need">${need.toLocaleString('az-AZ')} xal = ${fmtAzn(opt.price)} ₼ (tam pulsuz)</div>
         </div>
-        <div class="mr-status">${statusText}</div>
+        ${statusEl}
       </div>`;
   }).join('');
+  body.querySelectorAll('[data-redeem-label]').forEach(btn => {
+    btn.addEventListener('click', () => sendPointsOrder(btn.getAttribute('data-redeem-label'), parseInt(btn.getAttribute('data-redeem-need'), 10)));
+  });
+}
+
+function sendPointsOrder(label, need) {
+  const nameEl = document.getElementById('mName2');
+  const custName = nameEl ? nameEl.textContent.trim() : '';
+  const lines = [
+    'Salam, YuCar xidmətinə sifariş vermək istəyirəm.',
+    '',
+    `Ad, soyad: ${custName || '—'}`,
+    `Xidmət: ${label}`,
+    `Ödəniş: Xal ilə (${need.toLocaleString('az-AZ')} xal)`,
+  ];
+  const waUrl = `https://wa.me/994101112026?text=${encodeURIComponent(lines.join('\n'))}`;
+  window.open(waUrl, '_blank');
 }
 
 const loginView = document.getElementById('mLoginView');
