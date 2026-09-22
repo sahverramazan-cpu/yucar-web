@@ -994,6 +994,10 @@
         <div class="field"><label>Tarix</label><input id="finDate" type="date"></div>
       </div>
       <div class="field"><label id="finSourceLabel">Haradan gəldi</label><input id="finSource" type="text"></div>
+      <div class="field">
+        <label>Kateqoriya</label>
+        <div class="search-wrap"><input id="finCategory" type="text" placeholder="Məs. Ofis xərcləri" autocomplete="off"><div class="suggestions" id="finCategorySugg"></div></div>
+      </div>
       <div class="row2">
         <div class="field"><label>Necə (ödəniş üsulu)</label>
           <select id="finMethod">
@@ -1046,6 +1050,7 @@
 })();
 let allVisits = [];
 let allFinance = [];
+let allFinanceCategories = [];
 let allCustomers = [];
 let selectedCustomerId = null; // for sale tab
 function pointsForVisit(v) { return Math.round((Number(v.priceFinal) || 0) * 10); }
@@ -2177,6 +2182,7 @@ function openFinanceModal(type, id) {
     document.getElementById('finAmount').value = rec.amount || '';
     document.getElementById('finDate').value = rec.date || todayStr();
     document.getElementById('finSource').value = rec.source || '';
+    document.getElementById('finCategory').value = rec.category || '';
     document.getElementById('finMethod').value = rec.method || 'Nağd';
     document.getElementById('finPerson').value = rec.person || '';
     document.getElementById('finNote').value = rec.note || '';
@@ -2184,6 +2190,7 @@ function openFinanceModal(type, id) {
     document.getElementById('finAmount').value = '';
     document.getElementById('finDate').value = todayStr();
     document.getElementById('finSource').value = '';
+    document.getElementById('finCategory').value = '';
     document.getElementById('finMethod').value = 'Nağd';
     document.getElementById('finPerson').value = '';
     document.getElementById('finNote').value = '';
@@ -2194,6 +2201,31 @@ function closeFinanceModal() {
   document.getElementById('financeOverlay').classList.remove('show');
   currentFinanceId = null;
 }
+
+function showCategorySuggestions() {
+  const input = document.getElementById('finCategory');
+  const sugg = document.getElementById('finCategorySugg');
+  const q = input.value.trim().toLowerCase();
+  const pool = [...new Set(allFinanceCategories.filter(c => c.type === currentFinanceType).map(c => c.name))].sort();
+  const matches = q ? pool.filter(c => c.toLowerCase().includes(q)) : pool;
+  if (matches.length === 0) { sugg.classList.remove('show'); return; }
+  sugg.innerHTML = matches.slice(0, 8).map(c => `<div class="sug" data-cat="${escapeHtml(c)}"><span class="nm">${escapeHtml(c)}</span></div>`).join('');
+  sugg.classList.add('show');
+  sugg.querySelectorAll('[data-cat]').forEach(el => {
+    el.addEventListener('click', () => {
+      input.value = el.getAttribute('data-cat');
+      sugg.classList.remove('show');
+    });
+  });
+}
+document.getElementById('finCategory').addEventListener('input', showCategorySuggestions);
+document.getElementById('finCategory').addEventListener('focus', showCategorySuggestions);
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('#finCategory') && !e.target.closest('#finCategorySugg')) {
+    document.getElementById('finCategorySugg').classList.remove('show');
+  }
+});
+
 document.getElementById('addIncomeBtn').addEventListener('click', () => openFinanceModal('income', null));
 document.getElementById('addExpenseBtn').addEventListener('click', () => openFinanceModal('expense', null));
 document.getElementById('finCancelBtn').addEventListener('click', closeFinanceModal);
@@ -2215,6 +2247,7 @@ async function saveFinance() {
     type: currentFinanceType,
     amount, date,
     source: document.getElementById('finSource').value.trim(),
+    category: document.getElementById('finCategory').value.trim(),
     method: document.getElementById('finMethod').value,
     person: document.getElementById('finPerson').value.trim(),
     note: document.getElementById('finNote').value.trim(),
@@ -2223,6 +2256,12 @@ async function saveFinance() {
   const btn = document.getElementById('finSaveBtn');
   btn.disabled = true; btn.textContent = 'Saxlanılır…';
   try {
+    if (record.category) {
+      const known = allFinanceCategories.some(c => c.type === record.type && c.name.toLowerCase() === record.category.toLowerCase());
+      if (!known) {
+        try { await db.collection('financeCategories').add({ name: record.category, type: record.type, createdAt: new Date().toISOString() }); } catch (e) {}
+      }
+    }
     if (currentFinanceId) {
       await db.doc('finance/' + currentFinanceId).update(record);
     } else {
@@ -2256,6 +2295,7 @@ function financeViewRows(rec) {
     ['Məbləğ', fmtAzn(rec.amount) + ' ₼'],
     ['Tarix', fmtDate(rec.date)],
     [isIncome ? 'Haradan gəldi' : 'Hara xərcləndi', rec.source || '—'],
+    ['Kateqoriya', rec.category || '—'],
     ['Necə (ödəniş üsulu)', rec.method || '—'],
     ['Kim tərəfindən', rec.person || '—'],
     ['Qeyd', rec.note || '—'],
@@ -2276,7 +2316,7 @@ function renderFinanceList(containerId, type) {
         <span class="dt-h-date">${fmtDate(f.date)}</span>
         <span class="dt-h-price" style="color:${isIncome ? 'var(--teal-deep)' : 'var(--danger)'};">${isIncome ? '+' : '-'}${fmtAzn(f.amount)} ₼</span>
       </div>
-      <div class="dt-h-desc">${escapeHtml(f.source || (isIncome ? 'Mədaxil' : 'Məxaric'))}</div>
+      <div class="dt-h-desc">${escapeHtml(f.source || (isIncome ? 'Mədaxil' : 'Məxaric'))}${f.category ? ' · <span class="badge">' + escapeHtml(f.category) + '</span>' : ''}</div>
       <div class="dt-h-bottom">
         <span class="dt-h-meta">${escapeHtml(f.method || '—')} · ${escapeHtml(f.person || 'Qeyd olunmayıb')}</span>
         <div class="row-actions">
@@ -2481,6 +2521,10 @@ function init() {
   );
   db.collection('finance').limit(2000).onSnapshot(
     snap => { allFinance = snap.docs.map(d => ({ id: d.id, ...d.data() })); renderAll(); },
+    (e) => console.error(e)
+  );
+  db.collection('financeCategories').limit(500).onSnapshot(
+    snap => { allFinanceCategories = snap.docs.map(d => ({ id: d.id, ...d.data() })); },
     (e) => console.error(e)
   );
 }
