@@ -475,6 +475,32 @@
   .dt-h-bottom { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
   .dt-h-meta { font-size: 11.5px; color: var(--ink-faint); }
 
+  .sale-card {
+    display: flex; align-items: flex-start; gap: 13px; padding: 14px 6px;
+    border-top: 1px solid var(--line); border-radius: 12px; transition: background .15s ease;
+  }
+  .sale-card:first-of-type { border-top: none; }
+  .sale-card:hover { background: var(--surface-2); }
+  .sale-avatar {
+    width: 42px; height: 42px; border-radius: 50%; flex-shrink: 0;
+    background: linear-gradient(135deg, var(--teal), var(--teal-deep)); color: #fff;
+    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 15px;
+    box-shadow: 0 3px 10px rgba(5,187,52,0.25);
+  }
+  .sale-main { flex: 1; min-width: 0; }
+  .sale-top-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+  .sale-name { font-size: 14.5px; font-weight: 700; color: var(--ink); }
+  .sale-date { font-size: 11.5px; color: var(--ink-faint); margin-top: 1px; }
+  .sale-price { font-size: 15px; font-weight: 800; color: var(--teal-deep); white-space: nowrap; font-family: 'Manrope', sans-serif; }
+  .sale-tags { display: flex; flex-wrap: wrap; gap: 5px; margin: 8px 0 7px; }
+  .sale-tag {
+    font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 100px;
+    background: var(--surface-2); color: var(--ink-soft);
+  }
+  .sale-tag.service { background: var(--amber-soft); color: #6b4413; }
+  .sale-bottom-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .sale-meta { font-size: 11.5px; color: var(--ink-faint); }
+
   footer.hint { text-align: center; color: var(--ink-faint); font-size: 12px; margin-top: 26px; }
 </style>
 <style>
@@ -2506,21 +2532,32 @@ function renderSalesList() {
     return;
   }
   body.innerHTML = rows.slice(0, 300).map(v => {
-    const parts = [v.car, v.service, v.addon].filter(Boolean);
+    const carTag = v.car || '';
     const priceTxt = v.priceFinal ? Number(v.priceFinal).toLocaleString('az-AZ') + ' ₼' : '—';
+    const addons = (v.addon || '').split(',').map(s => s.trim()).filter(Boolean);
+    const tags = [];
+    if (carTag) tags.push(`<span class="sale-tag">${escapeHtml(carTag)}</span>`);
+    if (v.service) tags.push(`<span class="sale-tag service">${escapeHtml(v.service)}</span>`);
+    addons.forEach(a => tags.push(`<span class="sale-tag">${escapeHtml(a)}</span>`));
     return `
-      <div class="dt-history-item">
-        <div class="dt-h-top">
-          <span class="dt-h-date">${fmtDate(v.date)}</span>
-          <span class="dt-h-price">${priceTxt}</span>
-        </div>
-        <div class="dt-h-desc"><b>${escapeHtml(v.name || '—')}</b> · ${escapeHtml(parts.join(' · ') || 'Yuma')}</div>
-        <div class="dt-h-bottom">
-          <span class="dt-h-meta">${escapeHtml(v.payment || '—')} · ${escapeHtml(v.employee || 'Əməkdaş qeyd olunmayıb')}</span>
-          <div class="row-actions">
-            <button class="icon-btn" data-sv-view="${v.id}" title="Bax">${ICON_EYE}</button>
-            <button class="icon-btn" data-sv-edit="${v.id}" title="Redaktə et">${ICON_EDIT}</button>
-            <button class="icon-btn danger" data-sv-del="${v.id}" title="Sil">${ICON_TRASH}</button>
+      <div class="sale-card">
+        <div class="sale-avatar">${initials(v.name)}</div>
+        <div class="sale-main">
+          <div class="sale-top-row">
+            <div>
+              <div class="sale-name">${escapeHtml(v.name || '—')}</div>
+              <div class="sale-date">${fmtDate(v.date)}</div>
+            </div>
+            <div class="sale-price">${priceTxt}</div>
+          </div>
+          <div class="sale-tags">${tags.join('') || '<span class="sale-tag">Yuma</span>'}</div>
+          <div class="sale-bottom-row">
+            <span class="sale-meta">${escapeHtml(v.payment || '—')} · ${escapeHtml(v.employee || 'Əməkdaş qeyd olunmayıb')}</span>
+            <div class="row-actions">
+              <button class="icon-btn" data-sv-view="${v.id}" title="Bax">${ICON_EYE}</button>
+              <button class="icon-btn" data-sv-edit="${v.id}" title="Redaktə et">${ICON_EDIT}</button>
+              <button class="icon-btn danger" data-sv-del="${v.id}" title="Sil">${ICON_TRASH}</button>
+            </div>
           </div>
         </div>
       </div>`;
