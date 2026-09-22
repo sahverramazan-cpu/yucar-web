@@ -1019,7 +1019,10 @@
             <option value="Bank köçürməsi">Bank köçürməsi</option>
           </select>
         </div>
-        <div class="field"><label>Müştəri</label><input id="finPerson" type="text"></div>
+        <div class="field">
+          <label>Müştəri</label>
+          <div class="search-wrap"><input id="finPerson" type="text" placeholder="Ad yazın və ya seçin (istəyə bağlı)" autocomplete="off"><div class="suggestions" id="finPersonSugg"></div></div>
+        </div>
       </div>
       <div class="field"><label>Qeyd</label><textarea id="finNote"></textarea></div>
       <div class="modal-actions">
@@ -2265,6 +2268,33 @@ document.getElementById('finCategory').addEventListener('focus', showCategorySug
 document.addEventListener('click', (e) => {
   if (!e.target.closest('#finCategory') && !e.target.closest('#finCategorySugg')) {
     document.getElementById('finCategorySugg').classList.remove('show');
+  }
+});
+
+function showFinPersonSuggestions() {
+  const input = document.getElementById('finPerson');
+  const sugg = document.getElementById('finPersonSugg');
+  const q = input.value.trim().toLowerCase();
+  const dir = customerDirectory();
+  const matches = (q ? dir.filter(c => (c.name || '').toLowerCase().includes(q)) : dir).slice(0, 8);
+  if (matches.length === 0) { sugg.classList.remove('show'); return; }
+  sugg.innerHTML = matches.map(c => `
+    <div class="sug" data-person="${escapeHtml(c.name)}">
+      <div><div class="nm">${escapeHtml(c.name)}</div><div class="ph">${escapeHtml(formatPhoneAZ(c.phone))}</div></div>
+    </div>`).join('');
+  sugg.classList.add('show');
+  sugg.querySelectorAll('[data-person]').forEach(el => {
+    el.addEventListener('click', () => {
+      input.value = el.getAttribute('data-person');
+      sugg.classList.remove('show');
+    });
+  });
+}
+document.getElementById('finPerson').addEventListener('input', showFinPersonSuggestions);
+document.getElementById('finPerson').addEventListener('focus', showFinPersonSuggestions);
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('#finPerson') && !e.target.closest('#finPersonSugg')) {
+    document.getElementById('finPersonSugg').classList.remove('show');
   }
 });
 
