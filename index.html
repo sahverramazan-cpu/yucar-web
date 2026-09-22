@@ -750,6 +750,17 @@
         <div class="save-msg" id="saveMsg"></div>
       </div>
     </div>
+
+    <div class="panel">
+      <div class="panel-head-row">
+        <div>
+          <h2>Bütün satışlar</h2>
+          <p class="desc">Etdiyiniz hər satış — baxın, redaktə edin və ya silin.</p>
+        </div>
+      </div>
+      <input class="search-bar" id="saleListSearch" type="text" placeholder="Axtar: ad, nömrə, avtomobil…">
+      <div id="salesListBody"><div class="empty">Yüklənir…</div></div>
+    </div>
   </section>
 
   <!-- ================= CUSTOMERS ================= -->
@@ -1289,6 +1300,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     if (btn.dataset.tab === 'data') renderDataTab();
     if (btn.dataset.tab === 'home') { renderHomeChart(); updateBreakdownCharts(); }
     if (btn.dataset.tab === 'finance') renderFinanceTab();
+    if (btn.dataset.tab === 'sale') renderSalesList();
   });
 });
 
@@ -2479,6 +2491,46 @@ document.getElementById('finTo').addEventListener('change', () => { if (finPerio
 
 /* ---------- boot ---------- */
 /* ---------- DATA TAB ---------- */
+function renderSalesList() {
+  const body = document.getElementById('salesListBody');
+  if (!body) return;
+  const q = (document.getElementById('saleListSearch').value || '').toLowerCase().trim();
+  let rows = [...allVisits];
+  if (q) {
+    rows = rows.filter(v => [v.name, v.phone, v.car, v.service, v.addon, v.employee]
+      .map(x => (x || '').toString().toLowerCase()).join(' ').includes(q));
+  }
+  rows.sort((a, b) => (b.date || '').localeCompare(a.date || '') || (b.createdAt || '').localeCompare(a.createdAt || ''));
+  if (rows.length === 0) {
+    body.innerHTML = '<div class="empty">Hələ satış qeydə alınmayıb.</div>';
+    return;
+  }
+  body.innerHTML = rows.slice(0, 300).map(v => {
+    const parts = [v.car, v.service, v.addon].filter(Boolean);
+    const priceTxt = v.priceFinal ? Number(v.priceFinal).toLocaleString('az-AZ') + ' ₼' : '—';
+    return `
+      <div class="dt-history-item">
+        <div class="dt-h-top">
+          <span class="dt-h-date">${fmtDate(v.date)}</span>
+          <span class="dt-h-price">${priceTxt}</span>
+        </div>
+        <div class="dt-h-desc"><b>${escapeHtml(v.name || '—')}</b> · ${escapeHtml(parts.join(' · ') || 'Yuma')}</div>
+        <div class="dt-h-bottom">
+          <span class="dt-h-meta">${escapeHtml(v.payment || '—')} · ${escapeHtml(v.employee || 'Əməkdaş qeyd olunmayıb')}</span>
+          <div class="row-actions">
+            <button class="icon-btn" data-sv-view="${v.id}" title="Bax">${ICON_EYE}</button>
+            <button class="icon-btn" data-sv-edit="${v.id}" title="Redaktə et">${ICON_EDIT}</button>
+            <button class="icon-btn danger" data-sv-del="${v.id}" title="Sil">${ICON_TRASH}</button>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+  body.querySelectorAll('[data-sv-view]').forEach(b => b.addEventListener('click', () => openViewVisit(b.getAttribute('data-sv-view'))));
+  body.querySelectorAll('[data-sv-edit]').forEach(b => b.addEventListener('click', () => openEditVisit(b.getAttribute('data-sv-edit'))));
+  body.querySelectorAll('[data-sv-del]').forEach(b => b.addEventListener('click', () => deleteVisitDirect(b.getAttribute('data-sv-del'))));
+}
+document.getElementById('saleListSearch').addEventListener('input', renderSalesList);
+
 function renderDataTab() {
   const freeQ = (document.getElementById('dataSearch').value || '').toLowerCase().trim();
   const fName = (document.getElementById('dfName').value || '').toLowerCase().trim();
@@ -2577,6 +2629,7 @@ function setStatus(ok, text) {
 }
 function renderAll() {
   renderHome();
+  if (document.getElementById('tab-sale').classList.contains('active')) renderSalesList();
   if (document.getElementById('tab-customers').classList.contains('active')) renderCustomerList();
   if (document.getElementById('tab-data').classList.contains('active')) renderDataTab();
   renderFinanceSummary();
