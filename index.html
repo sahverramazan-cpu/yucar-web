@@ -180,6 +180,13 @@
   .chip.active { background: var(--surface); color: var(--teal-deep); box-shadow: 0 2px 6px rgba(16,34,31,0.12); }
   .chart-wrap { position: relative; height: 280px; }
   @media (max-width: 500px) { .chart-wrap { height: 220px; } }
+  .chart-wrap.small { height: 230px; }
+  .chip-group.tiny { padding: 3px; }
+  .chip-group.tiny .chip { padding: 5px 10px; font-size: 11px; }
+  .fin-custom-range {
+    display: none; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px;
+  }
+  .fin-custom-range.show { display: grid; animation: fadeSlideDown .2s ease; }
 
   /* sales tab */
   .search-wrap { position: relative; margin-bottom: 4px; }
@@ -499,6 +506,7 @@
     <button class="tab-btn" data-tab="sale">Satış</button>
     <button class="tab-btn" data-tab="customers">Müştərilər</button>
     <button class="tab-btn" data-tab="data">Data</button>
+    <button class="tab-btn" data-tab="finance">Maliyyə</button>
   </nav>
 
   <!-- ================= HOME ================= -->
@@ -513,8 +521,36 @@
     <div class="panel">
       <div class="chart-head">
         <div>
+          <h2>Maliyyə xülasəsi</h2>
+          <p class="desc">Gəlir, xərc və balans — dövrü seçin.</p>
+        </div>
+        <div class="chart-controls">
+          <div class="chip-group" id="finPeriodGroup">
+            <button class="chip" data-fperiod="today">Bu gün</button>
+            <button class="chip" data-fperiod="week">Bu həftə</button>
+            <button class="chip active" data-fperiod="month">Bu ay</button>
+            <button class="chip" data-fperiod="year">Bu il</button>
+            <button class="chip" data-fperiod="all">Bütün vaxt</button>
+            <button class="chip" data-fperiod="custom">Xüsusi</button>
+          </div>
+        </div>
+      </div>
+      <div class="fin-custom-range" id="finCustomRange">
+        <div class="field"><label>Tarixdən</label><input id="finFrom" type="date"></div>
+        <div class="field"><label>Tarixədək</label><input id="finTo" type="date"></div>
+      </div>
+      <div class="stat-row" style="margin-bottom:0;">
+        <div class="stat-card"><div class="v" id="finIncome" style="color:var(--teal-deep);">—</div><div class="l">Ümumi gəlir (₼)</div></div>
+        <div class="stat-card"><div class="v" id="finExpense" style="color:var(--danger);">—</div><div class="l">Ümumi xərc (₼)</div></div>
+        <div class="stat-card"><div class="v" id="finBalance">—</div><div class="l">Hazırki balans (₼)</div></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="chart-head">
+        <div>
           <h2>Fəaliyyət statistikası</h2>
-          <p class="desc">Zamanla yuma sayı və gəlir.</p>
+          <p class="desc">Zamanla yuma sayı, gəlir və xərc.</p>
         </div>
         <div class="chart-controls">
           <div class="chip-group" id="chartPeriodGroup">
@@ -526,6 +562,7 @@
           <div class="chip-group" id="chartMetricGroup">
             <button class="chip active" data-metric="count">Yuma sayı</button>
             <button class="chip" data-metric="revenue">Gəlir (₼)</button>
+            <button class="chip" data-metric="expense">Xərc (₼)</button>
           </div>
         </div>
       </div>
@@ -542,6 +579,52 @@
         <h2>Xatırlatmalar</h2>
         <p class="desc">Son yumadan 15 gün keçmiş müştərilər.</p>
         <div id="reminderList"><div class="empty">Yüklənir…</div></div>
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div class="panel">
+        <div class="chart-head">
+          <h2 style="margin:0;">Marka üzrə</h2>
+          <div class="chip-group tiny" data-viewfor="brand">
+            <button class="chip active" data-view="bar">Sütun</button>
+            <button class="chip" data-view="pie">Dairəvi</button>
+          </div>
+        </div>
+        <div class="chart-wrap small"><canvas id="brandChart"></canvas></div>
+      </div>
+      <div class="panel">
+        <div class="chart-head">
+          <h2 style="margin:0;">Model üzrə</h2>
+          <div class="chip-group tiny" data-viewfor="model">
+            <button class="chip active" data-view="bar">Sütun</button>
+            <button class="chip" data-view="pie">Dairəvi</button>
+          </div>
+        </div>
+        <div class="chart-wrap small"><canvas id="modelChart"></canvas></div>
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div class="panel">
+        <div class="chart-head">
+          <h2 style="margin:0;">Xidmət növü üzrə</h2>
+          <div class="chip-group tiny" data-viewfor="service">
+            <button class="chip active" data-view="pie">Dairəvi</button>
+            <button class="chip" data-view="bar">Sütun</button>
+          </div>
+        </div>
+        <div class="chart-wrap small"><canvas id="serviceChart"></canvas></div>
+      </div>
+      <div class="panel">
+        <div class="chart-head">
+          <h2 style="margin:0;">Əlavə xidmətlər üzrə</h2>
+          <div class="chip-group tiny" data-viewfor="addon">
+            <button class="chip active" data-view="bar">Sütun</button>
+            <button class="chip" data-view="pie">Dairəvi</button>
+          </div>
+        </div>
+        <div class="chart-wrap small"><canvas id="addonChart"></canvas></div>
       </div>
     </div>
   </section>
@@ -592,10 +675,17 @@
 
       <div class="sale-form" id="saleForm">
         <div class="row2" style="margin-top:18px;">
-          <div class="field"><label>Avtomobil</label><input id="fCar" type="text" placeholder="Marka, model"></div>
-          <div class="field"><label>Tarix</label><input id="fDate" type="date"></div>
+          <div class="field">
+            <label>Avtomobil markası</label>
+            <div class="search-wrap"><input id="fCarBrand" type="text" placeholder="Məs. Mercedes-Benz" autocomplete="off"><div class="suggestions" id="fCarBrandSugg"></div></div>
+          </div>
+          <div class="field">
+            <label>Model</label>
+            <div class="search-wrap"><input id="fCarModel" type="text" placeholder="Məs. C-Class" autocomplete="off"><div class="suggestions" id="fCarModelSugg"></div></div>
+          </div>
         </div>
         <div class="row2">
+          <div class="field"><label>Tarix</label><input id="fDate" type="date"></div>
           <div class="field"><label>Xidmət (paket)</label>
             <select id="fService">
               <option value="">Seçin</option>
@@ -747,6 +837,37 @@
     </div>
   </section>
 
+  <!-- ================= FINANCE ================= -->
+  <section class="tabpage" id="tab-finance">
+    <div class="stat-row">
+      <div class="stat-card"><div class="v" id="fpIncome" style="color:var(--teal-deep);">—</div><div class="l">Mədaxil (₼)</div></div>
+      <div class="stat-card"><div class="v" id="fpExpense" style="color:var(--danger);">—</div><div class="l">Məxaric (₼)</div></div>
+      <div class="stat-card"><div class="v" id="fpBalance">—</div><div class="l">Balans (₼)</div></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head-row">
+        <div>
+          <h2>Mədaxil</h2>
+          <p class="desc">Gəlirin haradan gəldiyi, məbləği və detalları.</p>
+        </div>
+        <button class="btn-primary" id="addIncomeBtn" style="width:auto; margin-top:0; background: linear-gradient(135deg, var(--teal), var(--teal-deep));">+ Yeni mədaxil</button>
+      </div>
+      <div id="incomeList"><div class="empty">Yüklənir…</div></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head-row">
+        <div>
+          <h2>Məxaric</h2>
+          <p class="desc">Xərcin haraya, necə və kimin tərəfindən edildiyi.</p>
+        </div>
+        <button class="btn-primary" id="addExpenseBtn" style="width:auto; margin-top:0; background: linear-gradient(135deg, var(--danger), #8a3520);">+ Yeni məxaric</button>
+      </div>
+      <div id="expenseList"><div class="empty">Yüklənir…</div></div>
+    </div>
+  </section>
+
   <footer class="hint">
     Məlumat yalnız YuCar komandası üçün saxlanılır və paylaşılmır.<br>
     010 111 2026 · yucar.az · Instagram @yucar.azerbaijan · TikTok @yucar_azerbaijan
@@ -755,9 +876,16 @@
   <div class="modal-overlay" id="editVisitOverlay">
     <div class="modal-box">
       <h3>Yumanı redaktə et</h3>
+      <div class="field"><label>Tarix</label><input id="evDate" type="date"></div>
       <div class="row2">
-        <div class="field"><label>Tarix</label><input id="evDate" type="date"></div>
-        <div class="field"><label>Avtomobil</label><input id="evCar" type="text"></div>
+        <div class="field">
+          <label>Avtomobil markası</label>
+          <div class="search-wrap"><input id="evCarBrand" type="text" autocomplete="off"><div class="suggestions" id="evCarBrandSugg"></div></div>
+        </div>
+        <div class="field">
+          <label>Model</label>
+          <div class="search-wrap"><input id="evCarModel" type="text" autocomplete="off"><div class="suggestions" id="evCarModelSugg"></div></div>
+        </div>
       </div>
       <div class="row2">
         <div class="field"><label>Xidmət</label>
@@ -857,6 +985,35 @@
       </div>
     </div>
   </div>
+
+  <div class="modal-overlay" id="financeOverlay">
+    <div class="modal-box">
+      <h3 id="financeModalTitle">Yeni mədaxil</h3>
+      <div class="row2">
+        <div class="field"><label>Məbləğ (₼)</label><input id="finAmount" type="number" step="0.01"></div>
+        <div class="field"><label>Tarix</label><input id="finDate" type="date"></div>
+      </div>
+      <div class="field"><label id="finSourceLabel">Haradan gəldi</label><input id="finSource" type="text"></div>
+      <div class="row2">
+        <div class="field"><label>Necə (ödəniş üsulu)</label>
+          <select id="finMethod">
+            <option value="Nağd">Nağd</option>
+            <option value="Kart">Kart</option>
+            <option value="Bank köçürməsi">Bank köçürməsi</option>
+          </select>
+        </div>
+        <div class="field"><label>Kim tərəfindən</label><input id="finPerson" type="text"></div>
+      </div>
+      <div class="field"><label>Qeyd</label><textarea id="finNote"></textarea></div>
+      <div class="modal-actions">
+        <button class="btn-danger" id="finDeleteBtn" style="display:none;">Sil</button>
+        <div style="flex:1;"></div>
+        <button class="btn-ghost" id="finCancelBtn">Ləğv et</button>
+        <button class="btn-primary" id="finSaveBtn" style="width:auto; margin-top:0;">Yadda saxla</button>
+      </div>
+      <div class="save-msg" id="finMsg"></div>
+    </div>
+  </div>
 </div>
 
 </div>
@@ -888,6 +1045,7 @@
   input.addEventListener('keydown', e => { if (e.key === 'Enter') tryLogin(); });
 })();
 let allVisits = [];
+let allFinance = [];
 let allCustomers = [];
 let selectedCustomerId = null; // for sale tab
 function pointsForVisit(v) { return Math.round((Number(v.priceFinal) || 0) * 10); }
@@ -937,6 +1095,100 @@ const ICON_HISTORY = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none
 document.getElementById('fDate').value = todayStr();
 
 /* ---------- package / addon prices ---------- */
+const CAR_DATA = {
+  'Mercedes-Benz': ['C-Class','E-Class','S-Class','GLE','GLC','GLA','GLB','G-Class','A-Class','CLA','Sprinter','Vito'],
+  'BMW': ['1 Series','2 Series','3 Series','4 Series','5 Series','7 Series','X1','X3','X5','X6','X7'],
+  'Audi': ['A3','A4','A5','A6','A7','A8','Q3','Q5','Q7','Q8'],
+  'Toyota': ['Camry','Corolla','RAV4','Land Cruiser','Land Cruiser Prado','Highlander','Yaris','Hilux','Avalon','C-HR'],
+  'Hyundai': ['Elantra','Sonata','Tucson','Santa Fe','Accent','i20','i30','Creta','Palisade'],
+  'Kia': ['Rio','Cerato','Sportage','Sorento','Optima','Picanto','Seltos','Soul'],
+  'Mazda': ['2','3','6','CX-3','CX-5','CX-9','CX-30'],
+  'Nissan': ['Altima','Sentra','X-Trail','Qashqai','Patrol','Juke','Murano','Maxima'],
+  'Volkswagen': ['Golf','Passat','Polo','Tiguan','Jetta','Touareg','Caddy'],
+  'Chevrolet': ['Malibu','Cruze','Cobalt','Lacetti','Captiva','Tahoe','Epica'],
+  'LADA (VAZ)': ['Granta','Vesta','Priora','2107','2114','2115','Niva','Kalina'],
+  'GAZ': ['GAZelle','Volga'],
+  'Opel': ['Astra','Insignia','Corsa','Vectra','Zafira'],
+  'Ford': ['Focus','Fusion','Explorer','F-150','Mondeo','Transit','Kuga'],
+  'Honda': ['Civic','Accord','CR-V','Pilot','HR-V'],
+  'Mitsubishi': ['Lancer','Outlander','Pajero','ASX','L200'],
+  'Renault': ['Logan','Duster','Megane','Symbol','Sandero'],
+  'Peugeot': ['301','308','2008','3008','508'],
+  'Skoda': ['Octavia','Superb','Rapid','Kodiaq','Fabia'],
+  'Lexus': ['RX','ES','LX','NX','GX','IS'],
+  'Land Rover': ['Range Rover','Range Rover Sport','Range Rover Evoque','Discovery','Defender'],
+  'Porsche': ['Cayenne','Macan','Panamera','911','Taycan'],
+  'Jeep': ['Grand Cherokee','Wrangler','Compass','Cherokee','Renegade'],
+  'Infiniti': ['Q50','Q60','QX50','QX60','QX80'],
+  'Genesis': ['G70','G80','G90','GV70','GV80'],
+  'Chery': ['Tiggo 7','Tiggo 8','Arrizo 5'],
+  'Geely': ['Coolray','Atlas','Emgrand','Monjaro'],
+  'Haval': ['H6','Jolion','F7','Dargo'],
+  'Suzuki': ['Vitara','Swift','SX4','Grand Vitara'],
+  'Subaru': ['Forester','Outback','Impreza','XV'],
+  'Volvo': ['XC40','XC60','XC90','S60','S90'],
+  'Cadillac': ['Escalade','XT5','XT6','CT5'],
+  'GMC': ['Yukon','Sierra','Acadia'],
+  'Bentley': ['Continental GT','Bentayga','Flying Spur'],
+  'Rolls-Royce': ['Phantom','Cullinan','Ghost'],
+  'Maserati': ['Ghibli','Levante','Quattroporte'],
+  'Tesla': ['Model 3','Model S','Model X','Model Y'],
+  'Great Wall': ['Poer','Hover'],
+  'Daewoo': ['Nexia','Matiz','Lanos'],
+};
+const CAR_BRAND_LIST = Object.keys(CAR_DATA).sort();
+
+function setupCarAutocomplete(brandInputId, brandSuggId, modelInputId, modelSuggId) {
+  const brandInput = document.getElementById(brandInputId);
+  const brandSugg = document.getElementById(brandSuggId);
+  const modelInput = document.getElementById(modelInputId);
+  const modelSugg = document.getElementById(modelSuggId);
+  if (!brandInput || !modelInput) return;
+
+  function showBrandSuggestions() {
+    const q = brandInput.value.trim().toLowerCase();
+    if (!q) { brandSugg.classList.remove('show'); return; }
+    const matches = CAR_BRAND_LIST.filter(b => b.toLowerCase().includes(q)).slice(0, 8);
+    if (matches.length === 0) { brandSugg.classList.remove('show'); return; }
+    brandSugg.innerHTML = matches.map(b => `<div class="sug" data-brand="${escapeHtml(b)}"><span class="nm">${escapeHtml(b)}</span></div>`).join('');
+    brandSugg.classList.add('show');
+    brandSugg.querySelectorAll('[data-brand]').forEach(el => {
+      el.addEventListener('click', () => {
+        brandInput.value = el.getAttribute('data-brand');
+        brandSugg.classList.remove('show');
+        modelInput.value = '';
+        modelInput.focus();
+      });
+    });
+  }
+  function showModelSuggestions() {
+    const q = modelInput.value.trim().toLowerCase();
+    const brand = brandInput.value.trim();
+    const models = CAR_DATA[brand] || Object.values(CAR_DATA).flat();
+    const pool = [...new Set(models)];
+    const matches = q ? pool.filter(m => m.toLowerCase().includes(q)).slice(0, 8) : pool.slice(0, 8);
+    if (matches.length === 0) { modelSugg.classList.remove('show'); return; }
+    modelSugg.innerHTML = matches.map(m => `<div class="sug" data-model="${escapeHtml(m)}"><span class="nm">${escapeHtml(m)}</span></div>`).join('');
+    modelSugg.classList.add('show');
+    modelSugg.querySelectorAll('[data-model]').forEach(el => {
+      el.addEventListener('click', () => {
+        modelInput.value = el.getAttribute('data-model');
+        modelSugg.classList.remove('show');
+      });
+    });
+  }
+  brandInput.addEventListener('input', showBrandSuggestions);
+  brandInput.addEventListener('focus', showBrandSuggestions);
+  modelInput.addEventListener('input', showModelSuggestions);
+  modelInput.addEventListener('focus', showModelSuggestions);
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('#' + brandInputId) && !e.target.closest('#' + brandSuggId)) brandSugg.classList.remove('show');
+    if (!e.target.closest('#' + modelInputId) && !e.target.closest('#' + modelSuggId)) modelSugg.classList.remove('show');
+  });
+}
+setupCarAutocomplete('fCarBrand', 'fCarBrandSugg', 'fCarModel', 'fCarModelSugg');
+setupCarAutocomplete('evCarBrand', 'evCarBrandSugg', 'evCarModel', 'evCarModelSugg');
+
 const PACKAGE_PRICES = { 'Sedan': 15, 'SUV': 20, 'Böyük Avtomobil': 25 };
 const SIZE_ADDONS = [
   { key: 'steamLight', label: 'Buxarlı daxili təmizlik (yüngül)', prices: { 'Sedan': 15, 'SUV': 20, 'Böyük Avtomobil': 25 } },
@@ -1003,7 +1255,8 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
     if (btn.dataset.tab === 'customers') showCustomerList();
     if (btn.dataset.tab === 'data') renderDataTab();
-    if (btn.dataset.tab === 'home') renderHomeChart();
+    if (btn.dataset.tab === 'home') { renderHomeChart(); updateBreakdownCharts(); }
+    if (btn.dataset.tab === 'finance') renderFinanceTab();
   });
 });
 
@@ -1047,7 +1300,7 @@ function aggregateVisitsForChart(period) {
     const start = new Date(today); start.setDate(start.getDate() - (period - 1));
     for (let i = 0; i < period; i++) {
       const d = new Date(start); d.setDate(d.getDate() + i);
-      buckets.set(d.toISOString().slice(0, 10), { count: 0, revenue: 0 });
+      buckets.set(d.toISOString().slice(0, 10), { count: 0, revenue: 0, expense: 0 });
     }
     keyFn = (dateStr) => dateStr;
   } else if (period === 90) {
@@ -1055,7 +1308,7 @@ function aggregateVisitsForChart(period) {
     const start = new Date(today); start.setDate(start.getDate() - (weeks * 7 - 1));
     for (let i = 0; i < weeks; i++) {
       const d = new Date(start); d.setDate(d.getDate() + i * 7);
-      buckets.set('W' + d.toISOString().slice(0, 10), { count: 0, revenue: 0 });
+      buckets.set('W' + d.toISOString().slice(0, 10), { count: 0, revenue: 0, expense: 0 });
     }
     keyFn = (dateStr) => {
       const dd = new Date(dateStr + 'T00:00:00');
@@ -1069,7 +1322,7 @@ function aggregateVisitsForChart(period) {
     const months = 12;
     for (let i = months - 1; i >= 0; i--) {
       const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
-      buckets.set(d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'), { count: 0, revenue: 0 });
+      buckets.set(d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'), { count: 0, revenue: 0, expense: 0 });
     }
     keyFn = (dateStr) => dateStr.slice(0, 7);
   }
@@ -1083,8 +1336,13 @@ function aggregateVisitsForChart(period) {
       b.revenue += Number(v.priceFinal) || 0;
     }
   });
+  allFinance.forEach(f => {
+    if (!f.date || f.type !== 'expense') return;
+    const key = keyFn(f.date);
+    if (key && buckets.has(key)) buckets.get(key).expense += Number(f.amount) || 0;
+  });
 
-  const labels = [], counts = [], revenues = [];
+  const labels = [], counts = [], revenues = [], expenses = [];
   buckets.forEach((v, k) => {
     let label;
     if (period === 7 || period === 30) label = fmtDate(k);
@@ -1093,19 +1351,23 @@ function aggregateVisitsForChart(period) {
     labels.push(label);
     counts.push(v.count);
     revenues.push(Math.round(v.revenue * 100) / 100);
+    expenses.push(Math.round(v.expense * 100) / 100);
   });
-  return { labels, counts, revenues };
+  return { labels, counts, revenues, expenses };
 }
 
 function renderHomeChart() {
   const canvas = document.getElementById('homeChart');
   if (!canvas || typeof Chart === 'undefined') return;
-  const { labels, counts, revenues } = aggregateVisitsForChart(chartPeriod);
-  const data = chartMetric === 'count' ? counts : revenues;
-  const label = chartMetric === 'count' ? 'Yuma sayı' : 'Gəlir (₼)';
+  const { labels, counts, revenues, expenses } = aggregateVisitsForChart(chartPeriod);
+  const dataMap = { count: counts, revenue: revenues, expense: expenses };
+  const labelMap = { count: 'Yuma sayı', revenue: 'Gəlir (₼)', expense: 'Xərc (₼)' };
+  const colorMap = { count: '#05bb34', revenue: '#f19015', expense: '#b3492f' };
+  const data = dataMap[chartMetric];
+  const label = labelMap[chartMetric];
   const barMode = chartPeriod === 7;
-  const color = chartMetric === 'count' ? '#05bb34' : '#f19015';
-  const fillColor = chartMetric === 'count' ? 'rgba(5,187,52,0.55)' : 'rgba(241,144,21,0.16)';
+  const color = colorMap[chartMetric];
+  const fillColor = chartMetric === 'count' ? 'rgba(5,187,52,0.55)' : (chartMetric === 'revenue' ? 'rgba(241,144,21,0.16)' : 'rgba(179,73,47,0.16)');
 
   if (homeChartInstance) { homeChartInstance.destroy(); homeChartInstance = null; }
   homeChartInstance = new Chart(canvas, {
@@ -1150,6 +1412,87 @@ document.querySelectorAll('#chartMetricGroup .chip').forEach(b => {
     b.classList.add('active');
     chartMetric = b.getAttribute('data-metric');
     renderHomeChart();
+  });
+});
+
+/* ---------- BREAKDOWN CHARTS (brand / model / service / addon) ---------- */
+const BREAKDOWN_COLORS = ['#05bb34','#f19015','#2e6f95','#8a4fd1','#d1477a','#3fb3a4','#c9962b','#5a6bd1','#7fa832','#b3492f'];
+let breakdownInstances = { brandChart: null, modelChart: null, serviceChart: null, addonChart: null };
+let breakdownViewMode = { brand: 'bar', model: 'bar', service: 'pie', addon: 'bar' };
+
+function countBy(items, keyFn) {
+  const map = new Map();
+  items.forEach(item => {
+    const key = keyFn(item);
+    if (!key) return;
+    map.set(key, (map.get(key) || 0) + 1);
+  });
+  return Array.from(map.entries()).sort((a, b) => b[1] - a[1]);
+}
+
+function renderBreakdownChart(canvasId, entries, viewMode) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas || typeof Chart === 'undefined') return;
+  const top = entries.slice(0, 8);
+  const labels = top.map(e => e[0]);
+  const data = top.map(e => e[1]);
+  const colors = labels.map((_, i) => BREAKDOWN_COLORS[i % BREAKDOWN_COLORS.length]);
+
+  if (breakdownInstances[canvasId]) { breakdownInstances[canvasId].destroy(); breakdownInstances[canvasId] = null; }
+  if (labels.length === 0) return;
+
+  if (viewMode === 'pie') {
+    breakdownInstances[canvasId] = new Chart(canvas, {
+      type: 'doughnut',
+      data: { labels, datasets: [{ data, backgroundColor: colors, borderWidth: 2, borderColor: '#fff' }] },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'right', labels: { boxWidth: 10, font: { size: 11, family: 'Manrope' } } },
+          tooltip: { backgroundColor: '#1c231f', padding: 10, cornerRadius: 8 },
+        },
+      },
+    });
+  } else {
+    breakdownInstances[canvasId] = new Chart(canvas, {
+      type: 'bar',
+      data: { labels, datasets: [{ data, backgroundColor: colors, borderRadius: 6, maxBarThickness: 30 }] },
+      options: {
+        indexAxis: 'y',
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { backgroundColor: '#1c231f', padding: 10, cornerRadius: 8 } },
+        scales: {
+          x: { beginAtZero: true, grid: { color: 'rgba(16,34,31,0.06)' }, ticks: { precision: 0, font: { family: 'Manrope' } } },
+          y: { grid: { display: false }, ticks: { font: { family: 'Manrope', size: 11 } } },
+        },
+      },
+    });
+  }
+}
+
+function updateBreakdownCharts() {
+  const brandEntries = countBy(allVisits, v => v.carBrand || (v.car ? v.car.split(' ')[0] : ''));
+  const modelEntries = countBy(allVisits, v => v.carModel || '');
+  const serviceEntries = countBy(allVisits, v => v.service || '');
+  const addonEntries = countBy(
+    allVisits.flatMap(v => (v.addon || '').split(',').map(s => s.trim()).filter(Boolean)),
+    a => a
+  );
+  renderBreakdownChart('brandChart', brandEntries, breakdownViewMode.brand);
+  renderBreakdownChart('modelChart', modelEntries, breakdownViewMode.model);
+  renderBreakdownChart('serviceChart', serviceEntries, breakdownViewMode.service);
+  renderBreakdownChart('addonChart', addonEntries, breakdownViewMode.addon);
+}
+
+document.querySelectorAll('.chip-group.tiny').forEach(group => {
+  const key = group.getAttribute('data-viewfor');
+  group.querySelectorAll('.chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      group.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      breakdownViewMode[key] = chip.getAttribute('data-view');
+      updateBreakdownCharts();
+    });
   });
 });
 
@@ -1371,10 +1714,13 @@ async function saveSale() {
   const date = document.getElementById('fDate').value || todayStr();
   const priceFinalVal = parseFloat(document.getElementById('fPriceFinal').value) || 0;
   const earnedPts = Math.round(priceFinalVal * 10);
+  const carBrand = document.getElementById('fCarBrand').value.trim();
+  const carModel = document.getElementById('fCarModel').value.trim();
   const record = {
     customerId, phoneKey: customerId,
     name: customerName, phone: customerPhone, location: customerLocation,
-    car: document.getElementById('fCar').value.trim(),
+    car: [carBrand, carModel].filter(Boolean).join(' '),
+    carBrand, carModel,
     service: document.getElementById('fService').value,
     addon: selectedAddons().join(', '),
     priceGross: parseFloat(document.getElementById('fPriceGross').value) || 0,
@@ -1395,7 +1741,7 @@ async function saveSale() {
     const totalPts = priorStats.points + earnedPts;
     msg.textContent = `✅ Satış yaddaşa verildi — ${customerName} üçün ${n}-cı yumadır. +${earnedPts} xal qazandı (cəmi ${totalPts} xal ≈ ${fmtAzn(pointsToAzn(totalPts))} ₼).`;
     msg.className = 'save-msg show ok';
-    ['fCar','fPriceGross','fDiscount','fPriceFinal','fEmployee','fNote'].forEach(id => document.getElementById(id).value = '');
+    ['fCarBrand','fCarModel','fPriceGross','fDiscount','fPriceFinal','fEmployee','fNote'].forEach(id => document.getElementById(id).value = '');
     document.getElementById('fService').value = '';
     document.querySelectorAll('.sizeAddonCk').forEach(cb => cb.checked = false);
     document.getElementById('fHeadlight').value = '';
@@ -1610,7 +1956,8 @@ function openEditVisit(id) {
   if (!v) return;
   currentEditVisitId = id;
   document.getElementById('evDate').value = v.date || '';
-  document.getElementById('evCar').value = v.car || '';
+  document.getElementById('evCarBrand').value = v.carBrand || v.car || '';
+  document.getElementById('evCarModel').value = v.carModel || '';
   document.getElementById('evService').value = v.service || '';
   document.getElementById('evAddon').value = v.addon || '';
   document.getElementById('evPriceGross').value = v.priceGross || '';
@@ -1634,9 +1981,12 @@ document.getElementById('editVisitOverlay').addEventListener('click', (e) => {
 async function saveEditVisit() {
   const msg = document.getElementById('evMsg');
   if (!currentEditVisitId || !db) return;
+  const carBrand = document.getElementById('evCarBrand').value.trim();
+  const carModel = document.getElementById('evCarModel').value.trim();
   const updated = {
     date: document.getElementById('evDate').value,
-    car: document.getElementById('evCar').value.trim(),
+    car: [carBrand, carModel].filter(Boolean).join(' '),
+    carBrand, carModel,
     service: document.getElementById('evService').value,
     addon: document.getElementById('evAddon').value.trim(),
     priceGross: parseFloat(document.getElementById('evPriceGross').value) || 0,
@@ -1806,6 +2156,206 @@ async function deleteCustomer(id) {
 }
 document.getElementById('detDeleteBtn').addEventListener('click', () => deleteCustomer(currentDetailCustomerId));
 
+/* ---------- FINANCE (Mədaxil / Məxaric) ---------- */
+let currentFinanceType = 'income';
+let currentFinanceId = null;
+
+function openFinanceModal(type, id) {
+  currentFinanceType = type;
+  currentFinanceId = id || null;
+  const isIncome = type === 'income';
+  document.getElementById('financeModalTitle').textContent = id
+    ? (isIncome ? 'Mədaxili redaktə et' : 'Məxaric redaktə et')
+    : (isIncome ? 'Yeni mədaxil' : 'Yeni məxaric');
+  document.getElementById('finSourceLabel').textContent = isIncome ? 'Haradan gəldi' : 'Hara xərcləndi / nəyə görə';
+  document.getElementById('finDeleteBtn').style.display = id ? '' : 'none';
+  document.getElementById('finMsg').className = 'save-msg';
+
+  if (id) {
+    const rec = allFinance.find(f => f.id === id);
+    if (!rec) return;
+    document.getElementById('finAmount').value = rec.amount || '';
+    document.getElementById('finDate').value = rec.date || todayStr();
+    document.getElementById('finSource').value = rec.source || '';
+    document.getElementById('finMethod').value = rec.method || 'Nağd';
+    document.getElementById('finPerson').value = rec.person || '';
+    document.getElementById('finNote').value = rec.note || '';
+  } else {
+    document.getElementById('finAmount').value = '';
+    document.getElementById('finDate').value = todayStr();
+    document.getElementById('finSource').value = '';
+    document.getElementById('finMethod').value = 'Nağd';
+    document.getElementById('finPerson').value = '';
+    document.getElementById('finNote').value = '';
+  }
+  document.getElementById('financeOverlay').classList.add('show');
+}
+function closeFinanceModal() {
+  document.getElementById('financeOverlay').classList.remove('show');
+  currentFinanceId = null;
+}
+document.getElementById('addIncomeBtn').addEventListener('click', () => openFinanceModal('income', null));
+document.getElementById('addExpenseBtn').addEventListener('click', () => openFinanceModal('expense', null));
+document.getElementById('finCancelBtn').addEventListener('click', closeFinanceModal);
+document.getElementById('financeOverlay').addEventListener('click', (e) => {
+  if (e.target.id === 'financeOverlay') closeFinanceModal();
+});
+
+async function saveFinance() {
+  const msg = document.getElementById('finMsg');
+  if (!db) { msg.textContent = 'Verilənlər bazasına qoşulma yoxdur.'; msg.className = 'save-msg show err'; return; }
+  const amount = parseFloat(document.getElementById('finAmount').value) || 0;
+  const date = document.getElementById('finDate').value || todayStr();
+  if (amount <= 0) {
+    msg.textContent = 'Məbləği düzgün daxil edin.';
+    msg.className = 'save-msg show err';
+    return;
+  }
+  const record = {
+    type: currentFinanceType,
+    amount, date,
+    source: document.getElementById('finSource').value.trim(),
+    method: document.getElementById('finMethod').value,
+    person: document.getElementById('finPerson').value.trim(),
+    note: document.getElementById('finNote').value.trim(),
+    createdAt: new Date().toISOString(),
+  };
+  const btn = document.getElementById('finSaveBtn');
+  btn.disabled = true; btn.textContent = 'Saxlanılır…';
+  try {
+    if (currentFinanceId) {
+      await db.doc('finance/' + currentFinanceId).update(record);
+    } else {
+      await db.collection('finance').add(record);
+    }
+    closeFinanceModal();
+  } catch (e) {
+    msg.textContent = 'Xəta baş verdi, yenidən cəhd edin.';
+    msg.className = 'save-msg show err';
+  } finally {
+    btn.disabled = false; btn.textContent = 'Yadda saxla';
+  }
+}
+document.getElementById('finSaveBtn').addEventListener('click', saveFinance);
+document.getElementById('finDeleteBtn').addEventListener('click', async () => {
+  if (!currentFinanceId || !db) return;
+  if (!confirm('Bu əməliyyatı silmək istədiyinizə əminsiniz?')) return;
+  try {
+    await db.doc('finance/' + currentFinanceId).delete();
+    closeFinanceModal();
+  } catch (e) {
+    document.getElementById('finMsg').textContent = 'Silinmə zamanı xəta baş verdi.';
+    document.getElementById('finMsg').className = 'save-msg show err';
+  }
+});
+
+function financeViewRows(rec) {
+  const isIncome = rec.type === 'income';
+  return [
+    ['Növ', isIncome ? 'Mədaxil' : 'Məxaric'],
+    ['Məbləğ', fmtAzn(rec.amount) + ' ₼'],
+    ['Tarix', fmtDate(rec.date)],
+    [isIncome ? 'Haradan gəldi' : 'Hara xərcləndi', rec.source || '—'],
+    ['Necə (ödəniş üsulu)', rec.method || '—'],
+    ['Kim tərəfindən', rec.person || '—'],
+    ['Qeyd', rec.note || '—'],
+  ];
+}
+
+function renderFinanceList(containerId, type) {
+  const el = document.getElementById(containerId);
+  const items = allFinance.filter(f => f.type === type).sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  if (items.length === 0) {
+    el.innerHTML = '<div class="empty">Hələ qeyd yoxdur.</div>';
+    return;
+  }
+  const isIncome = type === 'income';
+  el.innerHTML = items.map(f => `
+    <div class="dt-history-item">
+      <div class="dt-h-top">
+        <span class="dt-h-date">${fmtDate(f.date)}</span>
+        <span class="dt-h-price" style="color:${isIncome ? 'var(--teal-deep)' : 'var(--danger)'};">${isIncome ? '+' : '-'}${fmtAzn(f.amount)} ₼</span>
+      </div>
+      <div class="dt-h-desc">${escapeHtml(f.source || (isIncome ? 'Mədaxil' : 'Məxaric'))}</div>
+      <div class="dt-h-bottom">
+        <span class="dt-h-meta">${escapeHtml(f.method || '—')} · ${escapeHtml(f.person || 'Qeyd olunmayıb')}</span>
+        <div class="row-actions">
+          <button class="icon-btn" data-fin-view="${f.id}" title="Bax">${ICON_EYE}</button>
+          <button class="icon-btn" data-fin-edit="${f.id}" data-fin-type="${f.type}" title="Redaktə et">${ICON_EDIT}</button>
+          <button class="icon-btn danger" data-fin-del="${f.id}" title="Sil">${ICON_TRASH}</button>
+        </div>
+      </div>
+    </div>`).join('');
+  el.querySelectorAll('[data-fin-view]').forEach(b => b.addEventListener('click', () => {
+    const rec = allFinance.find(x => x.id === b.getAttribute('data-fin-view'));
+    if (rec) renderViewModal(rec.type === 'income' ? 'Mədaxil məlumatları' : 'Məxaric məlumatları', financeViewRows(rec));
+  }));
+  el.querySelectorAll('[data-fin-edit]').forEach(b => b.addEventListener('click', () => openFinanceModal(b.getAttribute('data-fin-type'), b.getAttribute('data-fin-edit'))));
+  el.querySelectorAll('[data-fin-del]').forEach(b => b.addEventListener('click', async () => {
+    if (!confirm('Bu əməliyyatı silmək istədiyinizə əminsiniz?')) return;
+    try { await db.doc('finance/' + b.getAttribute('data-fin-del')).delete(); } catch (e) { alert('Xəta baş verdi.'); }
+  }));
+}
+
+function renderFinanceTab() {
+  renderFinanceList('incomeList', 'income');
+  renderFinanceList('expenseList', 'expense');
+  const totalIncome = allFinance.filter(f => f.type === 'income').reduce((s, f) => s + (Number(f.amount) || 0), 0);
+  const totalExpense = allFinance.filter(f => f.type === 'expense').reduce((s, f) => s + (Number(f.amount) || 0), 0);
+  document.getElementById('fpIncome').textContent = fmtAzn(totalIncome);
+  document.getElementById('fpExpense').textContent = fmtAzn(totalExpense);
+  document.getElementById('fpBalance').textContent = fmtAzn(totalIncome - totalExpense);
+}
+
+/* ---------- HOME FINANCE SUMMARY (with period filter) ---------- */
+let finPeriodMode = 'month';
+
+function finPeriodRange(mode) {
+  const today = new Date(todayStr() + 'T00:00:00');
+  let from, to = todayStr();
+  if (mode === 'today') {
+    from = todayStr();
+  } else if (mode === 'week') {
+    const d = new Date(today); d.setDate(d.getDate() - 6);
+    from = d.toISOString().slice(0, 10);
+  } else if (mode === 'month') {
+    from = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().slice(0, 10);
+  } else if (mode === 'year') {
+    from = new Date(today.getFullYear(), 0, 1).toISOString().slice(0, 10);
+  } else if (mode === 'all') {
+    from = '0000-01-01';
+  } else if (mode === 'custom') {
+    from = document.getElementById('finFrom').value || '0000-01-01';
+    to = document.getElementById('finTo').value || todayStr();
+  }
+  return { from, to };
+}
+
+function renderFinanceSummary() {
+  const { from, to } = finPeriodRange(finPeriodMode);
+  const salesRevenue = allVisits.filter(v => v.date >= from && v.date <= to)
+    .reduce((s, v) => s + (Number(v.priceFinal) || 0), 0);
+  const extraIncome = allFinance.filter(f => f.type === 'income' && f.date >= from && f.date <= to)
+    .reduce((s, f) => s + (Number(f.amount) || 0), 0);
+  const expense = allFinance.filter(f => f.type === 'expense' && f.date >= from && f.date <= to)
+    .reduce((s, f) => s + (Number(f.amount) || 0), 0);
+  const totalIncome = salesRevenue + extraIncome;
+  document.getElementById('finIncome').textContent = fmtAzn(totalIncome);
+  document.getElementById('finExpense').textContent = fmtAzn(expense);
+  document.getElementById('finBalance').textContent = fmtAzn(totalIncome - expense);
+}
+document.querySelectorAll('#finPeriodGroup .chip').forEach(b => {
+  b.addEventListener('click', () => {
+    document.querySelectorAll('#finPeriodGroup .chip').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    finPeriodMode = b.getAttribute('data-fperiod');
+    document.getElementById('finCustomRange').classList.toggle('show', finPeriodMode === 'custom');
+    renderFinanceSummary();
+  });
+});
+document.getElementById('finFrom').addEventListener('change', () => { if (finPeriodMode === 'custom') renderFinanceSummary(); });
+document.getElementById('finTo').addEventListener('change', () => { if (finPeriodMode === 'custom') renderFinanceSummary(); });
+
 /* ---------- boot ---------- */
 /* ---------- DATA TAB ---------- */
 function renderDataTab() {
@@ -1908,6 +2458,8 @@ function renderAll() {
   renderHome();
   if (document.getElementById('tab-customers').classList.contains('active')) renderCustomerList();
   if (document.getElementById('tab-data').classList.contains('active')) renderDataTab();
+  renderFinanceSummary();
+  if (document.getElementById('tab-finance').classList.contains('active')) renderFinanceTab();
 }
 
 function init() {
@@ -1920,11 +2472,15 @@ function init() {
   }
   setStatus(true, 'Qoşulub');
   db.collection('visits').orderBy('date', 'desc').limit(1000).onSnapshot(
-    snap => { allVisits = snap.docs.map(d => ({ id: d.id, ...d.data() })); renderAll(); },
+    snap => { allVisits = snap.docs.map(d => ({ id: d.id, ...d.data() })); renderAll(); updateBreakdownCharts(); },
     (e) => { console.error(e); setStatus(false, 'Sinxronizasiya xətası'); }
   );
   db.collection('customers').limit(1000).onSnapshot(
     snap => { allCustomers = snap.docs.map(d => ({ id: d.id, ...d.data() })); renderAll(); },
+    (e) => console.error(e)
+  );
+  db.collection('finance').limit(2000).onSnapshot(
+    snap => { allFinance = snap.docs.map(d => ({ id: d.id, ...d.data() })); renderAll(); },
     (e) => console.error(e)
   );
 }
@@ -1932,4 +2488,3 @@ init();
 </script>
 </body>
 </html>
-<!-- redeploy trigger -->
