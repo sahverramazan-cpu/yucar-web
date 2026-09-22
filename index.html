@@ -1820,7 +1820,7 @@ async function saveSale() {
   btn.disabled = true; btn.textContent = 'Saxlanılır…';
   try {
     const priorStats = statsFor(customerId);
-    await db.collection('visits').add(record);
+    const visitRef = await db.collection('visits').add(record);
     if (priceFinalVal > 0) {
       try {
         await db.collection('finance').add({
@@ -1833,6 +1833,7 @@ async function saveSale() {
           note: [carBrand, carModel, record.service].filter(Boolean).join(' · '),
           createdAt: new Date().toISOString(),
           fromSale: true,
+          visitId: visitRef.id,
         });
       } catch (e) { /* non-fatal */ }
     }
@@ -2097,6 +2098,19 @@ async function saveEditVisit() {
   };
   try {
     await db.doc('visits/' + currentEditVisitId).update(updated);
+    const linkedFin = allFinance.find(f => f.visitId === currentEditVisitId);
+    if (linkedFin) {
+      if (updated.priceFinal > 0) {
+        await db.doc('finance/' + linkedFin.id).update({
+          amount: updated.priceFinal,
+          date: updated.date,
+          method: updated.payment,
+          note: [carBrand, carModel, updated.service].filter(Boolean).join(' · '),
+        });
+      } else {
+        await db.doc('finance/' + linkedFin.id).delete();
+      }
+    }
     closeEditVisit();
   } catch (e) {
     msg.textContent = 'Xəta baş verdi, yenidən cəhd edin.';
@@ -2110,6 +2124,7 @@ document.getElementById('evDeleteBtn').addEventListener('click', async () => {
   if (!confirm('Bu yuma qeydini silmək istədiyinizə əminsiniz? Bu geri qaytarıla bilməz.')) return;
   try {
     await db.doc('visits/' + currentEditVisitId).delete();
+    await deleteLinkedFinanceForVisit(currentEditVisitId);
     closeEditVisit();
   } catch (e) {
     document.getElementById('evMsg').textContent = 'Silinmə zamanı xəta baş verdi.';
@@ -2117,10 +2132,24 @@ document.getElementById('evDeleteBtn').addEventListener('click', async () => {
   }
 });
 
+async function deleteLinkedFinanceForVisit(visitId) {
+  if (!db) return;
+  const linked = allFinance.filter(f => f.visitId === visitId);
+  if (linked.length === 0) return;
+  try {
+    const batch = db.batch();
+    linked.forEach(f => batch.delete(db.doc('finance/' + f.id)));
+    await batch.commit();
+  } catch (e) { /* non-fatal */ }
+}
+
 async function deleteVisitDirect(id) {
   if (!db) return;
   if (!confirm('Bu yuma qeydini silmək istədiyinizə əminsiniz? Bu geri qaytarıla bilməz.')) return;
-  try { await db.doc('visits/' + id).delete(); } catch (e) { alert('Silinmə zamanı xəta baş verdi.'); }
+  try {
+    await db.doc('visits/' + id).delete();
+    await deleteLinkedFinanceForVisit(id);
+  } catch (e) { alert('Silinmə zamanı xəta baş verdi.'); }
 }
 
 /* ---------- EDIT / DELETE CUSTOMER ---------- */
@@ -2242,6 +2271,8 @@ async function deleteCustomer(id) {
   try {
     const batch = db.batch();
     st.visits.forEach(v => batch.delete(db.doc('visits/' + v.id)));
+    const visitIds = new Set(st.visits.map(v => v.id));
+    allFinance.filter(f => visitIds.has(f.visitId)).forEach(f => batch.delete(db.doc('finance/' + f.id)));
     batch.delete(db.doc('customers/' + id));
     await batch.commit();
     if (document.getElementById('customerDetail').classList.contains('show')) {
