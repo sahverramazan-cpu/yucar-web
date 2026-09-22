@@ -876,7 +876,7 @@ function renderRedeemOptions(points) {
     const enough = points >= need;
     const remain = points - need;
     const statusEl = enough
-      ? `<button class="mr-status mr-btn" data-redeem-label="${escapeHtml(opt.label)}" data-redeem-need="${need}">✅ Kifayət edir · qalıq ${remain.toLocaleString('az-AZ')}</button>`
+      ? `<button class="mr-status mr-btn" data-redeem-label="${escapeHtml(opt.label)}" data-redeem-need="${need}">Kifayət edir · qalıq ${remain.toLocaleString('az-AZ')}</button>`
       : `<div class="mr-status">Daha ${(need - points).toLocaleString('az-AZ')} xal</div>`;
     return `
       <div class="m-redeem-item${enough ? ' ok' : ''}">
