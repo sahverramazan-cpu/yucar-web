@@ -51,7 +51,7 @@
     --amber: #f5a33c; --amber-soft: #2c2113; --line: #2a3125; --danger: #e17255;
   }
   * { box-sizing: border-box; }
-  html, body { height: 100%; }
+  html, body { height: 100%; overflow-x: hidden; width: 100%; max-width: 100vw; }
   body {
     margin: 0; color: var(--ink);
     background:
@@ -438,6 +438,15 @@
 
   .m-empty { font-size: 13.5px; color: var(--ink-faint); text-align: center; padding: 20px 0; }
 
+  .m-social { display: flex; justify-content: center; gap: 12px; margin-top: 24px; }
+  .m-social-link {
+    width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    background: var(--surface); border: 1px solid var(--line); color: var(--ink-soft);
+    transition: all .15s ease; box-shadow: 0 1px 3px rgba(16,34,31,0.04);
+  }
+  .m-social-link:hover { background: var(--teal); color: #fff; border-color: var(--teal); transform: translateY(-2px); box-shadow: 0 6px 14px rgba(5,187,52,0.3); }
+  .m-social-caption { text-align: center; font-size: 12px; color: var(--ink-faint); margin-top: 10px; }
+
   .m-redeem-item {
     display: flex; justify-content: space-between; align-items: center; gap: 12px;
     padding: 12px 0; border-top: 1px solid var(--line);
@@ -527,6 +536,19 @@
       <div id="mHistoryList"><div class="m-empty">Yüklənir…</div></div>
     </div>
   </div>
+
+  <div class="m-social">
+    <a class="m-social-link" href="https://www.instagram.com/" target="_blank" rel="noopener" title="Instagram">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+    </a>
+    <a class="m-social-link" href="https://www.tiktok.com/en/" target="_blank" rel="noopener" title="TikTok">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M16.6 5.82s.51.5 0 0A4.278 4.278 0 0 1 15.54 3h-3.09v12.4a2.592 2.592 0 0 1-2.59 2.5c-1.42 0-2.6-1.16-2.6-2.6 0-1.72 1.66-3.01 3.37-2.48V9.66c-3.45-.46-6.47 2.22-6.47 5.64 0 3.33 2.76 5.7 5.69 5.7 3.14 0 5.69-2.55 5.69-5.7V9.01a7.35 7.35 0 0 0 4.3 1.38V7.3s-1.88.09-3.24-1.48z"/></svg>
+    </a>
+    <a class="m-social-link" href="https://wa.me/994101112026" target="_blank" rel="noopener" title="WhatsApp">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2c-5.46 0-9.9 4.44-9.9 9.9 0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38c1.45.79 3.08 1.21 4.79 1.21 5.46 0 9.9-4.44 9.9-9.9S17.5 2 12.04 2zm5.71 14.13c-.24.68-1.19 1.25-1.94 1.41-.52.11-1.2.2-3.48-.75-2.92-1.21-4.8-4.17-4.94-4.36-.14-.19-1.18-1.57-1.18-3 0-1.43.75-2.13 1.02-2.42.27-.29.59-.36.79-.36.2 0 .39 0 .56.01.18.01.42-.07.66.5.24.58.82 2 .89 2.14.07.14.12.31.02.5-.1.19-.15.31-.29.48-.15.17-.31.38-.44.51-.15.15-.3.31-.13.6.17.29.76 1.25 1.63 2.03 1.12 1 2.06 1.31 2.35 1.46.29.15.46.13.63-.05.17-.19.71-.83.9-1.11.19-.29.38-.24.63-.14.27.09 1.68.79 1.97.94.29.14.48.21.55.33.07.12.07.68-.17 1.36z"/></svg>
+    </a>
+  </div>
+  <div class="m-social-caption">010 111 2026 · yucar.az</div>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
