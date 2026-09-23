@@ -212,7 +212,9 @@
   .empty { font-size: 13px; color: var(--ink-faint); padding: 6px 0; }
 
   .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
-  @media (max-width: 760px) { .grid2 { grid-template-columns: 1fr; } }
+  .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 18px; }
+  @media (max-width: 760px) { .grid2 { grid-template-columns: 1fr; } .grid3 { grid-template-columns: 1fr; } }
+  @media (max-width: 1080px) and (min-width: 761px) { .grid3 { grid-template-columns: 1fr 1fr; } }
 
   .chart-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; flex-wrap: wrap; margin-bottom: 16px; }
   .chart-controls { display: flex; gap: 8px; flex-wrap: wrap; }
@@ -672,7 +674,7 @@
       </div>
     </div>
 
-    <div class="grid2">
+    <div class="grid3">
       <div class="panel">
         <div class="chart-head">
           <h2 style="margin:0;">Marka üzrə</h2>
@@ -685,23 +687,10 @@
       </div>
       <div class="panel">
         <div class="chart-head">
-          <h2 style="margin:0;">Model üzrə</h2>
-          <div class="chip-group tiny" data-viewfor="model">
-            <button class="chip active" data-view="bar">Sütun</button>
-            <button class="chip" data-view="pie">Dairəvi</button>
-          </div>
-        </div>
-        <div class="chart-wrap small"><canvas id="modelChart"></canvas></div>
-      </div>
-    </div>
-
-    <div class="grid2">
-      <div class="panel">
-        <div class="chart-head">
           <h2 style="margin:0;">Xidmət növü üzrə</h2>
           <div class="chip-group tiny" data-viewfor="service">
-            <button class="chip active" data-view="pie">Dairəvi</button>
-            <button class="chip" data-view="bar">Sütun</button>
+            <button class="chip active" data-view="bar">Sütun</button>
+            <button class="chip" data-view="pie">Dairəvi</button>
           </div>
         </div>
         <div class="chart-wrap small"><canvas id="serviceChart"></canvas></div>
@@ -755,12 +744,17 @@
         <div class="lbl">Yeni müştəri məlumatları</div>
         <div class="row2">
           <div class="field"><label>Ad, soyad</label><input id="ncName" type="text"></div>
+          <div class="field"><label>Ata adı</label><input id="ncFatherName" type="text"></div>
+        </div>
+        <div class="row3">
           <div class="field"><label>Əlaqə nömrəsi</label>
             <div class="phone-input">
               <span class="phone-prefix">+994</span>
               <input id="ncPhone" type="tel" placeholder="50 123 45 67" inputmode="numeric" maxlength="15">
             </div>
           </div>
+          <div class="field"><label>Ş/V seriyası</label><input id="ncIdSeries" type="text" placeholder="Məs. AA1234567"></div>
+          <div class="field"><label>Ş/V FİN kodu</label><input id="ncFinCode" type="text" placeholder="Məs. 1A2B3C4"></div>
         </div>
         <button class="change-btn" id="cancelNewCustomerBtn" style="margin-top:2px;">Ləğv et</button>
       </div>
@@ -1124,12 +1118,15 @@
     <div class="modal-box">
       <h3>Müştəri məlumatlarını redaktə et</h3>
       <div class="field"><label>Ad, soyad</label><input id="ecName" type="text"></div>
+      <div class="field"><label>Ata adı</label><input id="ecFatherName" type="text"></div>
       <div class="field"><label>Əlaqə nömrəsi</label>
         <div class="phone-input">
           <span class="phone-prefix">+994</span>
           <input id="ecPhone" type="tel" inputmode="numeric" maxlength="15">
         </div>
       </div>
+      <div class="field"><label>Ş/V seriyası</label><input id="ecIdSeries" type="text" placeholder="Məs. AA1234567"></div>
+      <div class="field"><label>Ş/V FİN kodu</label><input id="ecFinCode" type="text" placeholder="Məs. 1A2B3C4"></div>
       <div class="field"><label>Məkan</label><input id="ecLocation" type="text"></div>
       <div class="field"><label>Şifrə (müştəri portalına giriş üçün)</label><input id="ecPassword" type="text"></div>
       <div class="modal-actions">
@@ -1156,12 +1153,15 @@
     <div class="modal-box">
       <h3>Yeni müştəri əlavə et</h3>
       <div class="field"><label>Ad, soyad</label><input id="nc2Name" type="text"></div>
+      <div class="field"><label>Ata adı</label><input id="nc2FatherName" type="text"></div>
       <div class="field"><label>Əlaqə nömrəsi</label>
         <div class="phone-input">
           <span class="phone-prefix">+994</span>
           <input id="nc2Phone" type="tel" placeholder="50 123 45 67" inputmode="numeric" maxlength="15">
         </div>
       </div>
+      <div class="field"><label>Ş/V seriyası</label><input id="nc2IdSeries" type="text" placeholder="Məs. AA1234567"></div>
+      <div class="field"><label>Ş/V FİN kodu</label><input id="nc2FinCode" type="text" placeholder="Məs. 1A2B3C4"></div>
       <div class="modal-actions">
         <button class="btn-ghost" id="nc2CancelBtn">Ləğv et</button>
         <div style="flex:1;"></div>
@@ -1586,11 +1586,18 @@ function visitsFor(customerId) {
 function customerDirectory() {
   // merge explicit customer docs with any customerIds only seen in visits
   const map = new Map();
-  allCustomers.forEach(c => map.set(c.id, { id: c.id, name: c.name, phone: c.phone, location: c.location || '', password: c.password || '' }));
+  allCustomers.forEach(c => map.set(c.id, {
+    id: c.id, name: c.name, phone: c.phone, location: c.location || '', password: c.password || '',
+    fatherName: c.fatherName || '', finCode: c.finCode || '', idSeries: c.idSeries || '',
+    createdAt: c.createdAt || '',
+  }));
   allVisits.forEach(v => {
     const cid = v.customerId || v.phoneKey;
     if (!cid) return;
-    if (!map.has(cid)) map.set(cid, { id: cid, name: v.name, phone: v.phone, location: v.location || '', password: '' });
+    if (!map.has(cid)) map.set(cid, {
+      id: cid, name: v.name, phone: v.phone, location: v.location || '', password: '',
+      fatherName: v.fatherName || '', finCode: '', idSeries: '', createdAt: v.createdAt || '',
+    });
   });
   return Array.from(map.values());
 }
@@ -1738,8 +1745,8 @@ document.querySelectorAll('#chartMetricGroup .chip').forEach(b => {
 
 /* ---------- BREAKDOWN CHARTS (brand / model / service / addon) ---------- */
 const BREAKDOWN_COLORS = ['#05bb34','#f19015','#2e6f95','#8a4fd1','#d1477a','#3fb3a4','#c9962b','#5a6bd1','#7fa832','#b3492f'];
-let breakdownInstances = { brandChart: null, modelChart: null, serviceChart: null, addonChart: null };
-let breakdownViewMode = { brand: 'bar', model: 'bar', service: 'pie', addon: 'bar' };
+let breakdownInstances = { brandChart: null, serviceChart: null, addonChart: null };
+let breakdownViewMode = { brand: 'bar', service: 'bar', addon: 'bar' };
 
 function countBy(items, keyFn) {
   const map = new Map();
@@ -1795,14 +1802,12 @@ function updateBreakdownCharts() {
   const { from, to } = dashPeriodRange(dashPeriodMode);
   const visits = allVisits.filter(v => v.date >= from && v.date <= to);
   const brandEntries = countBy(visits, v => v.carBrand || (v.car ? v.car.split(' ')[0] : ''));
-  const modelEntries = countBy(visits, v => v.carModel || '');
   const serviceEntries = countBy(visits, v => v.service || '');
   const addonEntries = countBy(
     visits.flatMap(v => (v.addon || '').split(',').map(s => s.trim()).filter(Boolean)),
     a => a
   );
   renderBreakdownChart('brandChart', brandEntries, breakdownViewMode.brand);
-  renderBreakdownChart('modelChart', modelEntries, breakdownViewMode.model);
   renderBreakdownChart('serviceChart', serviceEntries, breakdownViewMode.service);
   renderBreakdownChart('addonChart', addonEntries, breakdownViewMode.addon);
 }
@@ -1989,6 +1994,9 @@ function startNewCustomer(typedName) {
   document.getElementById('selectedCustomerBox').classList.remove('show');
   document.getElementById('newCustomerBox').classList.add('show');
   document.getElementById('ncName').value = typedName || '';
+  document.getElementById('ncFatherName').value = '';
+  document.getElementById('ncIdSeries').value = '';
+  document.getElementById('ncFinCode').value = '';
   document.getElementById('saleForm').classList.add('show');
   document.getElementById('freeWashBanner').classList.remove('show');
   document.getElementById('pointsPayBtn').style.display = 'none';
@@ -2004,6 +2012,9 @@ function resetSelection(clearSearch) {
   document.getElementById('pointsPayBtn').style.display = 'none';
   document.getElementById('pointsPayBtn').classList.remove('active', 'insufficient');
   document.getElementById('ncPhone').value = '';
+  document.getElementById('ncFatherName').value = '';
+  document.getElementById('ncIdSeries').value = '';
+  document.getElementById('ncFinCode').value = '';
   if (clearSearch) saleSearch.value = '';
 }
 document.getElementById('changeCustomerBtn').addEventListener('click', () => { resetSelection(true); saleSearch.focus(); });
@@ -2030,32 +2041,36 @@ async function saveSale() {
   if (!document.getElementById('fService').value) { msg.textContent = 'Xidmət (paket) seçin.'; msg.className = 'save-msg show err'; return; }
 
   let customerId = selectedCustomerId;
-  let customerName, customerPhone, customerLocation = '';
+  let customerName, customerPhone, customerLocation = '', customerFatherName = '';
 
   if (selectedCustomerId === 'NEW') {
     customerName = document.getElementById('ncName').value.trim();
+    customerFatherName = document.getElementById('ncFatherName').value.trim();
     const phoneRaw = document.getElementById('ncPhone').value.trim();
+    const idSeries = document.getElementById('ncIdSeries').value.trim();
+    const finCode = document.getElementById('ncFinCode').value.trim();
     customerLocation = '';
     const key = digitsOnlyLocal(phoneRaw);
-    if (!customerName || key.length !== 9) { msg.textContent = 'Ad daxil edin və nömrəni tam yazın (9 rəqəm, +994-dən sonra).'; msg.className = 'save-msg show err'; return; }
+    if (!customerName || !customerFatherName || key.length !== 9) { msg.textContent = 'Ad, soyad, ata adı daxil edin və nömrəni tam yazın (9 rəqəm, +994-dən sonra).'; msg.className = 'save-msg show err'; return; }
     customerPhone = formatPhoneAZ(key);
     customerId = key;
     const existing = customerDirectory().find(c => c.id === key);
     if (!existing) {
       try {
         await db.doc('customers/' + key).set({
-          name: customerName, phone: customerPhone, location: customerLocation,
+          name: customerName, fatherName: customerFatherName, phone: customerPhone, location: customerLocation,
+          idSeries, finCode,
           nameLower: normalizeName(customerName), password: generateCustomerPassword(),
           createdAt: new Date().toISOString(),
         });
       } catch (e) { msg.textContent = 'Müştəri yaradılarkən xəta baş verdi.'; msg.className = 'save-msg show err'; return; }
     } else {
-      customerName = existing.name; customerPhone = existing.phone;
+      customerName = existing.name; customerPhone = existing.phone; customerFatherName = existing.fatherName || customerFatherName;
     }
   } else {
     const c = customerDirectory().find(x => x.id === selectedCustomerId);
     if (!c) { msg.textContent = 'Müştəri tapılmadı, yenidən seçin.'; msg.className = 'save-msg show err'; return; }
-    customerName = c.name; customerPhone = c.phone; customerLocation = c.location || '';
+    customerName = c.name; customerPhone = c.phone; customerLocation = c.location || ''; customerFatherName = c.fatherName || '';
   }
 
   const date = document.getElementById('fDate').value || todayStr();
@@ -2067,7 +2082,7 @@ async function saveSale() {
   const pointsUsedNow = salePayWithPoints ? Math.round(grossForPoints * 200) : 0;
   const record = {
     customerId, phoneKey: customerId,
-    name: customerName, phone: customerPhone, location: customerLocation,
+    name: customerName, fatherName: customerFatherName, phone: customerPhone, location: customerLocation,
     car: [carBrand, carModel].filter(Boolean).join(' '),
     carBrand, carModel,
     service: document.getElementById('fService').value,
@@ -2149,7 +2164,7 @@ function renderCustomerList() {
       return nameHit || phoneHit;
     });
   }
-  rows.sort((a, b) => (b.lastDate || '').localeCompare(a.lastDate || ''));
+  rows.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
   const body = document.getElementById('custListBody');
   if (rows.length === 0) { body.innerHTML = '<tr><td colspan="5" class="empty">Müştəri tapılmadı.</td></tr>'; return; }
   body.innerHTML = rows.map(c => `
@@ -2232,6 +2247,7 @@ function openViewVisit(id) {
   const rows = [
     ['Tarix', fmtDate(v.date)],
     ['Ad, soyad', v.name || '—'],
+    ['Ata adı', v.fatherName || '—'],
     ['Əlaqə nömrəsi', formatPhoneAZ(v.phone)],
     ['Xal', `${custPoints} xal (${fmtAzn(pointsToAzn(custPoints))} ₼)`],
     ['Məkan', v.location || '—'],
@@ -2254,7 +2270,10 @@ function openViewCustomer(id) {
   const st = statsFor(id);
   const rows = [
     ['Ad, soyad', c.name || '—'],
+    ['Ata adı', c.fatherName || '—'],
     ['Əlaqə nömrəsi', formatPhoneAZ(c.phone)],
+    ['Ş/V seriyası', c.idSeries || '—'],
+    ['Ş/V FİN kodu', c.finCode || '—'],
     ['Məkan', c.location || '—'],
     ['Şifrə', c.password || '—'],
     ['Yuma sayı', st.count],
@@ -2479,7 +2498,10 @@ function openEditCustomer(id) {
   const c = customerDirectory().find(x => x.id === targetId);
   if (!c) return;
   document.getElementById('ecName').value = c.name || '';
+  document.getElementById('ecFatherName').value = c.fatherName || '';
   document.getElementById('ecPhone').value = digitsOnlyLocal(c.phone);
+  document.getElementById('ecIdSeries').value = c.idSeries || '';
+  document.getElementById('ecFinCode').value = c.finCode || '';
   document.getElementById('ecLocation').value = c.location || '';
   document.getElementById('ecPassword').value = c.password || '';
   document.getElementById('ecMsg').className = 'save-msg';
@@ -2494,7 +2516,10 @@ document.getElementById('detEditBtn').addEventListener('click', openEditCustomer
 /* ---------- ADD NEW CUSTOMER (from Customers tab) ---------- */
 function openNewCustomerModal() {
   document.getElementById('nc2Name').value = '';
+  document.getElementById('nc2FatherName').value = '';
   document.getElementById('nc2Phone').value = '';
+  document.getElementById('nc2IdSeries').value = '';
+  document.getElementById('nc2FinCode').value = '';
   document.getElementById('nc2Msg').className = 'save-msg';
   document.getElementById('newCustomerOverlay').classList.add('show');
 }
@@ -2512,10 +2537,13 @@ async function saveNewCustomer() {
   msg.className = 'save-msg';
   if (!db) { msg.textContent = 'Verilənlər bazasına qoşulma yoxdur.'; msg.className = 'save-msg show err'; return; }
   const name = document.getElementById('nc2Name').value.trim();
+  const fatherName = document.getElementById('nc2FatherName').value.trim();
   const phoneRaw = document.getElementById('nc2Phone').value.trim();
+  const idSeries = document.getElementById('nc2IdSeries').value.trim();
+  const finCode = document.getElementById('nc2FinCode').value.trim();
   const key = digitsOnlyLocal(phoneRaw);
-  if (!name || key.length !== 9) {
-    msg.textContent = 'Ad daxil edin və nömrəni tam yazın (9 rəqəm, +994-dən sonra).';
+  if (!name || !fatherName || key.length !== 9) {
+    msg.textContent = 'Ad, soyad, ata adı daxil edin və nömrəni tam yazın (9 rəqəm, +994-dən sonra).';
     msg.className = 'save-msg show err';
     return;
   }
@@ -2530,7 +2558,7 @@ async function saveNewCustomer() {
   btn.disabled = true; btn.textContent = 'Saxlanılır…';
   try {
     await db.doc('customers/' + key).set({
-      name, phone: formatPhoneAZ(key), location,
+      name, fatherName, phone: formatPhoneAZ(key), location, idSeries, finCode,
       nameLower: normalizeName(name), password: generateCustomerPassword(),
       createdAt: new Date().toISOString(),
     });
@@ -2553,24 +2581,27 @@ async function saveEditCustomer() {
   const msg = document.getElementById('ecMsg');
   if (!currentDetailCustomerId || !db) return;
   const name = document.getElementById('ecName').value.trim();
+  const fatherName = document.getElementById('ecFatherName').value.trim();
   const key = digitsOnlyLocal(document.getElementById('ecPhone').value);
-  if (!name || key.length !== 9) {
-    msg.textContent = 'Ad daxil edin və nömrəni tam yazın (9 rəqəm).';
+  if (!name || !fatherName || key.length !== 9) {
+    msg.textContent = 'Ad, soyad, ata adı daxil edin və nömrəni tam yazın (9 rəqəm).';
     msg.className = 'save-msg show err';
     return;
   }
   const phone = formatPhoneAZ(key);
+  const idSeries = document.getElementById('ecIdSeries').value.trim();
+  const finCode = document.getElementById('ecFinCode').value.trim();
   const location = document.getElementById('ecLocation').value.trim();
   const password = document.getElementById('ecPassword').value.trim();
   try {
     if (key === currentDetailCustomerId) {
-      await db.doc('customers/' + currentDetailCustomerId).update({ name, phone, location, password, nameLower: normalizeName(name) });
+      await db.doc('customers/' + currentDetailCustomerId).update({ name, fatherName, phone, idSeries, finCode, location, password, nameLower: normalizeName(name) });
     } else {
       // phone number changed → move to a new document id, update linked visits
-      await db.doc('customers/' + key).set({ name, phone, location, password, nameLower: normalizeName(name), createdAt: new Date().toISOString() });
+      await db.doc('customers/' + key).set({ name, fatherName, phone, idSeries, finCode, location, password, nameLower: normalizeName(name), createdAt: new Date().toISOString() });
       const oldVisits = allVisits.filter(v => (v.customerId || v.phoneKey) === currentDetailCustomerId);
       const batch = db.batch();
-      oldVisits.forEach(v => batch.update(db.doc('visits/' + v.id), { customerId: key, phoneKey: key, name, phone }));
+      oldVisits.forEach(v => batch.update(db.doc('visits/' + v.id), { customerId: key, phoneKey: key, name, fatherName, phone }));
       await batch.commit();
       await db.doc('customers/' + currentDetailCustomerId).delete();
       currentDetailCustomerId = key;
@@ -2921,11 +2952,14 @@ function renderSalesList() {
   body.innerHTML = rows.slice(0, 300).map(v => {
     const seq = seqMap.get(v.id) || 0;
     const isMilestone = seq > 0 && seq % 100 === 0;
-    const priceTxt = v.priceFinal ? Number(v.priceFinal).toLocaleString('az-AZ') + ' ₼' : '—';
+    const priceTxt = v.paidWithPoints
+      ? `${(v.pointsRedeemed || 0).toLocaleString('az-AZ')} xal`
+      : (v.priceFinal ? Number(v.priceFinal).toLocaleString('az-AZ') + ' ₼' : '—');
+    const fullName = [v.name, v.fatherName].filter(Boolean).join(' ');
     return `
       <tr class="data-row${isMilestone ? ' milestone' : ''}">
         <td>#${seq}</td>
-        <td>${escapeHtml(v.name || '—')}${isMilestone ? ' <span class="badge pts">🎉 ' + seq + '-ci yuma!</span>' : ''}</td>
+        <td>${escapeHtml(fullName || '—')}${isMilestone ? ' <span class="badge pts">🎉 ' + seq + '-ci yuma!</span>' : ''}</td>
         <td>${fmtDate(v.date)}</td>
         <td>${priceTxt}</td>
         <td class="col-actions"><div class="row-actions">
