@@ -830,7 +830,42 @@
         </div>
         <button class="btn-add income" id="openNewSaleBtn" style="width:auto;">+ Yeni satış</button>
       </div>
-      <input class="search-bar" id="saleListSearch" type="text" placeholder="Axtar: ad, nömrə, avtomobil…">
+      <input class="search-bar" id="saleListSearch" type="text" placeholder="Sərbəst axtarış: ad, nömrə, avtomobil, xidmət, əməkdaş…">
+      <button class="filter-toggle" id="sfToggle">
+        <span>Ətraflı filtrlər</span>
+        <svg class="ft-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="filter-panel" id="sfPanel">
+        <div class="row3">
+          <div class="field"><label>Ad, soyad</label><input id="sfName" type="text"></div>
+          <div class="field"><label>Nömrə</label><input id="sfPhone" type="text"></div>
+          <div class="field"><label>Avtomobil</label><input id="sfCar" type="text" placeholder="Məs. Mazda"></div>
+        </div>
+        <div class="row3">
+          <div class="field"><label>Xidmət</label>
+            <select id="sfService">
+              <option value="">Hamısı</option>
+              <option value="Sedan">Sedan</option>
+              <option value="SUV">SUV</option>
+              <option value="Böyük Avtomobil">Böyük Avtomobil</option>
+            </select>
+          </div>
+          <div class="field"><label>Əməkdaş</label><input id="sfEmployee" type="text"></div>
+          <div class="field"><label>Ödəniş üsulu</label>
+            <select id="sfPayment">
+              <option value="">Hamısı</option>
+              <option value="Nağd">Nağd</option>
+              <option value="Kart">Kart</option>
+              <option value="Bank köçürməsi">Bank köçürməsi</option>
+            </select>
+          </div>
+        </div>
+        <div class="row2">
+          <div class="field"><label>Tarixdən</label><input id="sfDateFrom" type="date"></div>
+          <div class="field"><label>Tarixədək</label><input id="sfDateTo" type="date"></div>
+        </div>
+        <button class="btn-ghost" id="sfClear">Filtrləri təmizlə</button>
+      </div>
       <div class="table-scroll">
         <table>
           <thead>
@@ -854,7 +889,24 @@
         </div>
         <button class="btn-primary" id="addCustomerBtn" style="width:auto; margin-top:0;">+ Yeni müştəri</button>
       </div>
-      <input class="search-bar" id="custSearch" type="text" placeholder="Axtar: ad soyad və ya nömrə">
+      <input class="search-bar" id="custSearch" type="text" placeholder="Sərbəst axtarış: ad, soyad, nömrə…">
+      <button class="filter-toggle" id="cfToggle">
+        <span>Ətraflı filtrlər</span>
+        <svg class="ft-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="filter-panel" id="cfPanel">
+        <div class="row3">
+          <div class="field"><label>Ad, soyad</label><input id="cfName" type="text"></div>
+          <div class="field"><label>Nömrə</label><input id="cfPhone" type="text"></div>
+          <div class="field"><label>Minimum yuma sayı</label><input id="cfMinVisits" type="number" min="0"></div>
+        </div>
+        <div class="row3">
+          <div class="field"><label>Minimum xal</label><input id="cfMinPoints" type="number" min="0"></div>
+          <div class="field"><label>Son yuma tarixdən</label><input id="cfLastFrom" type="date"></div>
+          <div class="field"><label>Son yuma tarixədək</label><input id="cfLastTo" type="date"></div>
+        </div>
+        <button class="btn-ghost" id="cfClear">Filtrləri təmizlə</button>
+      </div>
       <div class="table-scroll">
         <table>
           <thead>
@@ -895,7 +947,15 @@
 
   <!-- ================= DATA ================= -->
   <section class="tabpage" id="tab-data">
-   <div class="subpage active" data-subpage="main">    <div class="panel">
+   <div class="subpage active" data-subpage="main">
+    <div class="chip-group" id="dataDatasetGroup" style="margin-bottom:16px; width:fit-content;">
+      <button class="chip active" data-dataset="visits">Yuma qeydləri</button>
+      <button class="chip" data-dataset="income">Mədaxil</button>
+      <button class="chip" data-dataset="expense">Məxaric</button>
+    </div>
+
+    <div class="dataset-view" id="dataset-visits">
+    <div class="panel">
       <h2>Data</h2>
       <p class="desc">Bütün qeydlər bir cədvəldə. Sərbəst axtarış edin (məs. "Mazda") və ya dəqiq filtrlərdən istifadə edin.</p>
       <input class="search-bar" id="dataSearch" type="text" placeholder='Sərbəst axtarış: ad, nömrə, avtomobil, xidmət, əməkdaş…'>
@@ -953,6 +1013,99 @@
           <tbody id="dataTableBody"><tr><td colspan="5" class="empty">Yüklənir…</td></tr></tbody>
         </table>
       </div>
+    </div>
+    </div>
+
+    <div class="dataset-view" id="dataset-income" style="display:none;">
+    <div class="panel">
+      <h2>Data — Mədaxil</h2>
+      <p class="desc">Bütün mədaxil qeydləri bir cədvəldə. Sərbəst axtarış edin və ya dəqiq filtrlərdən istifadə edin.</p>
+      <input class="search-bar" id="diSearch" type="text" placeholder="Sərbəst axtarış: kateqoriya, şəxs, qeyd…">
+      <button class="filter-toggle" id="diToggle">
+        <span>Ətraflı filtrlər</span>
+        <svg class="ft-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="filter-panel" id="diPanel">
+        <div class="row3">
+          <div class="field"><label>Kateqoriya</label><input id="diCategory" type="text"></div>
+          <div class="field"><label>Şəxs</label><input id="diPerson" type="text"></div>
+          <div class="field"><label>Ödəniş üsulu</label>
+            <select id="diMethod">
+              <option value="">Hamısı</option>
+              <option value="Nağd">Nağd</option>
+              <option value="Kart">Kart</option>
+              <option value="Bank köçürməsi">Bank köçürməsi</option>
+            </select>
+          </div>
+        </div>
+        <div class="row2">
+          <div class="field"><label>Tarixdən</label><input id="diDateFrom" type="date"></div>
+          <div class="field"><label>Tarixədək</label><input id="diDateTo" type="date"></div>
+        </div>
+        <button class="btn-ghost" id="diClear">Filtrləri təmizlə</button>
+      </div>
+    </div>
+
+    <div class="stat-row cols3">
+      <div class="stat-card"><div class="v" id="diIncomeTotal" style="color:var(--teal-deep);">—</div><div class="l">Ümumi mədaxil (₼)</div></div>
+      <div class="stat-card"><div class="v" id="diExpenseTotal" style="color:var(--danger);">—</div><div class="l">Ümumi məxaric (₼)</div></div>
+      <div class="stat-card"><div class="v" id="diBalance">—</div><div class="l">Balans (₼)</div></div>
+    </div>
+
+    <div class="panel">
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>№</th><th>Tarix</th><th>Məbləğ</th><th>Kateqoriya</th><th>Şəxs</th><th>Ödəniş üsulu</th><th class="col-actions"></th></tr></thead>
+          <tbody id="dataIncomeBody"><tr><td colspan="7" class="empty">Yüklənir…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+    </div>
+
+    <div class="dataset-view" id="dataset-expense" style="display:none;">
+    <div class="panel">
+      <h2>Data — Məxaric</h2>
+      <p class="desc">Bütün məxaric qeydləri bir cədvəldə. Sərbəst axtarış edin və ya dəqiq filtrlərdən istifadə edin.</p>
+      <input class="search-bar" id="deSearch" type="text" placeholder="Sərbəst axtarış: kateqoriya, şəxs, qeyd…">
+      <button class="filter-toggle" id="deToggle">
+        <span>Ətraflı filtrlər</span>
+        <svg class="ft-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="filter-panel" id="dePanel">
+        <div class="row3">
+          <div class="field"><label>Kateqoriya</label><input id="deCategory" type="text"></div>
+          <div class="field"><label>Şəxs</label><input id="dePerson" type="text"></div>
+          <div class="field"><label>Ödəniş üsulu</label>
+            <select id="deMethod">
+              <option value="">Hamısı</option>
+              <option value="Nağd">Nağd</option>
+              <option value="Kart">Kart</option>
+              <option value="Bank köçürməsi">Bank köçürməsi</option>
+            </select>
+          </div>
+        </div>
+        <div class="row2">
+          <div class="field"><label>Tarixdən</label><input id="deDateFrom" type="date"></div>
+          <div class="field"><label>Tarixədək</label><input id="deDateTo" type="date"></div>
+        </div>
+        <button class="btn-ghost" id="deClear">Filtrləri təmizlə</button>
+      </div>
+    </div>
+
+    <div class="stat-row cols3">
+      <div class="stat-card"><div class="v" id="deIncomeTotal" style="color:var(--teal-deep);">—</div><div class="l">Ümumi mədaxil (₼)</div></div>
+      <div class="stat-card"><div class="v" id="deExpenseTotal" style="color:var(--danger);">—</div><div class="l">Ümumi məxaric (₼)</div></div>
+      <div class="stat-card"><div class="v" id="deBalance">—</div><div class="l">Balans (₼)</div></div>
+    </div>
+
+    <div class="panel">
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>№</th><th>Tarix</th><th>Məbləğ</th><th>Kateqoriya</th><th>Şəxs</th><th>Ödəniş üsulu</th><th class="col-actions"></th></tr></thead>
+          <tbody id="dataExpenseBody"><tr><td colspan="7" class="empty">Yüklənir…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
     </div>
    </div>
   </section>
@@ -1522,7 +1675,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.classList.add('active');
     document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
     if (btn.dataset.tab === 'customers') showCustomerList();
-    if (btn.dataset.tab === 'data') renderDataTab();
+    if (btn.dataset.tab === 'data') renderActiveDataDataset();
     if (btn.dataset.tab === 'home') { renderHomeChart(); updateBreakdownCharts(); }
     if (btn.dataset.tab === 'finance') renderFinanceTab();
     if (btn.dataset.tab === 'sale') renderSalesList();
@@ -1541,12 +1694,21 @@ function customerDirectory() {
     fatherName: c.fatherName || '', finCode: c.finCode || '', idSeries: c.idSeries || '',
     createdAt: c.createdAt || '',
   }));
+  // for customers with no explicit doc, use their EARLIEST visit as the creation proxy
+  // (allVisits is fetched newest-first, so we must find the minimum, not the first seen)
+  const earliestVisitCreatedAt = {};
+  allVisits.forEach(v => {
+    const cid = v.customerId || v.phoneKey;
+    if (!cid) return;
+    const ca = v.createdAt || v.date || '';
+    if (!earliestVisitCreatedAt[cid] || ca < earliestVisitCreatedAt[cid]) earliestVisitCreatedAt[cid] = ca;
+  });
   allVisits.forEach(v => {
     const cid = v.customerId || v.phoneKey;
     if (!cid) return;
     if (!map.has(cid)) map.set(cid, {
       id: cid, name: v.name, phone: v.phone, location: v.location || '', password: '',
-      fatherName: v.fatherName || '', finCode: '', idSeries: '', createdAt: v.createdAt || '',
+      fatherName: v.fatherName || '', finCode: '', idSeries: '', createdAt: earliestVisitCreatedAt[cid] || '',
     });
   });
   return Array.from(map.values());
@@ -2111,6 +2273,12 @@ function customerSeqMap() {
 function renderCustomerList() {
   const qRaw = (document.getElementById('custSearch').value || '').toLowerCase().trim();
   const qDigits = normPhone(qRaw);
+  const fName = (document.getElementById('cfName').value || '').toLowerCase().trim();
+  const fPhone = normPhone(document.getElementById('cfPhone').value || '');
+  const fMinVisits = parseInt(document.getElementById('cfMinVisits').value) || 0;
+  const fMinPoints = parseInt(document.getElementById('cfMinPoints').value) || 0;
+  const fLastFrom = document.getElementById('cfLastFrom').value;
+  const fLastTo = document.getElementById('cfLastTo').value;
   const dir = customerDirectory().map(c => ({ ...c, ...statsFor(c.id) }))
     .filter(c => c.count > 0 || allCustomers.some(x => x.id === c.id));
   let rows = dir;
@@ -2121,6 +2289,12 @@ function renderCustomerList() {
       return nameHit || phoneHit;
     });
   }
+  if (fName) rows = rows.filter(c => (c.name || '').toLowerCase().includes(fName));
+  if (fPhone) rows = rows.filter(c => normPhone(c.phone).includes(fPhone));
+  if (fMinVisits) rows = rows.filter(c => c.count >= fMinVisits);
+  if (fMinPoints) rows = rows.filter(c => c.points >= fMinPoints);
+  if (fLastFrom) rows = rows.filter(c => (c.lastDate || '') >= fLastFrom);
+  if (fLastTo) rows = rows.filter(c => (c.lastDate || '') <= fLastTo);
   rows.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
   const seqMap = customerSeqMap();
   const body = document.getElementById('custListBody');
@@ -2139,6 +2313,20 @@ function renderCustomerList() {
   });
 }
 document.getElementById('custSearch').addEventListener('input', renderCustomerList);
+document.getElementById('cfName').addEventListener('input', renderCustomerList);
+document.getElementById('cfPhone').addEventListener('input', renderCustomerList);
+['cfMinVisits', 'cfMinPoints', 'cfLastFrom', 'cfLastTo'].forEach(id => {
+  document.getElementById(id).addEventListener('change', renderCustomerList);
+  document.getElementById(id).addEventListener('input', renderCustomerList);
+});
+document.getElementById('cfClear').addEventListener('click', () => {
+  ['custSearch', 'cfName', 'cfPhone', 'cfMinVisits', 'cfMinPoints', 'cfLastFrom', 'cfLastTo'].forEach(id => document.getElementById(id).value = '');
+  renderCustomerList();
+});
+document.getElementById('cfToggle').addEventListener('click', () => {
+  document.getElementById('cfPanel').classList.toggle('show');
+  document.getElementById('cfToggle').classList.toggle('open');
+});
 document.getElementById('backToList').addEventListener('click', () => {
   document.getElementById('customerDetail').classList.remove('show');
 });
@@ -2896,6 +3084,14 @@ function renderSalesList() {
   const body = document.getElementById('salesListBody');
   if (!body) return;
   const q = (document.getElementById('saleListSearch').value || '').toLowerCase().trim();
+  const fName = (document.getElementById('sfName').value || '').toLowerCase().trim();
+  const fPhone = normPhone(document.getElementById('sfPhone').value || '');
+  const fCar = (document.getElementById('sfCar').value || '').toLowerCase().trim();
+  const fService = document.getElementById('sfService').value;
+  const fEmployee = (document.getElementById('sfEmployee').value || '').toLowerCase().trim();
+  const fPayment = document.getElementById('sfPayment').value;
+  const fFrom = document.getElementById('sfDateFrom').value;
+  const fTo = document.getElementById('sfDateTo').value;
 
   const chronological = [...allVisits].sort((a, b) =>
     (a.date || '').localeCompare(b.date || '') || (a.createdAt || '').localeCompare(b.createdAt || ''));
@@ -2907,6 +3103,14 @@ function renderSalesList() {
     rows = rows.filter(v => [v.name, v.phone, v.car, v.service, v.addon, v.employee]
       .map(x => (x || '').toString().toLowerCase()).join(' ').includes(q));
   }
+  if (fName) rows = rows.filter(v => (v.name || '').toLowerCase().includes(fName));
+  if (fPhone) rows = rows.filter(v => normPhone(v.phone).includes(fPhone));
+  if (fCar) rows = rows.filter(v => (v.car || '').toLowerCase().includes(fCar));
+  if (fService) rows = rows.filter(v => v.service === fService);
+  if (fEmployee) rows = rows.filter(v => (v.employee || '').toLowerCase().includes(fEmployee));
+  if (fPayment) rows = rows.filter(v => v.payment === fPayment);
+  if (fFrom) rows = rows.filter(v => (v.date || '') >= fFrom);
+  if (fTo) rows = rows.filter(v => (v.date || '') <= fTo);
   rows.sort((a, b) => (b.date || '').localeCompare(a.date || '') || (b.createdAt || '').localeCompare(a.createdAt || ''));
   if (rows.length === 0) {
     body.innerHTML = '<tr><td colspan="5" class="empty">Hələ satış qeydə alınmayıb.</td></tr>';
@@ -2937,6 +3141,22 @@ function renderSalesList() {
   body.querySelectorAll('[data-sv-del]').forEach(b => b.addEventListener('click', () => deleteVisitDirect(b.getAttribute('data-sv-del'))));
 }
 document.getElementById('saleListSearch').addEventListener('input', renderSalesList);
+document.getElementById('sfName').addEventListener('input', renderSalesList);
+document.getElementById('sfPhone').addEventListener('input', renderSalesList);
+document.getElementById('sfCar').addEventListener('input', renderSalesList);
+document.getElementById('sfEmployee').addEventListener('input', renderSalesList);
+['sfService', 'sfPayment', 'sfDateFrom', 'sfDateTo'].forEach(id => {
+  document.getElementById(id).addEventListener('change', renderSalesList);
+});
+document.getElementById('sfClear').addEventListener('click', () => {
+  ['saleListSearch', 'sfName', 'sfPhone', 'sfCar', 'sfEmployee'].forEach(id => document.getElementById(id).value = '');
+  ['sfService', 'sfPayment', 'sfDateFrom', 'sfDateTo'].forEach(id => document.getElementById(id).value = '');
+  renderSalesList();
+});
+document.getElementById('sfToggle').addEventListener('click', () => {
+  document.getElementById('sfPanel').classList.toggle('show');
+  document.getElementById('sfToggle').classList.toggle('open');
+});
 
 function renderDataTab() {
   const freeQ = (document.getElementById('dataSearch').value || '').toLowerCase().trim();
@@ -3012,6 +3232,118 @@ function renderDataTab() {
   body.querySelectorAll('[data-del-cust]').forEach(b => b.addEventListener('click', () => deleteCustomer(b.getAttribute('data-del-cust'))));
   body.querySelectorAll('[data-history-cid]').forEach(b => b.addEventListener('click', () => openHistoryModal(b.getAttribute('data-history-cid'))));
 }
+
+/* ---------- DATA: income/expense datasets ---------- */
+function renderDataFinanceTable(prefix, type) {
+  const search = (document.getElementById(prefix + 'Search').value || '').toLowerCase().trim();
+  const fCategory = (document.getElementById(prefix + 'Category').value || '').toLowerCase().trim();
+  const fPerson = (document.getElementById(prefix + 'Person').value || '').toLowerCase().trim();
+  const fMethod = document.getElementById(prefix + 'Method').value;
+  const fFrom = document.getElementById(prefix + 'DateFrom').value;
+  const fTo = document.getElementById(prefix + 'DateTo').value;
+
+  let rows = allFinance.filter(f => f.type === type);
+  if (search) {
+    rows = rows.filter(f => [f.category, f.person, f.method, f.note]
+      .map(x => (x || '').toString().toLowerCase()).join(' ').includes(search));
+  }
+  if (fCategory) rows = rows.filter(f => (f.category || '').toLowerCase().includes(fCategory));
+  if (fPerson) rows = rows.filter(f => (f.person || '').toLowerCase().includes(fPerson));
+  if (fMethod) rows = rows.filter(f => f.method === fMethod);
+  if (fFrom) rows = rows.filter(f => (f.date || '') >= fFrom);
+  if (fTo) rows = rows.filter(f => (f.date || '') <= fTo);
+
+  const chronological = [...allFinance.filter(f => f.type === type)].sort((a, b) =>
+    (a.date || '').localeCompare(b.date || '') || (a.createdAt || '').localeCompare(b.createdAt || ''));
+  const seqMap = new Map();
+  chronological.forEach((f, i) => seqMap.set(f.id, i + 1));
+
+  rows.sort((a, b) => (b.date || '').localeCompare(a.date || '') || (b.createdAt || '').localeCompare(a.createdAt || ''));
+
+  const bodyId = type === 'income' ? 'dataIncomeBody' : 'dataExpenseBody';
+  const body = document.getElementById(bodyId);
+  if (rows.length === 0) {
+    body.innerHTML = '<tr><td colspan="7" class="empty">Bu filtrlərə uyğun nəticə yoxdur.</td></tr>';
+  } else {
+    const isIncome = type === 'income';
+    body.innerHTML = rows.map(f => `
+      <tr class="data-row">
+        <td>#${seqMap.get(f.id) || 0}</td>
+        <td>${fmtDate(f.date)}</td>
+        <td style="color:${isIncome ? 'var(--teal-deep)' : 'var(--danger)'};">${isIncome ? '+' : '-'}${fmtAzn(f.amount)} ₼</td>
+        <td>${f.category ? escapeHtml(f.category) : '—'}</td>
+        <td>${f.person ? escapeHtml(f.person) : '—'}</td>
+        <td>${f.method ? escapeHtml(f.method) : '—'}</td>
+        <td class="col-actions"><div class="row-actions">
+          <button class="icon-btn" data-fin-view="${f.id}" title="Bax">${ICON_EYE}</button>
+          <button class="icon-btn" data-fin-edit="${f.id}" data-fin-type="${f.type}" title="Redaktə et">${ICON_EDIT}</button>
+          <button class="icon-btn danger" data-fin-del="${f.id}" title="Sil">${ICON_TRASH}</button>
+        </div></td>
+      </tr>`).join('');
+    body.querySelectorAll('[data-fin-view]').forEach(b => b.addEventListener('click', () => {
+      const rec = allFinance.find(x => x.id === b.getAttribute('data-fin-view'));
+      if (rec) renderViewModal(rec.type === 'income' ? 'Mədaxil məlumatları' : 'Məxaric məlumatları', financeViewRows(rec));
+    }));
+    body.querySelectorAll('[data-fin-edit]').forEach(b => b.addEventListener('click', () => openFinanceModal(b.getAttribute('data-fin-type'), b.getAttribute('data-fin-edit'))));
+    body.querySelectorAll('[data-fin-del]').forEach(b => b.addEventListener('click', async () => {
+      if (!confirm('Bu əməliyyatı silmək istədiyinizə əminsiniz?')) return;
+      try { await db.doc('finance/' + b.getAttribute('data-fin-del')).delete(); } catch (e) { alert('Xəta baş verdi.'); }
+    }));
+  }
+
+  const totalIncome = allFinance.filter(f => f.type === 'income').reduce((s, f) => s + (Number(f.amount) || 0), 0);
+  const totalExpense = allFinance.filter(f => f.type === 'expense').reduce((s, f) => s + (Number(f.amount) || 0), 0);
+  const balance = totalIncome - totalExpense;
+  document.getElementById(prefix + 'IncomeTotal').textContent = fmtAzn(totalIncome);
+  document.getElementById(prefix + 'ExpenseTotal').textContent = fmtAzn(totalExpense);
+  document.getElementById(prefix + 'Balance').textContent = fmtAzn(balance);
+}
+function renderDataIncomeTable() { renderDataFinanceTable('di', 'income'); }
+function renderDataExpenseTable() { renderDataFinanceTable('de', 'expense'); }
+
+function renderActiveDataDataset() {
+  const active = document.querySelector('#dataDatasetGroup .chip.active');
+  const ds = active ? active.getAttribute('data-dataset') : 'visits';
+  if (ds === 'income') renderDataIncomeTable();
+  else if (ds === 'expense') renderDataExpenseTable();
+  else renderDataTab();
+}
+
+document.querySelectorAll('#dataDatasetGroup .chip').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#dataDatasetGroup .chip').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const ds = btn.getAttribute('data-dataset');
+    document.getElementById('dataset-visits').style.display = ds === 'visits' ? '' : 'none';
+    document.getElementById('dataset-income').style.display = ds === 'income' ? '' : 'none';
+    document.getElementById('dataset-expense').style.display = ds === 'expense' ? '' : 'none';
+    renderActiveDataDataset();
+  });
+});
+
+['diSearch', 'diCategory', 'diPerson'].forEach(id => document.getElementById(id).addEventListener('input', renderDataIncomeTable));
+['diMethod', 'diDateFrom', 'diDateTo'].forEach(id => document.getElementById(id).addEventListener('change', renderDataIncomeTable));
+document.getElementById('diClear').addEventListener('click', () => {
+  ['diSearch', 'diCategory', 'diPerson'].forEach(id => document.getElementById(id).value = '');
+  ['diMethod', 'diDateFrom', 'diDateTo'].forEach(id => document.getElementById(id).value = '');
+  renderDataIncomeTable();
+});
+document.getElementById('diToggle').addEventListener('click', () => {
+  document.getElementById('diPanel').classList.toggle('show');
+  document.getElementById('diToggle').classList.toggle('open');
+});
+
+['deSearch', 'deCategory', 'dePerson'].forEach(id => document.getElementById(id).addEventListener('input', renderDataExpenseTable));
+['deMethod', 'deDateFrom', 'deDateTo'].forEach(id => document.getElementById(id).addEventListener('change', renderDataExpenseTable));
+document.getElementById('deClear').addEventListener('click', () => {
+  ['deSearch', 'deCategory', 'dePerson'].forEach(id => document.getElementById(id).value = '');
+  ['deMethod', 'deDateFrom', 'deDateTo'].forEach(id => document.getElementById(id).value = '');
+  renderDataExpenseTable();
+});
+document.getElementById('deToggle').addEventListener('click', () => {
+  document.getElementById('dePanel').classList.toggle('show');
+  document.getElementById('deToggle').classList.toggle('open');
+});
 ['dataSearch','dfName','dfPhone','dfCar','dfEmployee'].forEach(id => {
   document.getElementById(id).addEventListener('input', renderDataTab);
 });
@@ -3038,7 +3370,7 @@ function renderAll() {
   renderHome();
   if (document.getElementById('tab-sale').classList.contains('active')) renderSalesList();
   if (document.getElementById('tab-customers').classList.contains('active')) renderCustomerList();
-  if (document.getElementById('tab-data').classList.contains('active')) renderDataTab();
+  if (document.getElementById('tab-data').classList.contains('active')) renderActiveDataDataset();
   if (document.getElementById('tab-finance').classList.contains('active')) renderFinanceTab();
 }
 
