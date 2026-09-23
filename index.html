@@ -175,6 +175,9 @@
   /* stat cards */
   .stat-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 18px; }
   @media (max-width: 700px) { .stat-row { grid-template-columns: 1fr 1fr; } }
+  .stat-row.cols5 { grid-template-columns: repeat(5, 1fr); }
+  @media (max-width: 900px) { .stat-row.cols5 { grid-template-columns: repeat(3, 1fr); } }
+  @media (max-width: 700px) { .stat-row.cols5 { grid-template-columns: 1fr 1fr; } }
   .stat-card {
     background: var(--surface); border: 1px solid var(--line); border-radius: 16px;
     padding: 16px 17px; box-shadow: 0 1px 3px rgba(16,34,31,0.04);
@@ -540,6 +543,9 @@
     background: var(--surface-2); color: var(--ink-soft);
   }
   .sale-tag.service { background: var(--amber-soft); color: #6b4413; }
+  .sale-seq { color: var(--ink-faint); font-weight: 700; margin-right: 3px; }
+  .sale-card.milestone { background: linear-gradient(135deg, rgba(241,144,21,0.10), rgba(5,187,52,0.07)); border-radius: 12px; }
+  .milestone-tag { background: linear-gradient(135deg, var(--amber-soft), #ffe0a3); color: #6b4413; font-weight: 800; }
   .sale-bottom-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
   .sale-meta { font-size: 11.5px; color: var(--ink-faint); }
 
@@ -606,38 +612,45 @@
   <!-- ================= HOME ================= -->
   <section class="tabpage active" id="tab-home">
    <div class="subpage active" data-subpage="dashboard">
-    <div class="stat-row">
-      <div class="stat-card"><div class="v" id="statCustomers">—</div><div class="l">Müştəri</div></div>
-      <div class="stat-card"><div class="v" id="statVisits">—</div><div class="l">Ümumi yuma</div></div>
-      <div class="stat-card"><div class="v" id="statRevenue">—</div><div class="l">Ümumi gəlir (₼)</div></div>
-      <div class="stat-card"><div class="v" id="statPoints">—</div><div class="l">Verilmiş xal <span id="statPointsAzn" class="stat-sub"></span></div></div>
+    <div class="panel">
+      <div class="chart-head">
+        <div>
+          <h2>Maliyyə xülasəsi</h2>
+          <p class="desc">Seçilmiş dövr üzrə müştəri və yuma göstəriciləri.</p>
+        </div>
+        <div class="chip-group" id="dashPeriodGroup">
+          <button class="chip active" data-dperiod="today">Günlük</button>
+          <button class="chip" data-dperiod="week">Həftəlik</button>
+          <button class="chip" data-dperiod="month">Aylıq</button>
+          <button class="chip" data-dperiod="year">İllik</button>
+          <button class="chip" data-dperiod="custom">Xüsusi</button>
+        </div>
+      </div>
+      <div class="fin-custom-range" id="dashCustomRange">
+        <div class="field"><label>Tarixdən</label><input id="dashFrom" type="date"></div>
+        <div class="field"><label>Tarixədək</label><input id="dashTo" type="date"></div>
+      </div>
+      <div class="stat-row">
+        <div class="stat-card"><div class="v" id="dTotalCust">—</div><div class="l">Ümumi müştəri sayı</div></div>
+        <div class="stat-card"><div class="v" id="dNewCust">—</div><div class="l">Yeni müştəri sayı</div></div>
+        <div class="stat-card"><div class="v" id="dRepeatCust">—</div><div class="l">Təkrar müştəri sayı</div></div>
+        <div class="stat-card"><div class="v" id="dVisits">—</div><div class="l">Yuma sayı</div></div>
+      </div>
     </div>
 
     <div class="panel">
       <div class="chart-head">
         <div>
           <h2>Maliyyə xülasəsi</h2>
-          <p class="desc">Gəlir, xərc və balans — dövrü seçin.</p>
-        </div>
-        <div class="chart-controls">
-          <div class="chip-group" id="finPeriodGroup">
-            <button class="chip" data-fperiod="today">Bu gün</button>
-            <button class="chip" data-fperiod="week">Bu həftə</button>
-            <button class="chip active" data-fperiod="month">Bu ay</button>
-            <button class="chip" data-fperiod="year">Bu il</button>
-            <button class="chip" data-fperiod="all">Bütün vaxt</button>
-            <button class="chip" data-fperiod="custom">Xüsusi</button>
-          </div>
+          <p class="desc">Satış, gəlir, xərc, qazanc və kassa.</p>
         </div>
       </div>
-      <div class="fin-custom-range" id="finCustomRange">
-        <div class="field"><label>Tarixdən</label><input id="finFrom" type="date"></div>
-        <div class="field"><label>Tarixədək</label><input id="finTo" type="date"></div>
-      </div>
-      <div class="stat-row" style="margin-bottom:0;">
-        <div class="stat-card"><div class="v" id="finIncome" style="color:var(--teal-deep);">—</div><div class="l">Ümumi gəlir (₼)</div></div>
-        <div class="stat-card"><div class="v" id="finExpense" style="color:var(--danger);">—</div><div class="l">Ümumi xərc (₼)</div></div>
-        <div class="stat-card"><div class="v" id="finBalance">—</div><div class="l">Hazırki balans (₼)</div></div>
+      <div class="stat-row cols5">
+        <div class="stat-card"><div class="v" id="dSalesCount">—</div><div class="l">Satış sayı</div></div>
+        <div class="stat-card"><div class="v" id="dRevenue" style="color:var(--teal-deep);">—</div><div class="l">Gəlir (₼)</div></div>
+        <div class="stat-card"><div class="v" id="dExpense" style="color:var(--danger);">—</div><div class="l">Xərc (₼)</div></div>
+        <div class="stat-card"><div class="v" id="dProfit">—</div><div class="l">Qazanc (₼)</div></div>
+        <div class="stat-card"><div class="v" id="dCashbox">—</div><div class="l">Kassa (₼)</div></div>
       </div>
     </div>
 
@@ -723,26 +736,13 @@
       </div>
     </div>
    </div>
-   <div class="subpage" data-subpage="activity">
-    <div class="panel">
-      <h2>Müştəri aktivliyi</h2>
-      <p class="desc">Bu bölmə tezliklə əlavə olunacaq.</p>
-      <div class="empty">Tezliklə...</div>
-    </div>
-   </div>
-   <div class="subpage" data-subpage="points">
-    <div class="panel">
-      <h2>Xallar</h2>
-      <p class="desc">Bu bölmə tezliklə əlavə olunacaq.</p>
-      <div class="empty">Tezliklə...</div>
-    </div>
-   </div>
   </section>
 
   <!-- ================= SALE ================= -->
   <section class="tabpage" id="tab-sale">
    <div class="subpage active" data-subpage="list">
-    <div class="panel">
+    <div class="modal-overlay" id="newSaleOverlay">
+     <div class="modal-box" style="max-width: 560px;">
       <h2>Satış</h2>
       <p class="desc">Müştərinin adını yazın — əvvəl gəlibsə siyahıdan seçin, yoxdursa yeni müştəri kimi əlavə edin.</p>
 
@@ -843,6 +843,7 @@
         <button class="btn-primary" id="saveBtn">Satışı yaddaşa ver</button>
         <div class="save-msg" id="saveMsg"></div>
       </div>
+     </div>
     </div>
 
     <div class="panel">
@@ -851,6 +852,7 @@
           <h2>Bütün satışlar</h2>
           <p class="desc">Etdiyiniz hər satış — baxın, redaktə edin və ya silin.</p>
         </div>
+        <button class="btn-add income" id="openNewSaleBtn" style="width:auto;">+ Yeni satış</button>
       </div>
       <input class="search-bar" id="saleListSearch" type="text" placeholder="Axtar: ad, nömrə, avtomobil…">
       <div id="salesListBody"><div class="empty">Yüklənir…</div></div>
@@ -1510,11 +1512,7 @@ updateAddonLabels();
 
 /* ---------- tabs + sidebar ---------- */
 const SIDEBAR_CONFIG = {
-  home: [
-    { id: 'dashboard', label: 'İdarə paneli' },
-    { id: 'activity', label: 'Müştəri aktivliyi' },
-    { id: 'points', label: 'Xallar' },
-  ],
+  home: [],
   sale: [
     { id: 'list', label: 'Ümumi satışlar' },
     { id: 'analytics', label: 'Analitika' },
@@ -1539,6 +1537,12 @@ const SIDEBAR_CONFIG = {
 function renderSidebar(section, activeSub) {
   const items = SIDEBAR_CONFIG[section] || [];
   const sidebar = document.getElementById('appSidebar');
+  if (items.length === 0) {
+    sidebar.innerHTML = '';
+    sidebar.style.display = 'none';
+    return;
+  }
+  sidebar.style.display = '';
   sidebar.innerHTML = items.map(it =>
     `<button class="sidebar-item${it.id === activeSub ? ' active' : ''}" data-sub="${it.id}">${it.label}</button>`
   ).join('');
@@ -1787,11 +1791,13 @@ function renderBreakdownChart(canvasId, entries, viewMode) {
 }
 
 function updateBreakdownCharts() {
-  const brandEntries = countBy(allVisits, v => v.carBrand || (v.car ? v.car.split(' ')[0] : ''));
-  const modelEntries = countBy(allVisits, v => v.carModel || '');
-  const serviceEntries = countBy(allVisits, v => v.service || '');
+  const { from, to } = dashPeriodRange(dashPeriodMode);
+  const visits = allVisits.filter(v => v.date >= from && v.date <= to);
+  const brandEntries = countBy(visits, v => v.carBrand || (v.car ? v.car.split(' ')[0] : ''));
+  const modelEntries = countBy(visits, v => v.carModel || '');
+  const serviceEntries = countBy(visits, v => v.service || '');
   const addonEntries = countBy(
-    allVisits.flatMap(v => (v.addon || '').split(',').map(s => s.trim()).filter(Boolean)),
+    visits.flatMap(v => (v.addon || '').split(',').map(s => s.trim()).filter(Boolean)),
     a => a
   );
   renderBreakdownChart('brandChart', brandEntries, breakdownViewMode.brand);
@@ -1814,13 +1820,7 @@ document.querySelectorAll('.chip-group.tiny').forEach(group => {
 
 function renderHome() {
   const dir = customerDirectory();
-  document.getElementById('statCustomers').textContent = dir.length;
-  document.getElementById('statVisits').textContent = allVisits.length;
-  const revenue = allVisits.reduce((s, v) => s + (Number(v.priceFinal) || 0), 0);
-  document.getElementById('statRevenue').textContent = revenue.toLocaleString('az-AZ', { maximumFractionDigits: 0 });
-  const totalPoints = allVisits.reduce((s, v) => s + pointsForVisit(v) - pointsRedeemedForVisit(v), 0);
-  document.getElementById('statPoints').textContent = totalPoints.toLocaleString('az-AZ');
-  document.getElementById('statPointsAzn').textContent = `(≈ ${fmtAzn(pointsToAzn(totalPoints))} ₼)`;
+  renderDashboardStats();
   renderHomeChart();
 
   const ranked = dir.map(c => ({ ...c, ...statsFor(c.id) }))
@@ -1995,6 +1995,17 @@ function resetSelection(clearSearch) {
 document.getElementById('changeCustomerBtn').addEventListener('click', () => { resetSelection(true); saleSearch.focus(); });
 document.getElementById('cancelNewCustomerBtn').addEventListener('click', () => { resetSelection(true); saleSearch.focus(); });
 
+document.getElementById('openNewSaleBtn').addEventListener('click', () => {
+  document.getElementById('newSaleOverlay').classList.add('show');
+  setTimeout(() => saleSearch.focus(), 50);
+});
+document.getElementById('newSaleOverlay').addEventListener('click', (e) => {
+  if (e.target.id === 'newSaleOverlay') {
+    document.getElementById('newSaleOverlay').classList.remove('show');
+    resetSelection(true);
+  }
+});
+
 async function saveSale() {
   const btn = document.getElementById('saveBtn');
   const msg = document.getElementById('saveMsg');
@@ -2095,6 +2106,7 @@ async function saveSale() {
     updateAddonLabels();
     document.getElementById('fDate').value = todayStr();
     resetSelection(true);
+    setTimeout(() => { document.getElementById('newSaleOverlay').classList.remove('show'); }, 1300);
   } catch (e) {
     msg.textContent = 'Xəta baş verdi, yenidən cəhd edin.';
     msg.className = 'save-msg show err';
@@ -2803,10 +2815,10 @@ function renderFinanceTab() {
   document.getElementById('fpBalance').textContent = fmtAzn(totalIncome - totalExpense);
 }
 
-/* ---------- HOME FINANCE SUMMARY (with period filter) ---------- */
-let finPeriodMode = 'month';
+/* ---------- HOME DASHBOARD (unified period filter) ---------- */
+let dashPeriodMode = 'today';
 
-function finPeriodRange(mode) {
+function dashPeriodRange(mode) {
   const today = new Date(todayStr() + 'T00:00:00');
   let from, to = todayStr();
   if (mode === 'today') {
@@ -2818,39 +2830,66 @@ function finPeriodRange(mode) {
     from = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().slice(0, 10);
   } else if (mode === 'year') {
     from = new Date(today.getFullYear(), 0, 1).toISOString().slice(0, 10);
-  } else if (mode === 'all') {
-    from = '0000-01-01';
   } else if (mode === 'custom') {
-    from = document.getElementById('finFrom').value || '0000-01-01';
-    to = document.getElementById('finTo').value || todayStr();
+    from = document.getElementById('dashFrom').value || '0000-01-01';
+    to = document.getElementById('dashTo').value || todayStr();
   }
   return { from, to };
 }
 
-function renderFinanceSummary() {
-  const { from, to } = finPeriodRange(finPeriodMode);
-  const salesRevenue = allVisits.filter(v => v.date >= from && v.date <= to)
-    .reduce((s, v) => s + (Number(v.priceFinal) || 0), 0);
-  const extraIncome = allFinance.filter(f => f.type === 'income' && !f.fromSale && f.date >= from && f.date <= to)
+function renderDashboardStats() {
+  const { from, to } = dashPeriodRange(dashPeriodMode);
+  const dir = customerDirectory();
+  const visitsInPeriod = allVisits.filter(v => v.date >= from && v.date <= to);
+
+  const firstVisitDate = {};
+  allVisits.forEach(v => {
+    const cid = v.customerId || v.phoneKey;
+    if (!cid || !v.date) return;
+    if (!firstVisitDate[cid] || v.date < firstVisitDate[cid]) firstVisitDate[cid] = v.date;
+  });
+  const custsInPeriod = new Set(visitsInPeriod.map(v => v.customerId || v.phoneKey).filter(Boolean));
+  let newCount = 0, repeatCount = 0;
+  custsInPeriod.forEach(cid => {
+    if (firstVisitDate[cid] >= from) newCount++; else repeatCount++;
+  });
+
+  document.getElementById('dTotalCust').textContent = dir.length;
+  document.getElementById('dNewCust').textContent = newCount;
+  document.getElementById('dRepeatCust').textContent = repeatCount;
+  document.getElementById('dVisits').textContent = visitsInPeriod.length;
+
+  const salesRevenue = visitsInPeriod.reduce((s, v) => s + (Number(v.priceFinal) || 0), 0);
+  const expensePeriod = allFinance.filter(f => f.type === 'expense' && f.date >= from && f.date <= to)
     .reduce((s, f) => s + (Number(f.amount) || 0), 0);
-  const expense = allFinance.filter(f => f.type === 'expense' && f.date >= from && f.date <= to)
+  const profit = salesRevenue - expensePeriod;
+
+  const allTimeSalesRevenue = allVisits.reduce((s, v) => s + (Number(v.priceFinal) || 0), 0);
+  const allTimeExtraIncome = allFinance.filter(f => f.type === 'income' && !f.fromSale)
     .reduce((s, f) => s + (Number(f.amount) || 0), 0);
-  const totalIncome = salesRevenue + extraIncome;
-  document.getElementById('finIncome').textContent = fmtAzn(totalIncome);
-  document.getElementById('finExpense').textContent = fmtAzn(expense);
-  document.getElementById('finBalance').textContent = fmtAzn(totalIncome - expense);
+  const allTimeExpense = allFinance.filter(f => f.type === 'expense')
+    .reduce((s, f) => s + (Number(f.amount) || 0), 0);
+  const cashbox = allTimeSalesRevenue + allTimeExtraIncome - allTimeExpense;
+
+  document.getElementById('dSalesCount').textContent = visitsInPeriod.length;
+  document.getElementById('dRevenue').textContent = fmtAzn(salesRevenue);
+  document.getElementById('dExpense').textContent = fmtAzn(expensePeriod);
+  document.getElementById('dProfit').textContent = fmtAzn(profit);
+  document.getElementById('dCashbox').textContent = fmtAzn(cashbox);
+
+  updateBreakdownCharts();
 }
-document.querySelectorAll('#finPeriodGroup .chip').forEach(b => {
+document.querySelectorAll('#dashPeriodGroup .chip').forEach(b => {
   b.addEventListener('click', () => {
-    document.querySelectorAll('#finPeriodGroup .chip').forEach(x => x.classList.remove('active'));
+    document.querySelectorAll('#dashPeriodGroup .chip').forEach(x => x.classList.remove('active'));
     b.classList.add('active');
-    finPeriodMode = b.getAttribute('data-fperiod');
-    document.getElementById('finCustomRange').classList.toggle('show', finPeriodMode === 'custom');
-    renderFinanceSummary();
+    dashPeriodMode = b.getAttribute('data-dperiod');
+    document.getElementById('dashCustomRange').classList.toggle('show', dashPeriodMode === 'custom');
+    renderDashboardStats();
   });
 });
-document.getElementById('finFrom').addEventListener('change', () => { if (finPeriodMode === 'custom') renderFinanceSummary(); });
-document.getElementById('finTo').addEventListener('change', () => { if (finPeriodMode === 'custom') renderFinanceSummary(); });
+document.getElementById('dashFrom').addEventListener('change', () => { if (dashPeriodMode === 'custom') renderDashboardStats(); });
+document.getElementById('dashTo').addEventListener('change', () => { if (dashPeriodMode === 'custom') renderDashboardStats(); });
 
 /* ---------- boot ---------- */
 /* ---------- DATA TAB ---------- */
@@ -2858,6 +2897,12 @@ function renderSalesList() {
   const body = document.getElementById('salesListBody');
   if (!body) return;
   const q = (document.getElementById('saleListSearch').value || '').toLowerCase().trim();
+
+  const chronological = [...allVisits].sort((a, b) =>
+    (a.date || '').localeCompare(b.date || '') || (a.createdAt || '').localeCompare(b.createdAt || ''));
+  const seqMap = new Map();
+  chronological.forEach((v, i) => seqMap.set(v.id, i + 1));
+
   let rows = [...allVisits];
   if (q) {
     rows = rows.filter(v => [v.name, v.phone, v.car, v.service, v.addon, v.employee]
@@ -2869,27 +2914,23 @@ function renderSalesList() {
     return;
   }
   body.innerHTML = rows.slice(0, 300).map(v => {
-    const carTag = v.car || '';
+    const seq = seqMap.get(v.id) || 0;
+    const isMilestone = seq > 0 && seq % 100 === 0;
     const priceTxt = v.priceFinal ? Number(v.priceFinal).toLocaleString('az-AZ') + ' ₼' : '—';
-    const addons = (v.addon || '').split(',').map(s => s.trim()).filter(Boolean);
-    const tags = [];
-    if (carTag) tags.push(`<span class="sale-tag">${escapeHtml(carTag)}</span>`);
-    if (v.service) tags.push(`<span class="sale-tag service">${escapeHtml(v.service)}</span>`);
-    addons.forEach(a => tags.push(`<span class="sale-tag">${escapeHtml(a)}</span>`));
+    const badge = isMilestone ? `<span class="sale-tag milestone-tag">🎉 ${seq}-ci yuma!</span>` : '<span></span>';
     return `
-      <div class="sale-card">
+      <div class="sale-card${isMilestone ? ' milestone' : ''}">
         <div class="sale-avatar">${initials(v.name)}</div>
         <div class="sale-main">
           <div class="sale-top-row">
             <div>
-              <div class="sale-name">${escapeHtml(v.name || '—')}</div>
+              <div class="sale-name"><span class="sale-seq">#${seq}</span> ${escapeHtml(v.name || '—')}</div>
               <div class="sale-date">${fmtDate(v.date)}</div>
             </div>
             <div class="sale-price">${priceTxt}</div>
           </div>
-          <div class="sale-tags">${tags.join('') || '<span class="sale-tag">Yuma</span>'}</div>
           <div class="sale-bottom-row">
-            <span class="sale-meta">${escapeHtml(v.payment || '—')} · ${escapeHtml(v.employee || 'Əməkdaş qeyd olunmayıb')}</span>
+            ${badge}
             <div class="row-actions">
               <button class="icon-btn" data-sv-view="${v.id}" title="Bax">${ICON_EYE}</button>
               <button class="icon-btn" data-sv-edit="${v.id}" title="Redaktə et">${ICON_EDIT}</button>
@@ -3006,7 +3047,6 @@ function renderAll() {
   if (document.getElementById('tab-sale').classList.contains('active')) renderSalesList();
   if (document.getElementById('tab-customers').classList.contains('active')) renderCustomerList();
   if (document.getElementById('tab-data').classList.contains('active')) renderDataTab();
-  renderFinanceSummary();
   if (document.getElementById('tab-finance').classList.contains('active')) renderFinanceTab();
 }
 
