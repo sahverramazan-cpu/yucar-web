@@ -516,22 +516,19 @@
   <div id="mLoginView" class="show">
     <div class="m-card">
       <div class="m-title">Sədaqət hesabınız</div>
-      <div class="m-sub">Ad, soyadınızı və qeydiyyatda olan nömrənizi yazın.</div>
+      <div class="m-sub">Ad, soyadınızı və şifrənizi yazın.</div>
       <div class="m-field">
         <label>Ad, soyad</label>
         <input id="mName" type="text" placeholder="Ramazan Şahverdiyev" autocomplete="name">
       </div>
       <div class="m-field">
-        <label>Əlaqə nömrəsi</label>
-        <div class="m-phone-input">
-          <span class="prefix">+994</span>
-          <input id="mPhone" type="tel" placeholder="50 123 45 67" inputmode="numeric" maxlength="15">
-        </div>
+        <label>Şifrə</label>
+        <input id="mPassword" type="password" placeholder="6 rəqəmli şifrəniz" inputmode="numeric" autocomplete="current-password">
       </div>
       <button class="m-btn" id="mLoginBtn">Daxil ol</button>
       <div class="m-err" id="mErr"></div>
     </div>
-    <div class="m-footer-hint">Məlumatlarınızı görmək üçün YuCar-da qeydiyyatdan keçmiş olmalısınız.</div>
+    <div class="m-footer-hint">Şifrənizi YuCar komandasından ala bilərsiniz.</div>
   </div>
 
   <div id="mProfileView">
@@ -920,10 +917,10 @@ function showProfile() {
   profileView.classList.add('show');
 }
 
-async function doLogin(name, phoneKey) {
+async function doLogin(name, password) {
   errBox.classList.remove('show');
-  if (!name.trim() || phoneKey.length !== 9) {
-    errBox.textContent = 'Ad daxil edin və nömrəni tam yazın (9 rəqəm).';
+  if (!name.trim() || !password.trim()) {
+    errBox.textContent = 'Ad və şifrəni daxil edin.';
     errBox.classList.add('show');
     return;
   }
@@ -933,22 +930,20 @@ async function doLogin(name, phoneKey) {
     return;
   }
   try {
-    const doc = await db.collection('customers').doc(phoneKey).get();
-    if (!doc.exists) {
-      errBox.textContent = 'Bu məlumatlarla müştəri tapılmadı. Ad və nömrəni yoxlayın.';
+    const snap = await db.collection('customers')
+      .where('nameLower', '==', normName(name))
+      .where('password', '==', password.trim())
+      .limit(1).get();
+    if (snap.empty) {
+      errBox.textContent = 'Ad və şifrə uyğun gəlmir. Zəhmət olmasa yoxlayın.';
       errBox.classList.add('show');
       return;
     }
-    const data = doc.data();
-    if (normName(data.name) !== normName(name) &&
-        !normName(data.name).includes(normName(name)) &&
-        !normName(name).includes(normName(data.name))) {
-      errBox.textContent = 'Ad və nömrə uyğun gəlmir. Zəhmət olmasa yazılışı yoxlayın.';
-      errBox.classList.add('show');
-      return;
-    }
-    sessionStorage.setItem('yucar_customer_id', phoneKey);
-    loadProfile(phoneKey);
+    const custId = snap.docs[0].id;
+    sessionStorage.setItem('yucar_customer_id', custId);
+    localStorage.setItem('yucar_saved_name', name.trim());
+    localStorage.setItem('yucar_saved_password', password.trim());
+    loadProfile(custId);
   } catch (e) {
     errBox.textContent = 'Xəta baş verdi, yenidən cəhd edin.';
     errBox.classList.add('show');
@@ -957,8 +952,8 @@ async function doLogin(name, phoneKey) {
 
 document.getElementById('mLoginBtn').addEventListener('click', () => {
   const name = document.getElementById('mName').value;
-  const phoneKey = digitsOnlyLocal(document.getElementById('mPhone').value);
-  doLogin(name, phoneKey);
+  const password = document.getElementById('mPassword').value;
+  doLogin(name, password);
 });
 document.getElementById('mLogoutBtn').addEventListener('click', showLogin);
 
@@ -1043,6 +1038,10 @@ function renderProfile(visitsAsc) {
 }
 
 function init() {
+  const savedName = localStorage.getItem('yucar_saved_name');
+  const savedPassword = localStorage.getItem('yucar_saved_password');
+  if (savedName) document.getElementById('mName').value = savedName;
+  if (savedPassword) document.getElementById('mPassword').value = savedPassword;
   const savedId = sessionStorage.getItem('yucar_customer_id');
   if (savedId && db) {
     loadProfile(savedId);
