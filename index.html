@@ -594,7 +594,6 @@
       <button class="tab-btn" data-tab="finance">Maliyyə</button>
     </nav>
     <div class="topbar-right">
-      <div class="status-pill" id="statusPill"><span class="dot"></span><span id="statusText">Qoşulur…</span></div>
       <button class="logout-btn" id="staffLogoutBtn" title="Çıxış">Çıxış</button>
     </div>
   </header>
@@ -3456,8 +3455,7 @@ document.getElementById('dfToggle').addEventListener('click', () => {
 });
 
 function setStatus(ok, text) {
-  document.getElementById('statusPill').classList.toggle('offline', !ok);
-  document.getElementById('statusText').textContent = text;
+  // status pill removed from UI; kept as no-op so existing calls don't error
 }
 function renderAll() {
   renderHome();
