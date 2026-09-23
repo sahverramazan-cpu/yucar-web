@@ -156,8 +156,9 @@
   .stat-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 18px; }
   @media (max-width: 700px) { .stat-row { grid-template-columns: 1fr 1fr; } }
   .stat-row.cols5 { grid-template-columns: repeat(5, 1fr); }
+  .stat-row.cols3 { grid-template-columns: repeat(3, 1fr); }
   @media (max-width: 900px) { .stat-row.cols5 { grid-template-columns: repeat(3, 1fr); } }
-  @media (max-width: 700px) { .stat-row.cols5 { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 700px) { .stat-row.cols5 { grid-template-columns: 1fr 1fr; } .stat-row.cols3 { grid-template-columns: 1fr; } }
   .stat-card {
     background: var(--surface); border: 1px solid var(--line); border-radius: 16px;
     padding: 16px 17px; box-shadow: 0 1px 3px rgba(16,34,31,0.04);
@@ -480,6 +481,7 @@
   .expand-btn:hover { border-color: var(--teal); color: var(--teal-deep); background: var(--surface); }
   .expand-btn.open { transform: rotate(90deg); }
   .data-row { cursor: default; }
+  .data-row[data-id]:hover, .data-row[data-cid]:hover { background: var(--surface-2); cursor: pointer; }
   .data-detail-row.hidden { display: none; }
   .data-detail-row td { background: var(--surface-2); padding: 12px 14px; animation: fadeSlideDown .28s ease; }
   .mini-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
@@ -526,6 +528,7 @@
   .sale-tag.service { background: var(--amber-soft); color: #6b4413; }
   .sale-seq { color: var(--ink-faint); font-weight: 700; margin-right: 3px; }
   .sale-card.milestone { background: linear-gradient(135deg, rgba(241,144,21,0.10), rgba(5,187,52,0.07)); border-radius: 12px; }
+  tr.data-row.milestone td { background: linear-gradient(135deg, rgba(241,144,21,0.10), rgba(5,187,52,0.07)); }
   .milestone-tag { background: linear-gradient(135deg, var(--amber-soft), #ffe0a3); color: #6b4413; font-weight: 800; }
   .sale-bottom-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
   .sale-meta { font-size: 11.5px; color: var(--ink-faint); }
@@ -834,7 +837,14 @@
         <button class="btn-add income" id="openNewSaleBtn" style="width:auto;">+ Yeni satış</button>
       </div>
       <input class="search-bar" id="saleListSearch" type="text" placeholder="Axtar: ad, nömrə, avtomobil…">
-      <div id="salesListBody"><div class="empty">Yüklənir…</div></div>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr><th>№</th><th>Ad, soyad</th><th>Tarix</th><th>Məbləğ</th><th class="col-actions"></th></tr>
+          </thead>
+          <tbody id="salesListBody"><tr><td colspan="5" class="empty">Yüklənir…</td></tr></tbody>
+        </table>
+      </div>
     </div>
    </div>
    <div class="subpage" data-subpage="analytics">
@@ -858,7 +868,14 @@
         <button class="btn-primary" id="addCustomerBtn" style="width:auto; margin-top:0;">+ Yeni müştəri</button>
       </div>
       <input class="search-bar" id="custSearch" type="text" placeholder="Axtar: ad soyad və ya nömrə">
-      <div id="custListBody"><div class="empty">Yüklənir…</div></div>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr><th>Ad, soyad</th><th>Nömrə</th><th>Yuma sayı</th><th>Xal</th><th>Son yuma</th></tr>
+          </thead>
+          <tbody id="custListBody"><tr><td colspan="5" class="empty">Yüklənir…</td></tr></tbody>
+        </table>
+      </div>
     </div>
     <div class="panel detail-view" id="customerDetail">
       <button class="back-btn" id="backToList">← Müştərilərə qayıt</button>
@@ -953,11 +970,10 @@
       </div>
     </div>
 
-    <div class="stat-row">
-      <div class="stat-card"><div class="v" id="dStatRows">—</div><div class="l">Nəticə (sətir)</div></div>
+    <div class="stat-row cols3">
+      <div class="stat-card"><div class="v" id="dStatRows">—</div><div class="l">Yuma sayı</div></div>
       <div class="stat-card"><div class="v" id="dStatCustomers">—</div><div class="l">Unikal müştəri</div></div>
-      <div class="stat-card"><div class="v" id="dStatTotal">—</div><div class="l">Yekun məbləğ cəmi (₼)</div></div>
-      <div class="stat-card"><div class="v" id="dStatAvg">—</div><div class="l">Orta çek (₼)</div></div>
+      <div class="stat-card"><div class="v" id="dStatTotal">—</div><div class="l">Ümumi gəlir (₼)</div></div>
     </div>
 
     <div class="panel">
@@ -991,7 +1007,12 @@
         </div>
         <button class="btn-add income" id="addIncomeBtn">+ Yeni mədaxil</button>
       </div>
-      <div id="incomeList"><div class="empty">Yüklənir…</div></div>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>Tarix</th><th>Məbləğ</th><th>Kateqoriya</th><th class="col-actions"></th></tr></thead>
+          <tbody id="incomeList"><tr><td colspan="4" class="empty">Yüklənir…</td></tr></tbody>
+        </table>
+      </div>
     </div>
    </div>
 
@@ -1003,7 +1024,12 @@
         </div>
         <button class="btn-add expense" id="addExpenseBtn">+ Yeni məxaric</button>
       </div>
-      <div id="expenseList"><div class="empty">Yüklənir…</div></div>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>Tarix</th><th>Məbləğ</th><th>Kateqoriya</th><th class="col-actions"></th></tr></thead>
+          <tbody id="expenseList"><tr><td colspan="4" class="empty">Yüklənir…</td></tr></tbody>
+        </table>
+      </div>
     </div>
    </div>
 
@@ -2125,20 +2151,16 @@ function renderCustomerList() {
   }
   rows.sort((a, b) => (b.lastDate || '').localeCompare(a.lastDate || ''));
   const body = document.getElementById('custListBody');
-  if (rows.length === 0) { body.innerHTML = '<div class="empty">Müştəri tapılmadı.</div>'; return; }
+  if (rows.length === 0) { body.innerHTML = '<tr><td colspan="5" class="empty">Müştəri tapılmadı.</td></tr>'; return; }
   body.innerHTML = rows.map(c => `
-    <div class="cust-row" data-id="${c.id}">
-      <div class="cust-avatar">${initials(c.name)}</div>
-      <div class="cust-main">
-        <div class="nm">${escapeHtml(c.name || '—')}</div>
-        <div class="ph">${escapeHtml(formatPhoneAZ(c.phone))}</div>
-      </div>
-      <div class="cust-stats">
-        <div class="cnt${c.count === 0 ? ' zero' : ''}">${c.count} yuma · ${c.points} xal</div>
-        <div class="lastv">Son: ${fmtDate(c.lastDate)}</div>
-      </div>
-    </div>`).join('');
-  body.querySelectorAll('.cust-row').forEach(el => {
+    <tr class="data-row" data-id="${c.id}">
+      <td>${escapeHtml(c.name || '—')}</td>
+      <td>${escapeHtml(formatPhoneAZ(c.phone))}</td>
+      <td>${c.count}</td>
+      <td>${c.points}</td>
+      <td>${fmtDate(c.lastDate)}</td>
+    </tr>`).join('');
+  body.querySelectorAll('.data-row').forEach(el => {
     el.addEventListener('click', () => openCustomerDetail(el.getAttribute('data-id')));
   });
 }
@@ -2206,10 +2228,12 @@ function renderViewModal(title, rows) {
 function openViewVisit(id) {
   const v = allVisits.find(x => x.id === id);
   if (!v) return;
+  const custPoints = statsFor(v.customerId || v.phoneKey).points || 0;
   const rows = [
     ['Tarix', fmtDate(v.date)],
     ['Ad, soyad', v.name || '—'],
     ['Əlaqə nömrəsi', formatPhoneAZ(v.phone)],
+    ['Xal', `${custPoints} xal (${fmtAzn(pointsToAzn(custPoints))} ₼)`],
     ['Məkan', v.location || '—'],
     ['Avtomobil', v.car || '—'],
     ['Paket seçimi və əlavə xidmət', [v.service, v.addon].filter(Boolean).join(', ') || '—'],
@@ -2760,25 +2784,21 @@ function renderFinanceList(containerId, type) {
   const el = document.getElementById(containerId);
   const items = allFinance.filter(f => f.type === type).sort((a, b) => (b.date || '').localeCompare(a.date || ''));
   if (items.length === 0) {
-    el.innerHTML = '<div class="empty">Hələ qeyd yoxdur.</div>';
+    el.innerHTML = '<tr><td colspan="4" class="empty">Hələ qeyd yoxdur.</td></tr>';
     return;
   }
   const isIncome = type === 'income';
   el.innerHTML = items.map(f => `
-    <div class="dt-history-item">
-      <div class="dt-h-top">
-        <span class="dt-h-date">${fmtDate(f.date)}</span>
-        <span class="dt-h-price" style="color:${isIncome ? 'var(--teal-deep)' : 'var(--danger)'};">${isIncome ? '+' : '-'}${fmtAzn(f.amount)} ₼</span>
-      </div>
-      <div class="dt-h-bottom">
-        <span class="dt-h-meta">${f.category ? escapeHtml(f.category) : '—'}</span>
-        <div class="row-actions">
-          <button class="icon-btn" data-fin-view="${f.id}" title="Bax">${ICON_EYE}</button>
-          <button class="icon-btn" data-fin-edit="${f.id}" data-fin-type="${f.type}" title="Redaktə et">${ICON_EDIT}</button>
-          <button class="icon-btn danger" data-fin-del="${f.id}" title="Sil">${ICON_TRASH}</button>
-        </div>
-      </div>
-    </div>`).join('');
+    <tr class="data-row">
+      <td>${fmtDate(f.date)}</td>
+      <td style="color:${isIncome ? 'var(--teal-deep)' : 'var(--danger)'};">${isIncome ? '+' : '-'}${fmtAzn(f.amount)} ₼</td>
+      <td>${f.category ? escapeHtml(f.category) : '—'}</td>
+      <td class="col-actions"><div class="row-actions">
+        <button class="icon-btn" data-fin-view="${f.id}" title="Bax">${ICON_EYE}</button>
+        <button class="icon-btn" data-fin-edit="${f.id}" data-fin-type="${f.type}" title="Redaktə et">${ICON_EDIT}</button>
+        <button class="icon-btn danger" data-fin-del="${f.id}" title="Sil">${ICON_TRASH}</button>
+      </div></td>
+    </tr>`).join('');
   el.querySelectorAll('[data-fin-view]').forEach(b => b.addEventListener('click', () => {
     const rec = allFinance.find(x => x.id === b.getAttribute('data-fin-view'));
     if (rec) renderViewModal(rec.type === 'income' ? 'Mədaxil məlumatları' : 'Məxaric məlumatları', financeViewRows(rec));
@@ -2895,35 +2915,25 @@ function renderSalesList() {
   }
   rows.sort((a, b) => (b.date || '').localeCompare(a.date || '') || (b.createdAt || '').localeCompare(a.createdAt || ''));
   if (rows.length === 0) {
-    body.innerHTML = '<div class="empty">Hələ satış qeydə alınmayıb.</div>';
+    body.innerHTML = '<tr><td colspan="5" class="empty">Hələ satış qeydə alınmayıb.</td></tr>';
     return;
   }
   body.innerHTML = rows.slice(0, 300).map(v => {
     const seq = seqMap.get(v.id) || 0;
     const isMilestone = seq > 0 && seq % 100 === 0;
     const priceTxt = v.priceFinal ? Number(v.priceFinal).toLocaleString('az-AZ') + ' ₼' : '—';
-    const badge = isMilestone ? `<span class="sale-tag milestone-tag">🎉 ${seq}-ci yuma!</span>` : '<span></span>';
     return `
-      <div class="sale-card${isMilestone ? ' milestone' : ''}">
-        <div class="sale-avatar">${initials(v.name)}</div>
-        <div class="sale-main">
-          <div class="sale-top-row">
-            <div>
-              <div class="sale-name"><span class="sale-seq">#${seq}</span> ${escapeHtml(v.name || '—')}</div>
-              <div class="sale-date">${fmtDate(v.date)}</div>
-            </div>
-            <div class="sale-price">${priceTxt}</div>
-          </div>
-          <div class="sale-bottom-row">
-            ${badge}
-            <div class="row-actions">
-              <button class="icon-btn" data-sv-view="${v.id}" title="Bax">${ICON_EYE}</button>
-              <button class="icon-btn" data-sv-edit="${v.id}" title="Redaktə et">${ICON_EDIT}</button>
-              <button class="icon-btn danger" data-sv-del="${v.id}" title="Sil">${ICON_TRASH}</button>
-            </div>
-          </div>
-        </div>
-      </div>`;
+      <tr class="data-row${isMilestone ? ' milestone' : ''}">
+        <td>#${seq}</td>
+        <td>${escapeHtml(v.name || '—')}${isMilestone ? ' <span class="badge pts">🎉 ' + seq + '-ci yuma!</span>' : ''}</td>
+        <td>${fmtDate(v.date)}</td>
+        <td>${priceTxt}</td>
+        <td class="col-actions"><div class="row-actions">
+          <button class="icon-btn" data-sv-view="${v.id}" title="Bax">${ICON_EYE}</button>
+          <button class="icon-btn" data-sv-edit="${v.id}" title="Redaktə et">${ICON_EDIT}</button>
+          <button class="icon-btn danger" data-sv-del="${v.id}" title="Sil">${ICON_TRASH}</button>
+        </div></td>
+      </tr>`;
   }).join('');
   body.querySelectorAll('[data-sv-view]').forEach(b => b.addEventListener('click', () => openViewVisit(b.getAttribute('data-sv-view'))));
   body.querySelectorAll('[data-sv-edit]').forEach(b => b.addEventListener('click', () => openEditVisit(b.getAttribute('data-sv-edit'))));
@@ -2964,8 +2974,6 @@ function renderDataTab() {
   document.getElementById('dStatRows').textContent = rows.length;
   document.getElementById('dStatCustomers').textContent = uniqueCustomers;
   document.getElementById('dStatTotal').textContent = totalSum.toLocaleString('az-AZ', { maximumFractionDigits: 0 });
-  document.getElementById('dStatAvg').textContent = rows.length
-    ? (totalSum / rows.length).toLocaleString('az-AZ', { maximumFractionDigits: 1 }) : '0';
 
   const body = document.getElementById('dataTableBody');
   if (rows.length === 0) {
