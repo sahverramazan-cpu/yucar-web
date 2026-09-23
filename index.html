@@ -234,6 +234,14 @@
   .chip-group.tiny { padding: 3px; }
   .chip-group.tiny .chip { padding: 5px 10px; font-size: 11px; }
   .subtab-group { margin-bottom: 16px; width: fit-content; }
+  .pagination { display: flex; justify-content: center; align-items: center; gap: 6px; margin-top: 16px; flex-wrap: wrap; }
+  .page-btn {
+    min-width: 34px; height: 34px; padding: 0 8px; border-radius: 9px; border: 1px solid var(--line);
+    background: var(--surface); color: var(--ink-soft); font-family: inherit; font-size: 13px; font-weight: 600;
+    cursor: pointer; transition: all .15s ease;
+  }
+  .page-btn:hover { background: var(--surface-2); color: var(--ink); }
+  .page-btn.active { background: var(--teal); color: #fff; border-color: var(--teal); }
   .fin-custom-range {
     display: none; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px;
   }
@@ -1114,10 +1122,29 @@
 
   <!-- ================= FINANCE ================= -->
   <section class="tabpage" id="tab-finance">
-    <div class="stat-row">
-      <div class="stat-card"><div class="v" id="fpIncome" style="color:var(--teal-deep);">—</div><div class="l">Mədaxil (₼)</div></div>
-      <div class="stat-card"><div class="v" id="fpExpense" style="color:var(--danger);">—</div><div class="l">Məxaric (₼)</div></div>
-      <div class="stat-card"><div class="v" id="fpBalance">—</div><div class="l">Balans (₼)</div></div>
+    <div class="panel">
+      <div class="chart-head">
+        <div>
+          <h2>Maliyyə xülasəsi</h2>
+          <p class="desc">Seçilmiş dövr üzrə mədaxil, məxaric və balans.</p>
+        </div>
+        <div class="chip-group" id="finPeriodGroup">
+          <button class="chip active" data-fperiod="today">Günlük</button>
+          <button class="chip" data-fperiod="week">Həftəlik</button>
+          <button class="chip" data-fperiod="month">Aylıq</button>
+          <button class="chip" data-fperiod="year">İllik</button>
+          <button class="chip" data-fperiod="custom">Xüsusi</button>
+        </div>
+      </div>
+      <div class="fin-custom-range" id="finCustomRange">
+        <div class="field"><label>Tarixdən</label><input id="finFrom" type="date"></div>
+        <div class="field"><label>Tarixədək</label><input id="finTo" type="date"></div>
+      </div>
+      <div class="stat-row">
+        <div class="stat-card"><div class="v" id="fpIncome" style="color:var(--teal-deep);">—</div><div class="l">Mədaxil (₼)</div></div>
+        <div class="stat-card"><div class="v" id="fpExpense" style="color:var(--danger);">—</div><div class="l">Məxaric (₼)</div></div>
+        <div class="stat-card"><div class="v" id="fpBalance">—</div><div class="l">Balans (₼)</div></div>
+      </div>
     </div>
 
    <div class="subpage active" data-subpage="income">
@@ -1134,6 +1161,7 @@
           <tbody id="incomeList"><tr><td colspan="5" class="empty">Yüklənir…</td></tr></tbody>
         </table>
       </div>
+      <div class="pagination" id="incomePagination"></div>
     </div>
    </div>
 
@@ -1151,6 +1179,7 @@
           <tbody id="expenseList"><tr><td colspan="5" class="empty">Yüklənir…</td></tr></tbody>
         </table>
       </div>
+      <div class="pagination" id="expensePagination"></div>
     </div>
    </div>
   </section>
@@ -2960,49 +2989,111 @@ function financeViewRows(rec) {
   ];
 }
 
+let financePage = { income: 1, expense: 1 };
+const FINANCE_PAGE_SIZE = 20;
+
+function renderPagination(containerId, currentPage, totalPages, onPageChange) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  if (totalPages <= 1) { el.innerHTML = ''; return; }
+  let html = '';
+  for (let i = 1; i <= totalPages; i++) {
+    html += `<button class="page-btn${i === currentPage ? ' active' : ''}" data-page="${i}">${i}</button>`;
+  }
+  el.innerHTML = html;
+  el.querySelectorAll('.page-btn').forEach(b => {
+    b.addEventListener('click', () => onPageChange(parseInt(b.getAttribute('data-page'))));
+  });
+}
+
 function renderFinanceList(containerId, type) {
   const el = document.getElementById(containerId);
   const items = allFinance.filter(f => f.type === type).sort((a, b) => (b.date || '').localeCompare(a.date || '') || (b.createdAt || '').localeCompare(a.createdAt || ''));
-  if (items.length === 0) {
-    el.innerHTML = '<tr><td colspan="5" class="empty">Hələ qeyd yoxdur.</td></tr>';
-    return;
-  }
   const chronological = [...items].sort((a, b) => (a.date || '').localeCompare(b.date || '') || (a.createdAt || '').localeCompare(b.createdAt || ''));
   const seqMap = new Map();
   chronological.forEach((f, i) => seqMap.set(f.id, i + 1));
-  const isIncome = type === 'income';
-  el.innerHTML = items.map(f => `
-    <tr class="data-row">
-      <td>#${seqMap.get(f.id) || 0}</td>
-      <td>${fmtDate(f.date)}</td>
-      <td style="color:${isIncome ? 'var(--teal-deep)' : 'var(--danger)'};">${isIncome ? '+' : '-'}${fmtAzn(f.amount)} ₼</td>
-      <td>${f.category ? escapeHtml(f.category) : '—'}</td>
-      <td class="col-actions"><div class="row-actions">
-        <button class="icon-btn" data-fin-view="${f.id}" title="Bax">${ICON_EYE}</button>
-        <button class="icon-btn" data-fin-edit="${f.id}" data-fin-type="${f.type}" title="Redaktə et">${ICON_EDIT}</button>
-        <button class="icon-btn danger" data-fin-del="${f.id}" title="Sil">${ICON_TRASH}</button>
-      </div></td>
-    </tr>`).join('');
-  el.querySelectorAll('[data-fin-view]').forEach(b => b.addEventListener('click', () => {
-    const rec = allFinance.find(x => x.id === b.getAttribute('data-fin-view'));
-    if (rec) renderViewModal(rec.type === 'income' ? 'Mədaxil məlumatları' : 'Məxaric məlumatları', financeViewRows(rec));
-  }));
-  el.querySelectorAll('[data-fin-edit]').forEach(b => b.addEventListener('click', () => openFinanceModal(b.getAttribute('data-fin-type'), b.getAttribute('data-fin-edit'))));
-  el.querySelectorAll('[data-fin-del]').forEach(b => b.addEventListener('click', async () => {
-    if (!confirm('Bu əməliyyatı silmək istədiyinizə əminsiniz?')) return;
-    try { await db.doc('finance/' + b.getAttribute('data-fin-del')).delete(); } catch (e) { alert('Xəta baş verdi.'); }
-  }));
+
+  const totalPages = Math.max(1, Math.ceil(items.length / FINANCE_PAGE_SIZE));
+  if (financePage[type] > totalPages) financePage[type] = totalPages;
+  if (financePage[type] < 1) financePage[type] = 1;
+  const startIdx = (financePage[type] - 1) * FINANCE_PAGE_SIZE;
+  const pageItems = items.slice(startIdx, startIdx + FINANCE_PAGE_SIZE);
+
+  if (items.length === 0) {
+    el.innerHTML = '<tr><td colspan="5" class="empty">Hələ qeyd yoxdur.</td></tr>';
+  } else {
+    const isIncome = type === 'income';
+    el.innerHTML = pageItems.map(f => `
+      <tr class="data-row">
+        <td>#${seqMap.get(f.id) || 0}</td>
+        <td>${fmtDate(f.date)}</td>
+        <td style="color:${isIncome ? 'var(--teal-deep)' : 'var(--danger)'};">${isIncome ? '+' : '-'}${fmtAzn(f.amount)} ₼</td>
+        <td>${f.category ? escapeHtml(f.category) : '—'}</td>
+        <td class="col-actions"><div class="row-actions">
+          <button class="icon-btn" data-fin-view="${f.id}" title="Bax">${ICON_EYE}</button>
+          <button class="icon-btn" data-fin-edit="${f.id}" data-fin-type="${f.type}" title="Redaktə et">${ICON_EDIT}</button>
+          <button class="icon-btn danger" data-fin-del="${f.id}" title="Sil">${ICON_TRASH}</button>
+        </div></td>
+      </tr>`).join('');
+    el.querySelectorAll('[data-fin-view]').forEach(b => b.addEventListener('click', () => {
+      const rec = allFinance.find(x => x.id === b.getAttribute('data-fin-view'));
+      if (rec) renderViewModal(rec.type === 'income' ? 'Mədaxil məlumatları' : 'Məxaric məlumatları', financeViewRows(rec));
+    }));
+    el.querySelectorAll('[data-fin-edit]').forEach(b => b.addEventListener('click', () => openFinanceModal(b.getAttribute('data-fin-type'), b.getAttribute('data-fin-edit'))));
+    el.querySelectorAll('[data-fin-del]').forEach(b => b.addEventListener('click', async () => {
+      if (!confirm('Bu əməliyyatı silmək istədiyinizə əminsiniz?')) return;
+      try { await db.doc('finance/' + b.getAttribute('data-fin-del')).delete(); } catch (e) { alert('Xəta baş verdi.'); }
+    }));
+  }
+  renderPagination(type + 'Pagination', financePage[type], totalPages, (p) => {
+    financePage[type] = p;
+    renderFinanceList(containerId, type);
+  });
+}
+
+let finPeriodMode = 'today';
+function finPeriodRangeCalc(mode) {
+  const today = new Date(todayStr() + 'T00:00:00');
+  let from, to = todayStr();
+  if (mode === 'today') {
+    from = todayStr();
+  } else if (mode === 'week') {
+    const d = new Date(today); d.setDate(d.getDate() - 6);
+    from = d.toISOString().slice(0, 10);
+  } else if (mode === 'month') {
+    from = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().slice(0, 10);
+  } else if (mode === 'year') {
+    from = new Date(today.getFullYear(), 0, 1).toISOString().slice(0, 10);
+  } else if (mode === 'custom') {
+    from = document.getElementById('finFrom').value || '0000-01-01';
+    to = document.getElementById('finTo').value || todayStr();
+  }
+  return { from, to };
 }
 
 function renderFinanceTab() {
   renderFinanceList('incomeList', 'income');
   renderFinanceList('expenseList', 'expense');
-  const totalIncome = allFinance.filter(f => f.type === 'income').reduce((s, f) => s + (Number(f.amount) || 0), 0);
-  const totalExpense = allFinance.filter(f => f.type === 'expense').reduce((s, f) => s + (Number(f.amount) || 0), 0);
+  const { from, to } = finPeriodRangeCalc(finPeriodMode);
+  const totalIncome = allFinance.filter(f => f.type === 'income' && (f.date || '') >= from && (f.date || '') <= to)
+    .reduce((s, f) => s + (Number(f.amount) || 0), 0);
+  const totalExpense = allFinance.filter(f => f.type === 'expense' && (f.date || '') >= from && (f.date || '') <= to)
+    .reduce((s, f) => s + (Number(f.amount) || 0), 0);
   document.getElementById('fpIncome').textContent = fmtAzn(totalIncome);
   document.getElementById('fpExpense').textContent = fmtAzn(totalExpense);
   document.getElementById('fpBalance').textContent = fmtAzn(totalIncome - totalExpense);
 }
+document.querySelectorAll('#finPeriodGroup .chip').forEach(b => {
+  b.addEventListener('click', () => {
+    document.querySelectorAll('#finPeriodGroup .chip').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    finPeriodMode = b.getAttribute('data-fperiod');
+    document.getElementById('finCustomRange').classList.toggle('show', finPeriodMode === 'custom');
+    renderFinanceTab();
+  });
+});
+document.getElementById('finFrom').addEventListener('change', () => { if (finPeriodMode === 'custom') renderFinanceTab(); });
+document.getElementById('finTo').addEventListener('change', () => { if (finPeriodMode === 'custom') renderFinanceTab(); });
 
 /* ---------- HOME DASHBOARD (unified period filter) ---------- */
 let dashPeriodMode = 'today';
