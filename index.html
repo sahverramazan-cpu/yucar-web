@@ -841,13 +841,6 @@
       </div>
     </div>
    </div>
-   <div class="subpage" data-subpage="analytics">
-    <div class="panel">
-      <h2>Satış analitikası</h2>
-      <p class="desc">Bu bölmə tezliklə əlavə olunacaq.</p>
-      <div class="empty">Tezliklə...</div>
-    </div>
-   </div>
   </section>
 
   <!-- ================= CUSTOMERS ================= -->
@@ -865,9 +858,9 @@
       <div class="table-scroll">
         <table>
           <thead>
-            <tr><th>Ad, soyad</th><th>Nömrə</th><th>Yuma sayı</th><th>Xal</th><th>Son yuma</th></tr>
+            <tr><th>№</th><th>Ad, soyad</th><th>Nömrə</th><th>Yuma sayı</th><th>Xal</th><th>Son yuma</th></tr>
           </thead>
-          <tbody id="custListBody"><tr><td colspan="5" class="empty">Yüklənir…</td></tr></tbody>
+          <tbody id="custListBody"><tr><td colspan="6" class="empty">Yüklənir…</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -896,27 +889,6 @@
           <tbody id="detHistoryBody"></tbody>
         </table>
       </div>
-    </div>
-   </div>
-   <div class="subpage" data-subpage="ideal">
-    <div class="panel">
-      <h2>İdeal müştərilər</h2>
-      <p class="desc">Bu bölmə tezliklə əlavə olunacaq.</p>
-      <div class="empty">Tezliklə...</div>
-    </div>
-   </div>
-   <div class="subpage" data-subpage="unhappy">
-    <div class="panel">
-      <h2>Narazı müştərilər</h2>
-      <p class="desc">Bu bölmə tezliklə əlavə olunacaq.</p>
-      <div class="empty">Tezliklə...</div>
-    </div>
-   </div>
-   <div class="subpage" data-subpage="analytics">
-    <div class="panel">
-      <h2>Müştəri analitikası</h2>
-      <p class="desc">Bu bölmə tezliklə əlavə olunacaq.</p>
-      <div class="empty">Tezliklə...</div>
     </div>
    </div>
   </section>
@@ -975,10 +947,10 @@
         <table>
           <thead>
             <tr>
-              <th>Ad, soyad</th><th>Nömrə</th><th>Yuma sayı</th><th class="col-actions"></th>
+              <th>№</th><th>Ad, soyad</th><th>Nömrə</th><th>Yuma sayı</th><th class="col-actions"></th>
             </tr>
           </thead>
-          <tbody id="dataTableBody"><tr><td colspan="4" class="empty">Yüklənir…</td></tr></tbody>
+          <tbody id="dataTableBody"><tr><td colspan="5" class="empty">Yüklənir…</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -1003,8 +975,8 @@
       </div>
       <div class="table-scroll">
         <table>
-          <thead><tr><th>Tarix</th><th>Məbləğ</th><th>Kateqoriya</th><th class="col-actions"></th></tr></thead>
-          <tbody id="incomeList"><tr><td colspan="4" class="empty">Yüklənir…</td></tr></tbody>
+          <thead><tr><th>№</th><th>Tarix</th><th>Məbləğ</th><th>Kateqoriya</th><th class="col-actions"></th></tr></thead>
+          <tbody id="incomeList"><tr><td colspan="5" class="empty">Yüklənir…</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -1020,26 +992,10 @@
       </div>
       <div class="table-scroll">
         <table>
-          <thead><tr><th>Tarix</th><th>Məbləğ</th><th>Kateqoriya</th><th class="col-actions"></th></tr></thead>
-          <tbody id="expenseList"><tr><td colspan="4" class="empty">Yüklənir…</td></tr></tbody>
+          <thead><tr><th>№</th><th>Tarix</th><th>Məbləğ</th><th>Kateqoriya</th><th class="col-actions"></th></tr></thead>
+          <tbody id="expenseList"><tr><td colspan="5" class="empty">Yüklənir…</td></tr></tbody>
         </table>
       </div>
-    </div>
-   </div>
-
-   <div class="subpage" data-subpage="categories">
-    <div class="panel">
-      <h2>Kateqoriyalar</h2>
-      <p class="desc">Bu bölmə tezliklə əlavə olunacaq.</p>
-      <div class="empty">Tezliklə...</div>
-    </div>
-   </div>
-
-   <div class="subpage" data-subpage="analytics">
-    <div class="panel">
-      <h2>Maliyyə analitikası</h2>
-      <p class="desc">Bu bölmə tezliklə əlavə olunacaq.</p>
-      <div class="empty">Tezliklə...</div>
     </div>
    </div>
   </section>
@@ -1518,13 +1474,9 @@ const SIDEBAR_CONFIG = {
   home: [],
   sale: [
     { id: 'list', label: 'Ümumi satışlar' },
-    { id: 'analytics', label: 'Analitika' },
   ],
   customers: [
     { id: 'all', label: 'Bütün müştərilər' },
-    { id: 'ideal', label: 'İdeal müştərilər' },
-    { id: 'unhappy', label: 'Narazı müştərilər' },
-    { id: 'analytics', label: 'Analitika' },
   ],
   data: [
     { id: 'main', label: 'Hazırkı Data sistemi' },
@@ -1532,8 +1484,6 @@ const SIDEBAR_CONFIG = {
   finance: [
     { id: 'income', label: 'Mədaxil' },
     { id: 'expense', label: 'Məxaric' },
-    { id: 'categories', label: 'Kateqoriyalar' },
-    { id: 'analytics', label: 'Analitika' },
   ],
 };
 
@@ -2151,6 +2101,13 @@ function showCustomerList() {
   document.getElementById('customerDetail').classList.remove('show');
   renderCustomerList();
 }
+function customerSeqMap() {
+  const dir = [...customerDirectory()].sort((a, b) =>
+    (a.createdAt || '').localeCompare(b.createdAt || ''));
+  const map = new Map();
+  dir.forEach((c, i) => map.set(c.id, i + 1));
+  return map;
+}
 function renderCustomerList() {
   const qRaw = (document.getElementById('custSearch').value || '').toLowerCase().trim();
   const qDigits = normPhone(qRaw);
@@ -2165,10 +2122,12 @@ function renderCustomerList() {
     });
   }
   rows.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+  const seqMap = customerSeqMap();
   const body = document.getElementById('custListBody');
-  if (rows.length === 0) { body.innerHTML = '<tr><td colspan="5" class="empty">Müştəri tapılmadı.</td></tr>'; return; }
+  if (rows.length === 0) { body.innerHTML = '<tr><td colspan="6" class="empty">Müştəri tapılmadı.</td></tr>'; return; }
   body.innerHTML = rows.map(c => `
     <tr class="data-row" data-id="${c.id}">
+      <td>#${seqMap.get(c.id) || 0}</td>
       <td>${escapeHtml(c.name || '—')}</td>
       <td>${escapeHtml(formatPhoneAZ(c.phone))}</td>
       <td>${c.count}</td>
@@ -2813,14 +2772,18 @@ function financeViewRows(rec) {
 
 function renderFinanceList(containerId, type) {
   const el = document.getElementById(containerId);
-  const items = allFinance.filter(f => f.type === type).sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  const items = allFinance.filter(f => f.type === type).sort((a, b) => (b.date || '').localeCompare(a.date || '') || (b.createdAt || '').localeCompare(a.createdAt || ''));
   if (items.length === 0) {
-    el.innerHTML = '<tr><td colspan="4" class="empty">Hələ qeyd yoxdur.</td></tr>';
+    el.innerHTML = '<tr><td colspan="5" class="empty">Hələ qeyd yoxdur.</td></tr>';
     return;
   }
+  const chronological = [...items].sort((a, b) => (a.date || '').localeCompare(b.date || '') || (a.createdAt || '').localeCompare(b.createdAt || ''));
+  const seqMap = new Map();
+  chronological.forEach((f, i) => seqMap.set(f.id, i + 1));
   const isIncome = type === 'income';
   el.innerHTML = items.map(f => `
     <tr class="data-row">
+      <td>#${seqMap.get(f.id) || 0}</td>
       <td>${fmtDate(f.date)}</td>
       <td style="color:${isIncome ? 'var(--teal-deep)' : 'var(--danger)'};">${isIncome ? '+' : '-'}${fmtAzn(f.amount)} ₼</td>
       <td>${f.category ? escapeHtml(f.category) : '—'}</td>
@@ -3011,7 +2974,7 @@ function renderDataTab() {
 
   const body = document.getElementById('dataTableBody');
   if (rows.length === 0) {
-    body.innerHTML = '<tr><td colspan="4" class="empty">Bu filtrlərə uyğun nəticə yoxdur.</td></tr>';
+    body.innerHTML = '<tr><td colspan="5" class="empty">Bu filtrlərə uyğun nəticə yoxdur.</td></tr>';
     return;
   }
 
@@ -3027,9 +2990,11 @@ function renderDataTab() {
     return { ...g, count: g.visits.length, total, lastDate };
   }).sort((a, b) => b.lastDate.localeCompare(a.lastDate));
 
+  const seqMap = customerSeqMap();
   body.innerHTML = groups.map(g => {
     return `
     <tr class="data-row" data-cid="${g.id}">
+      <td>#${seqMap.get(g.id) || 0}</td>
       <td>${escapeHtml(g.name || '—')}</td>
       <td>${escapeHtml(formatPhoneAZ(g.phone))}</td>
       <td>${g.count}</td>
