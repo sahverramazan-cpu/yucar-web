@@ -1941,6 +1941,15 @@ async function sendWaReminder(customerId, name, phone) {
 const saleSearch = document.getElementById('saleSearch');
 const suggBox = document.getElementById('saleSuggestions');
 
+function positionFixedSuggestions(inputEl, suggEl) {
+  const rect = inputEl.getBoundingClientRect();
+  suggEl.style.position = 'fixed';
+  suggEl.style.top = (rect.bottom + 6) + 'px';
+  suggEl.style.left = rect.left + 'px';
+  suggEl.style.width = rect.width + 'px';
+  suggEl.style.right = 'auto';
+}
+
 saleSearch.addEventListener('input', () => {
   const q = saleSearch.value.trim().toLowerCase();
   resetSelection(false);
@@ -1956,15 +1965,19 @@ saleSearch.addEventListener('input', () => {
   }).join('');
   html += `<div class="newrow" id="createNewRow">+ "${escapeHtml(saleSearch.value.trim())}" adında yeni müştəri yarat</div>`;
   suggBox.innerHTML = html;
+  positionFixedSuggestions(saleSearch, suggBox);
   suggBox.classList.add('show');
   suggBox.querySelectorAll('.sug').forEach(el => {
     el.addEventListener('click', () => selectCustomer(el.getAttribute('data-id')));
   });
   document.getElementById('createNewRow').addEventListener('click', () => startNewCustomer(saleSearch.value.trim()));
 });
-saleSearch.addEventListener('focus', () => { if (saleSearch.value.trim()) suggBox.classList.add('show'); });
+saleSearch.addEventListener('focus', () => { if (saleSearch.value.trim()) { positionFixedSuggestions(saleSearch, suggBox); suggBox.classList.add('show'); } });
 document.addEventListener('click', (e) => {
   if (!e.target.closest('.search-wrap')) suggBox.classList.remove('show');
+});
+document.querySelector('#newSaleOverlay .modal-box').addEventListener('scroll', () => {
+  if (suggBox.classList.contains('show')) positionFixedSuggestions(saleSearch, suggBox);
 });
 
 function updateFreeWashBanner(nextSeq, name) {
