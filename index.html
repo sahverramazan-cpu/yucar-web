@@ -2915,7 +2915,7 @@ function renderPagination(containerId, currentPage, totalPages, onPageChange) {
 
 function renderFinanceList(containerId, type) {
   const el = document.getElementById(containerId);
-  const items = allFinance.filter(f => f.type === type && !f.fromSale).sort((a, b) => (b.date || '').localeCompare(a.date || '') || (b.createdAt || '').localeCompare(a.createdAt || ''));
+  const items = allFinance.filter(f => f.type === type).sort((a, b) => (b.date || '').localeCompare(a.date || '') || (b.createdAt || '').localeCompare(a.createdAt || ''));
   const chronological = [...items].sort((a, b) => (a.date || '').localeCompare(b.date || '') || (a.createdAt || '').localeCompare(b.createdAt || ''));
   const seqMap = new Map();
   chronological.forEach((f, i) => seqMap.set(f.id, i + 1));
@@ -2982,7 +2982,7 @@ function renderFinanceTab() {
   renderFinanceList('incomeList', 'income');
   renderFinanceList('expenseList', 'expense');
   const { from, to } = finPeriodRangeCalc(finPeriodMode);
-  const totalIncome = allFinance.filter(f => f.type === 'income' && !f.fromSale && (f.date || '') >= from && (f.date || '') <= to)
+  const totalIncome = allFinance.filter(f => f.type === 'income' && (f.date || '') >= from && (f.date || '') <= to)
     .reduce((s, f) => s + (Number(f.amount) || 0), 0);
   const totalExpense = allFinance.filter(f => f.type === 'expense' && (f.date || '') >= from && (f.date || '') <= to)
     .reduce((s, f) => s + (Number(f.amount) || 0), 0);
