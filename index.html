@@ -653,8 +653,6 @@
         <div class="user-menu-dropdown" id="userMenuDropdown">
           <div class="user-menu-name" id="userMenuName">—</div>
           <button class="user-menu-item" id="showUsersBtn">İstifadəçilər</button>
-          <button class="user-menu-item" id="addUserBtn">+ Yeni istifadəçi əlavə et</button>
-          <button class="user-menu-item" id="changePasswordBtn">Şifrəni dəyiş</button>
           <button class="user-menu-item danger" id="staffLogoutBtn">Çıxış</button>
         </div>
       </div>
@@ -1411,19 +1409,6 @@
     </div>
   </div>
 
-  <div class="modal-overlay" id="changePasswordOverlay">
-    <div class="modal-box">
-      <h3>Şifrəni dəyiş</h3>
-      <div class="field"><label>Yeni şifrə</label><input id="newPasswordInput" type="text" autocomplete="off"></div>
-      <div class="modal-actions">
-        <button class="btn-ghost" id="changePasswordCancelBtn">Ləğv et</button>
-        <div style="flex:1;"></div>
-        <button class="btn-primary" id="changePasswordSaveBtn" style="width:auto; margin-top:0;">Yadda saxla</button>
-      </div>
-      <div class="save-msg" id="changePasswordMsg"></div>
-    </div>
-  </div>
-
   <div class="modal-overlay" id="remNoteOverlay">
     <div class="modal-box">
       <h3>Qeyd əlavə et</h3>
@@ -1807,16 +1792,6 @@ let currentStaffUser = null;
     document.getElementById('addUserOverlay').classList.add('show');
   });
 
-  document.getElementById('addUserBtn').addEventListener('click', () => {
-    document.getElementById('userMenuDropdown').classList.remove('show');
-    editingUserId = null;
-    document.getElementById('addUserTitle').textContent = 'Yeni istifadəçi əlavə et';
-    document.getElementById('addUserSaveBtn').textContent = 'Əlavə et';
-    document.getElementById('newUserName').value = '';
-    document.getElementById('newUserPassword').value = '';
-    document.getElementById('addUserMsg').className = 'save-msg';
-    document.getElementById('addUserOverlay').classList.add('show');
-  });
   document.getElementById('addUserCancelBtn').addEventListener('click', () => {
     document.getElementById('addUserOverlay').classList.remove('show');
   });
@@ -1854,35 +1829,6 @@ let currentStaffUser = null;
       }
       document.getElementById('addUserOverlay').classList.remove('show');
       if (document.getElementById('usersListOverlay').classList.contains('show')) renderUsersList();
-    } catch (e) {
-      msg.textContent = 'Xəta baş verdi, yenidən cəhd edin.';
-      msg.className = 'save-msg show err';
-    }
-  });
-
-  document.getElementById('changePasswordBtn').addEventListener('click', () => {
-    document.getElementById('userMenuDropdown').classList.remove('show');
-    document.getElementById('newPasswordInput').value = '';
-    document.getElementById('changePasswordMsg').className = 'save-msg';
-    document.getElementById('changePasswordOverlay').classList.add('show');
-  });
-  document.getElementById('changePasswordCancelBtn').addEventListener('click', () => {
-    document.getElementById('changePasswordOverlay').classList.remove('show');
-  });
-  document.getElementById('changePasswordOverlay').addEventListener('click', (e) => {
-    if (e.target.id === 'changePasswordOverlay') document.getElementById('changePasswordOverlay').classList.remove('show');
-  });
-  document.getElementById('changePasswordSaveBtn').addEventListener('click', async () => {
-    const msg = document.getElementById('changePasswordMsg');
-    const newPass = document.getElementById('newPasswordInput').value.trim();
-    if (!newPass) { msg.textContent = 'Yeni şifrəni daxil edin.'; msg.className = 'save-msg show err'; return; }
-    if (!currentStaffUser) return;
-    try {
-      await db.doc('staffUsers/' + currentStaffUser.id).update({ password: newPass });
-      currentStaffUser.password = newPass;
-      const idx = allStaffUsers.findIndex(u => u.id === currentStaffUser.id);
-      if (idx >= 0) allStaffUsers[idx].password = newPass;
-      document.getElementById('changePasswordOverlay').classList.remove('show');
     } catch (e) {
       msg.textContent = 'Xəta baş verdi, yenidən cəhd edin.';
       msg.className = 'save-msg show err';
