@@ -425,6 +425,7 @@
   .m-history-date { font-size: 14.5px; font-weight: 700; color: var(--ink); }
   .m-history-price { font-size: 14.5px; font-weight: 700; color: var(--teal-deep); white-space: nowrap; }
   .m-history-price.free { color: #6b4413; }
+  .m-history-right { display: flex; align-items: center; gap: 8px; }
   .m-history-desc { font-size: 13px; color: var(--ink-soft); line-height: 1.5; }
   .m-history-bottom { display: flex; align-items: center; gap: 8px; }
   .m-history-pts {
@@ -437,6 +438,19 @@
     padding: 3px 10px; border-radius: 100px;
   }
   .m-history-seq { color: var(--ink-faint); font-weight: 700; margin-right: 4px; }
+  .m-history-eye {
+    border: 1px solid var(--line); background: var(--surface); color: var(--ink-soft);
+    width: 28px; height: 28px; border-radius: 9px; display: inline-flex; align-items: center;
+    justify-content: center; cursor: pointer; flex-shrink: 0; transition: all .15s ease;
+  }
+  .m-history-eye:hover { background: var(--surface-2); color: var(--ink); }
+  .view-row {
+    display: flex; justify-content: space-between; align-items: baseline; gap: 14px;
+    padding: 9px 0; border-top: 1px solid var(--line); font-size: 13.5px;
+  }
+  .view-row:first-child { border-top: none; }
+  .view-row .vl { color: var(--ink-soft); flex-shrink: 0; }
+  .view-row .vv { font-weight: 600; text-align: right; word-break: break-word; }
 
   .pagination { display: flex; justify-content: center; align-items: center; gap: 6px; margin-top: 14px; flex-wrap: wrap; }
   .page-btn {
@@ -635,6 +649,16 @@
   </div>
   <div class="m-social-caption">010 111 2026 · yucar.az</div>
 
+  <div class="modal-overlay" id="historyDetailOverlay">
+    <div class="modal-box">
+      <h3>Yuma məlumatları</h3>
+      <div id="hdRows"></div>
+      <div class="modal-actions">
+        <button class="btn-ghost" id="hdCloseBtn">Bağla</button>
+      </div>
+    </div>
+  </div>
+
   <div class="modal-overlay" id="orderOverlay">
     <div class="modal-box">
       <h3>Sifariş et</h3>
@@ -699,6 +723,7 @@ function formatPhoneAZ(phone) {
   return `+994 ${d.slice(0, 2)} ${d.slice(2, 5)} ${d.slice(5, 7)} ${d.slice(7, 9)}`;
 }
 function normName(n) { return (n || '').toLowerCase().trim().replace(/\s+/g, ' '); }
+const ICON_EYE = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg>';
 function fmtDate(iso) {
   if (!iso) return '—';
   const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso);
@@ -1107,7 +1132,6 @@ function renderProfile(visitsAsc) {
     const isFree = seq % 6 === 0;
     const isPointsPaid = !!v.paidWithPoints;
     const isCashbackPaid = !!v.paidWithCashback;
-    const parts = [v.car, v.service, v.addon].filter(Boolean);
     let priceTxt;
     if (isPointsPaid) priceTxt = `-${(v.pointsRedeemed || 0).toLocaleString('az-AZ')} xal`;
     else if (isCashbackPaid) priceTxt = `-${fmtAzn(v.cashbackRedeemed || 0)} ₼ keşbek`;
@@ -1124,9 +1148,11 @@ function renderProfile(visitsAsc) {
       <div class="m-history-item">
         <div class="m-history-top">
           <span class="m-history-date"><span class="m-history-seq">#${seq}</span>${fmtDate(v.date)}</span>
-          <span class="m-history-price${isFree || isPointsPaid || isCashbackPaid ? ' free' : ''}">${priceTxt}</span>
+          <div class="m-history-right">
+            <span class="m-history-price${isFree || isPointsPaid || isCashbackPaid ? ' free' : ''}">${priceTxt}</span>
+            <button class="m-history-eye" data-history-id="${v.id}" title="Bax">${ICON_EYE}</button>
+          </div>
         </div>
-        <div class="m-history-desc">${escapeHtml(parts.join(' · ') || 'Yuma')}</div>
         <div class="m-history-bottom">
           ${ptsBadge}
           ${cashbackBadge}
@@ -1134,8 +1160,40 @@ function renderProfile(visitsAsc) {
         </div>
       </div>`;
   }).join('');
+  body.querySelectorAll('[data-history-id]').forEach(btn => {
+    btn.addEventListener('click', () => openHistoryDetail(btn.getAttribute('data-history-id')));
+  });
   renderHistoryPagination(historyPage, totalPages);
 }
+
+function openHistoryDetail(id) {
+  const v = lastVisitsAsc.find(x => x.id === id);
+  if (!v) return;
+  const isPointsPaid = !!v.paidWithPoints;
+  const isCashbackPaid = !!v.paidWithCashback;
+  let paymentTxt;
+  if (isPointsPaid) paymentTxt = `${(v.pointsRedeemed || 0).toLocaleString('az-AZ')} xal ilə`;
+  else if (isCashbackPaid) paymentTxt = `${fmtAzn(v.cashbackRedeemed || 0)} ₼ keşbek ilə`;
+  else paymentTxt = v.payment || '—';
+  const rows = [
+    ['Tarix', fmtDate(v.date)],
+    ['Avtomobil', v.car || '—'],
+    ['Xidmət', v.service || '—'],
+    ['Əlavə xidmətlər', v.addon || '—'],
+    ['Qiymət', v.priceFinal || v.priceFinal === 0 ? Number(v.priceFinal).toLocaleString('az-AZ') + ' ₼' : '—'],
+    ['Ödəniş üsulu', paymentTxt],
+  ];
+  document.getElementById('hdRows').innerHTML = rows.map(([l, val]) =>
+    `<div class="view-row"><span class="vl">${l}</span><span class="vv">${escapeHtml(String(val))}</span></div>`
+  ).join('');
+  document.getElementById('historyDetailOverlay').classList.add('show');
+}
+document.getElementById('hdCloseBtn').addEventListener('click', () => {
+  document.getElementById('historyDetailOverlay').classList.remove('show');
+});
+document.getElementById('historyDetailOverlay').addEventListener('click', (e) => {
+  if (e.target.id === 'historyDetailOverlay') document.getElementById('historyDetailOverlay').classList.remove('show');
+});
 
 function init() {
   const savedName = localStorage.getItem('yucar_saved_name');
