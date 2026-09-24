@@ -787,14 +787,97 @@ const CAR_DATA = {
   'Daewoo': ['Nexia','Matiz','Lanos'],
 };
 const CAR_BRAND_LIST = Object.keys(CAR_DATA).sort();
-const PACKAGE_PRICES = { 'Sedan': 15, 'SUV': 20, 'Böyük Avtomobil': 25 };
-const SIZE_ADDONS = [
+let allServices = [];
+let PACKAGE_PRICES = { 'Sedan': 15, 'SUV': 20, 'Böyük Avtomobil': 25 };
+let SIZE_ADDONS = [
   { key: 'steamLight', label: 'Buxarlı daxili təmizlik (yüngül)', prices: { 'Sedan': 15, 'SUV': 20, 'Böyük Avtomobil': 25 } },
   { key: 'steamDeep', label: 'Buxarlı daxili dərin təmizlik', prices: { 'Sedan': 50, 'SUV': 60, 'Böyük Avtomobil': 70 } },
   { key: 'engineBay', label: 'Motorxana təmizliyi', prices: { 'Sedan': 15, 'SUV': 20, 'Böyük Avtomobil': 25 } },
 ];
-const HEADLIGHT_PRICES = { '1': 20, '2': 35 };
-const HEADLIGHT_LABELS = { '1': 'Fara polirovkası (1 ədəd)', '2': 'Fara polirovkası (2 ədəd)' };
+let HEADLIGHT_PRICES = { '1': 20, '2': 35 };
+let HEADLIGHT_LABELS = { '1': 'Fara polirovkası (1 ədəd)', '2': 'Fara polirovkası (2 ədəd)' };
+let HEADLIGHT_QTY_LABELS = { '1': '1 ədəd', '2': '2 ədəd' };
+let CORE_SERVICES = [
+  { id: 'Sedan', name: 'Sedan', icon: '🚗', price: 15, order: 1 },
+  { id: 'SUV', name: 'SUV', icon: '🚙', price: 20, order: 2 },
+  { id: 'Böyük Avtomobil', name: 'Böyük Avtomobil', icon: '🚐', price: 25, order: 3 },
+];
+let REDEEM_OPTIONS = [
+  { label: 'Sedan yuması', price: 15 },
+  { label: 'SUV yuması', price: 20 },
+  { label: 'Böyük Avtomobil yuması', price: 25 },
+];
+
+function rebuildServiceCatalog() {
+  const cores = allServices.filter(s => s.type === 'core').sort((a, b) => (a.order || 0) - (b.order || 0));
+  const addons = allServices.filter(s => s.type === 'addon').sort((a, b) => (a.order || 0) - (b.order || 0));
+  if (cores.length === 0 && addons.length === 0) return;
+
+  CORE_SERVICES = cores.map(c => ({ id: c.id, name: c.name, icon: c.icon || '🚗', price: Number(c.price) || 0, order: c.order || 0 }));
+
+  PACKAGE_PRICES = {};
+  CORE_SERVICES.forEach(c => { PACKAGE_PRICES[c.name] = c.price; });
+  REDEEM_OPTIONS = CORE_SERVICES.map(c => ({ label: `${c.name} yuması`, price: c.price }));
+
+  SIZE_ADDONS = addons.filter(a => a.pricingMode === 'bySize').map(a => ({
+    key: a.id, label: a.name, prices: a.pricesBySize || {},
+  }));
+
+  const hl = addons.find(a => a.pricingMode === 'byQty');
+  HEADLIGHT_PRICES = {};
+  HEADLIGHT_LABELS = {};
+  HEADLIGHT_QTY_LABELS = {};
+  if (hl) {
+    HEADLIGHT_PRICES = hl.pricesByQty || {};
+    Object.keys(hl.qtyLabels || {}).forEach(k => {
+      HEADLIGHT_QTY_LABELS[k] = hl.qtyLabels[k];
+      HEADLIGHT_LABELS[k] = `${hl.name} (${hl.qtyLabels[k]})`;
+    });
+  }
+
+  regenerateOrderFormControls();
+  if (typeof lastVisitsAsc !== 'undefined' && lastVisitsAsc.length >= 0 && document.getElementById('mProfileView').classList.contains('show')) {
+    renderProfile(lastVisitsAsc);
+  }
+}
+
+function ordServiceOptionsHtml(selectedValue) {
+  return '<option value="">Seçin</option>' + CORE_SERVICES.map(c =>
+    `<option value="${escapeHtml(c.name)}"${c.name === selectedValue ? ' selected' : ''}>${c.icon || ''} ${escapeHtml(c.name)} — ${c.price} AZN</option>`
+  ).join('');
+}
+function ordAddonGroupHtml() {
+  return SIZE_ADDONS.map(a =>
+    `<label class="addon-chk"><input type="checkbox" class="ordSizeAddonCk" data-key="${a.key}"> <span class="addon-lbl">${escapeHtml(a.label)}</span> <span class="addon-price" data-ordkey="${a.key}"></span></label>`
+  ).join('');
+}
+function ordHeadlightOptionsHtml() {
+  return '<option value="">Yoxdur</option>' + Object.keys(HEADLIGHT_PRICES).map(k =>
+    `<option value="${k}">${escapeHtml(HEADLIGHT_QTY_LABELS[k] || (k + ' ədəd'))} — ${HEADLIGHT_PRICES[k]} AZN</option>`
+  ).join('');
+}
+function regenerateOrderFormControls() {
+  const ordServiceEl = document.getElementById('ordService');
+  if (ordServiceEl) { const cur = ordServiceEl.value; ordServiceEl.innerHTML = ordServiceOptionsHtml(cur); }
+  const ordAddonGroupEl = document.getElementById('ordAddonGroup');
+  if (ordAddonGroupEl) {
+    ordAddonGroupEl.innerHTML = ordAddonGroupHtml();
+    ordAddonGroupEl.querySelectorAll('.ordSizeAddonCk').forEach(cb => cb.addEventListener('change', recalcOrderTotal));
+  }
+  const ordHeadlightEl = document.getElementById('ordHeadlight');
+  if (ordHeadlightEl) ordHeadlightEl.innerHTML = ordHeadlightOptionsHtml();
+  updateOrdAddonLabels();
+}
+
+if (typeof db !== 'undefined' && db) {
+  db.collection('services').limit(500).onSnapshot(
+    snap => {
+      allServices = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      rebuildServiceCatalog();
+    },
+    (e) => console.error(e)
+  );
+}
 
 function setupCarAutocomplete(brandInputId, brandSuggId, modelInputId, modelSuggId) {
   const brandInput = document.getElementById(brandInputId);
@@ -926,11 +1009,6 @@ document.getElementById('ordSendBtn').addEventListener('click', () => {
   closeOrderModal();
 });
 
-const REDEEM_OPTIONS = [
-  { label: 'Sedan yuması', price: 15 },
-  { label: 'SUV yuması', price: 20 },
-  { label: 'Böyük Avtomobil yuması', price: 25 },
-];
 function pointsNeededForAzn(azn) { return Math.round(azn * 200); }
 function renderRedeemOptions(points, cashback) {
   const body = document.getElementById('mRedeemList');
