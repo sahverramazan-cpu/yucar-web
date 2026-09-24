@@ -1409,6 +1409,18 @@
     </div>
   </div>
 
+  <div class="modal-overlay" id="waEditOverlay">
+    <div class="modal-box">
+      <h3>Mesajı redaktə et</h3>
+      <div class="field"><label>Mesaj</label><textarea id="waEditText" rows="9"></textarea></div>
+      <div class="modal-actions">
+        <button class="btn-ghost" id="waEditCancelBtn">Ləğv et</button>
+        <div style="flex:1;"></div>
+        <button class="btn-primary" id="waEditSendBtn" style="width:auto; margin-top:0;">WhatsApp-da göndər</button>
+      </div>
+    </div>
+  </div>
+
   <div class="modal-overlay" id="remNoteOverlay">
     <div class="modal-box">
       <h3>Qeyd əlavə et</h3>
@@ -2665,6 +2677,37 @@ async function sendWaReminder(customerId, name, phone) {
     }
   } catch (e) { /* non-fatal */ }
 }
+
+let waEditContext = null;
+function openWaEditModal(customerId, name, phone) {
+  waEditContext = { customerId, name, phone };
+  document.getElementById('waEditText').value = waMessage(name);
+  document.getElementById('waEditOverlay').classList.add('show');
+}
+document.getElementById('waEditCancelBtn').addEventListener('click', () => {
+  document.getElementById('waEditOverlay').classList.remove('show');
+});
+document.getElementById('waEditOverlay').addEventListener('click', (e) => {
+  if (e.target.id === 'waEditOverlay') document.getElementById('waEditOverlay').classList.remove('show');
+});
+document.getElementById('waEditSendBtn').addEventListener('click', async () => {
+  if (!waEditContext) return;
+  const text = document.getElementById('waEditText').value;
+  const digits = waDigits(waEditContext.phone);
+  if (!digits) { alert('Bu müştərinin telefon nömrəsi düzgün formatda deyil.'); return; }
+  const url = `https://wa.me/${digits}?text=${encodeURIComponent(text)}`;
+  window.open(url, '_blank');
+  document.getElementById('waEditOverlay').classList.remove('show');
+  if (db) {
+    const nowIso = new Date().toISOString();
+    try {
+      const existing = allCustomers.find(c => c.id === waEditContext.customerId);
+      if (existing) {
+        await db.doc('customers/' + waEditContext.customerId).update({ lastRemindedAt: nowIso });
+      }
+    } catch (e) { /* non-fatal */ }
+  }
+});
 
 /* ---------- SALE TAB ---------- */
 const saleSearch = document.getElementById('saleSearch');
@@ -4011,10 +4054,14 @@ function renderReminderTab() {
       <td class="col-actions"><div class="row-actions">
         <button class="icon-btn" data-rem-view="${c.id}" title="Bax">${ICON_EYE}</button>
         <button class="icon-btn" data-rem-note="${c.id}" title="Qeyd əlavə et">${ICON_NOTE}</button>
+        <button class="icon-btn" data-rem-wa="${c.id}" data-rem-wa-name="${escapeHtml(c.name || '')}" data-rem-wa-phone="${escapeHtml(c.phone || '')}" title="WhatsApp-da yaz">${ICON_WA}</button>
+        <button class="icon-btn" data-rem-wa-edit="${c.id}" data-rem-wa-edit-name="${escapeHtml(c.name || '')}" data-rem-wa-edit-phone="${escapeHtml(c.phone || '')}" title="Mesajı redaktə et">${ICON_EDIT}</button>
       </div></td>
     </tr>`).join('');
   body.querySelectorAll('[data-rem-view]').forEach(b => b.addEventListener('click', () => openViewCustomer(b.getAttribute('data-rem-view'))));
   body.querySelectorAll('[data-rem-note]').forEach(b => b.addEventListener('click', () => openAddNoteModal(b.getAttribute('data-rem-note'))));
+  body.querySelectorAll('[data-rem-wa]').forEach(b => b.addEventListener('click', () => sendWaReminder(b.getAttribute('data-rem-wa'), b.getAttribute('data-rem-wa-name'), b.getAttribute('data-rem-wa-phone'))));
+  body.querySelectorAll('[data-rem-wa-edit]').forEach(b => b.addEventListener('click', () => openWaEditModal(b.getAttribute('data-rem-wa-edit'), b.getAttribute('data-rem-wa-edit-name'), b.getAttribute('data-rem-wa-edit-phone'))));
   renderPagination('reminderPagination', 'reminderTableBody', reminderPage, totalPages, (p) => { reminderPage = p; renderReminderTab(); });
 }
 document.getElementById('remSearch').addEventListener('input', renderReminderTab);
