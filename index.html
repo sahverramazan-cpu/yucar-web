@@ -1379,7 +1379,7 @@
 
   <footer class="hint">
     Məlumat yalnız YuCar komandası üçün saxlanılır və paylaşılmır.<br>
-    010 111 2026 · yucar.az · Instagram @yucar.azerbaijan · TikTok @yucar_azerbaijan
+    010 111 2026 · yucar.az · Instagram @yucar.aze · TikTok @yucar.aze
   </footer>
 
   <div class="modal-overlay" id="addUserOverlay">
@@ -1665,8 +1665,8 @@ let currentStaffUser = null;
 
   async function init() {
     await loadStaffUsers();
-    const savedId = sessionStorage.getItem('yucar_staff_id');
-    if (sessionStorage.getItem('yucar_staff_ok') === '1' && savedId) {
+    const savedId = localStorage.getItem('yucar_staff_id');
+    if (localStorage.getItem('yucar_staff_ok') === '1' && savedId) {
       const user = allStaffUsers.find(u => u.id === savedId);
       if (user) unlock(user);
     }
@@ -1680,8 +1680,8 @@ let currentStaffUser = null;
     const passVal = input.value;
     const match = allStaffUsers.find(u => normUser(u.name) === nameVal && u.password === passVal);
     if (match && nameVal) {
-      sessionStorage.setItem('yucar_staff_ok', '1');
-      sessionStorage.setItem('yucar_staff_id', match.id);
+      localStorage.setItem('yucar_staff_ok', '1');
+      localStorage.setItem('yucar_staff_id', match.id);
       err.style.display = 'none';
       unlock(match);
     } else {
@@ -1694,8 +1694,8 @@ let currentStaffUser = null;
   input.addEventListener('keydown', e => { if (e.key === 'Enter') tryLogin(); });
 
   document.getElementById('staffLogoutBtn').addEventListener('click', () => {
-    sessionStorage.removeItem('yucar_staff_ok');
-    sessionStorage.removeItem('yucar_staff_id');
+    localStorage.removeItem('yucar_staff_ok');
+    localStorage.removeItem('yucar_staff_id');
     location.reload();
   });
   document.getElementById('logoHome').addEventListener('click', () => {
