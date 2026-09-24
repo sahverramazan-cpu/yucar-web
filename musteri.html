@@ -513,24 +513,32 @@
   .order-fab:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(5,187,52,0.48); }
 
   .m-redeem-item {
-    display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;
-    padding: 12px 0; border-top: 1px solid var(--line);
+    padding: 14px 0; border-top: 1px solid var(--line);
   }
   .m-redeem-item:first-of-type { border-top: none; }
+  .mr-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
   .mr-name { font-size: 14px; font-weight: 700; color: var(--ink); }
-  .mr-need { font-size: 12px; color: var(--ink-soft); margin-top: 2px; }
+  .mr-free-badge {
+    font-size: 10.5px; font-weight: 800; color: #6b4413; background: var(--amber-soft);
+    padding: 3px 10px; border-radius: 100px; white-space: nowrap; flex-shrink: 0;
+  }
+  .mr-need { font-size: 12px; color: var(--ink-soft); margin-top: 3px; }
   .mr-status {
-    font-size: 12px; font-weight: 700; padding: 5px 11px; border-radius: 100px; white-space: nowrap;
-    background: var(--surface-2); color: var(--ink-soft);
+    font-size: 12px; color: var(--ink-faint); margin-top: 9px;
   }
-  .m-redeem-item.ok .mr-status { background: var(--teal); color: #fff; }
-  .mr-status-group { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; }
-  .mr-remain { font-size: 11px; color: var(--ink-faint); white-space: nowrap; }
-  button.mr-btn {
-    border: none; cursor: pointer; font-family: inherit; transition: all .15s ease;
-    box-shadow: 0 3px 10px rgba(5,187,52,0.3);
+  .mr-actions { display: flex; gap: 8px; margin-top: 10px; }
+  .mr-action-btn {
+    flex: 1; border: none; cursor: pointer; font-family: inherit;
+    font-size: 12.5px; font-weight: 700; padding: 9px 8px; border-radius: 10px;
+    transition: all .15s ease; text-align: center;
   }
-  button.mr-btn:hover { background: var(--teal-deep); transform: translateY(-1px); }
+  .mr-action-btn.xal { background: var(--teal); color: #fff; box-shadow: 0 2px 8px rgba(5,187,52,0.28); }
+  .mr-action-btn.xal:hover { background: var(--teal-deep); transform: translateY(-1px); }
+  .mr-action-btn.cashback {
+    background: var(--surface-2); color: var(--teal-deep); border: 1.5px solid var(--teal);
+  }
+  .mr-action-btn.cashback:hover { background: var(--amber-soft); border-color: var(--teal-deep); }
+  .mr-remain { font-size: 11px; color: var(--ink-faint); margin-top: 7px; text-align: right; }
   .m-footer-hint { text-align: center; color: var(--ink-faint); font-size: 12px; margin-top: 20px; }
 
   #mLoginView, #mProfileView { display: none; }
@@ -908,25 +916,26 @@ function renderRedeemOptions(points, cashback) {
     const enoughXal = points >= needXal;
     const enoughCashback = cashback >= needCashback;
     const enough = enoughXal || enoughCashback;
-    let statusEl;
+    let belowEl;
     if (enough) {
       const remainXal = Math.max(points - needXal, 0);
       const remainCashback = Math.max(cashback - needCashback, 0);
       const buttons = [
-        enoughXal ? `<button class="mr-status mr-btn" data-redeem-label="${escapeHtml(opt.label)}" data-redeem-method="xal" data-redeem-need="${needXal}">Xal ilə sifariş et</button>` : '',
-        enoughCashback ? `<button class="mr-status mr-btn" data-redeem-label="${escapeHtml(opt.label)}" data-redeem-method="cashback" data-redeem-need="${needCashback}">Keşbek ilə sifariş et</button>` : '',
+        enoughXal ? `<button class="mr-action-btn xal" data-redeem-label="${escapeHtml(opt.label)}" data-redeem-method="xal" data-redeem-need="${needXal}">Xal ilə sifariş</button>` : '',
+        enoughCashback ? `<button class="mr-action-btn cashback" data-redeem-label="${escapeHtml(opt.label)}" data-redeem-method="cashback" data-redeem-need="${needCashback}">Keşbek ilə sifariş</button>` : '',
       ].join('');
-      statusEl = `<div class="mr-status-group">${buttons}<div class="mr-remain">Kifayət edir · qalıq ${remainXal.toLocaleString('az-AZ')} xal və ${fmtAzn(remainCashback)} ₼</div></div>`;
+      belowEl = `<div class="mr-actions">${buttons}</div><div class="mr-remain">qalıq ${remainXal.toLocaleString('az-AZ')} xal · ${fmtAzn(remainCashback)} ₼</div>`;
     } else {
-      statusEl = `<div class="mr-status">Daha ${(needXal - points).toLocaleString('az-AZ')} xal və ${fmtAzn(needCashback - cashback)} ₼ keşbek</div>`;
+      belowEl = `<div class="mr-status">Daha ${(needXal - points).toLocaleString('az-AZ')} xal · ${fmtAzn(needCashback - cashback)} ₼ keşbek lazımdır</div>`;
     }
     return `
       <div class="m-redeem-item${enough ? ' ok' : ''}">
-        <div>
+        <div class="mr-top">
           <div class="mr-name">${opt.label}</div>
-          <div class="mr-need">${needXal.toLocaleString('az-AZ')} xal və ya ${fmtAzn(needCashback)} ₼ keşbek (tam pulsuz)</div>
+          ${enough ? '<span class="mr-free-badge">Pulsuz</span>' : ''}
         </div>
-        ${statusEl}
+        <div class="mr-need">${needXal.toLocaleString('az-AZ')} xal · ${fmtAzn(needCashback)} ₼ keşbek</div>
+        ${belowEl}
       </div>`;
   }).join('');
   body.querySelectorAll('[data-redeem-label]').forEach(btn => {
