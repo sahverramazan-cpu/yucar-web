@@ -257,6 +257,7 @@
   }
   .page-btn:hover { background: var(--surface-2); color: var(--ink); }
   .page-btn.active { background: var(--teal); color: #fff; border-color: var(--teal); }
+  .table-fade { animation: fadeSlideUp .3s ease; }
   .fin-custom-range {
     display: none; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px;
   }
@@ -343,6 +344,12 @@
   .view-row:first-child { border-top: none; }
   .view-row .vl { color: var(--ink-soft); flex-shrink: 0; }
   .view-row .vv { font-weight: 600; text-align: right; word-break: break-word; }
+  .view-notes-section { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line); }
+  .view-notes-title { font-size: 13px; font-weight: 700; color: var(--ink); margin-bottom: 8px; }
+  .view-note-item { padding: 8px 0; border-top: 1px solid var(--line); font-size: 13px; }
+  .view-note-item:first-of-type { border-top: none; }
+  .view-note-date { font-size: 11.5px; font-weight: 700; color: var(--ink-faint); margin-bottom: 2px; }
+  .view-note-text { color: var(--ink-soft); line-height: 1.4; }
   .modal-actions { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
   .btn-danger {
     padding: 10px 15px; border-radius: 10px; border: 1px solid var(--danger);
@@ -895,6 +902,35 @@
         </div>
         <button class="btn-ghost" id="sfClear">Filtrləri təmizlə</button>
       </div>
+    </div>
+
+    <div class="panel">
+      <div class="chart-head">
+        <div>
+          <h2>Satış xülasəsi</h2>
+          <p class="desc">Seçilmiş dövr üzrə satış göstəriciləri.</p>
+        </div>
+        <div class="chip-group" id="salePeriodGroup">
+          <button class="chip active" data-speriod="today">Bu gün</button>
+          <button class="chip" data-speriod="week">Bu həftə</button>
+          <button class="chip" data-speriod="month">Bu ay</button>
+          <button class="chip" data-speriod="year">Bu il</button>
+          <button class="chip" data-speriod="custom">Xüsusi aralıq</button>
+        </div>
+      </div>
+      <div class="fin-custom-range" id="saleCustomRange">
+        <div class="field"><label>Tarixdən</label><input id="saleSumFrom" type="date"></div>
+        <div class="field"><label>Tarixədək</label><input id="saleSumTo" type="date"></div>
+      </div>
+      <div class="stat-row">
+        <div class="stat-card"><div class="v" id="ssCount">—</div><div class="l">Satış sayı</div></div>
+        <div class="stat-card"><div class="v" id="ssRevenue" style="color:var(--teal-deep);">—</div><div class="l">Ümumi gəlir (₼)</div></div>
+        <div class="stat-card"><div class="v" id="ssAvg">—</div><div class="l">Orta çek (₼)</div></div>
+        <div class="stat-card"><div class="v" id="ssCustomers">—</div><div class="l">Unikal müştəri</div></div>
+      </div>
+    </div>
+
+    <div class="panel">
       <div class="table-scroll">
         <table>
           <thead>
@@ -903,6 +939,7 @@
           <tbody id="salesListBody"><tr><td colspan="5" class="empty">Yüklənir…</td></tr></tbody>
         </table>
       </div>
+      <div class="pagination" id="salesPagination"></div>
     </div>
    </div>
   </section>
@@ -936,14 +973,44 @@
         </div>
         <button class="btn-ghost" id="cfClear">Filtrləri təmizlə</button>
       </div>
+    </div>
+
+    <div class="panel">
+      <div class="chart-head">
+        <div>
+          <h2>Müştəri xülasəsi</h2>
+          <p class="desc">Seçilmiş dövrdə əlavə olunan müştərilər üzrə göstəricilər.</p>
+        </div>
+        <div class="chip-group" id="custPeriodGroup">
+          <button class="chip active" data-cperiod="today">Bu gün</button>
+          <button class="chip" data-cperiod="week">Bu həftə</button>
+          <button class="chip" data-cperiod="month">Bu ay</button>
+          <button class="chip" data-cperiod="year">Bu il</button>
+          <button class="chip" data-cperiod="custom">Xüsusi aralıq</button>
+        </div>
+      </div>
+      <div class="fin-custom-range" id="custCustomRange">
+        <div class="field"><label>Tarixdən</label><input id="custSumFrom" type="date"></div>
+        <div class="field"><label>Tarixədək</label><input id="custSumTo" type="date"></div>
+      </div>
+      <div class="stat-row">
+        <div class="stat-card"><div class="v" id="csTotal">—</div><div class="l">Ümumi müştəri sayı</div></div>
+        <div class="stat-card"><div class="v" id="csNew">—</div><div class="l">Yeni müştəri (dövrdə)</div></div>
+        <div class="stat-card"><div class="v" id="csAvgPoints">—</div><div class="l">Orta xal</div></div>
+        <div class="stat-card"><div class="v" id="csAvgCashback">—</div><div class="l">Orta keşbek (₼)</div></div>
+      </div>
+    </div>
+
+    <div class="panel">
       <div class="table-scroll">
         <table>
           <thead>
-            <tr><th>№</th><th>Ad, soyad</th><th>Nömrə</th><th>Yuma sayı</th><th>Xal</th><th>Son yuma</th></tr>
+            <tr><th>№</th><th>Ad, soyad</th><th>Nömrə</th><th>Yuma sayı</th><th>Xal</th><th>Keşbek</th><th>Son yuma</th></tr>
           </thead>
-          <tbody id="custListBody"><tr><td colspan="6" class="empty">Yüklənir…</td></tr></tbody>
+          <tbody id="custListBody"><tr><td colspan="7" class="empty">Yüklənir…</td></tr></tbody>
         </table>
       </div>
+      <div class="pagination" id="custPagination"></div>
     </div>
     <div class="panel detail-view" id="customerDetail">
       <button class="back-btn" id="backToList">← Müştərilərə qayıt</button>
@@ -961,7 +1028,8 @@
       <div class="detail-stats">
         <div class="dcard"><div class="v" id="detVisits">—</div><div class="l">Yuma sayı</div></div>
         <div class="dcard"><div class="v" id="detSpent">—</div><div class="l">Ödənilib (₼)</div></div>
-        <div class="dcard"><div class="v" id="detPoints">—</div><div class="l">Xal <span id="detPointsAzn" class="stat-sub"></span></div></div>
+        <div class="dcard"><div class="v" id="detPoints">—</div><div class="l">Xal</div></div>
+        <div class="dcard"><div class="v" id="detCashback">—</div><div class="l">Keşbek (₼)</div></div>
         <div class="dcard"><div class="v" id="detLast">—</div><div class="l">Son yuma</div></div>
       </div>
       <div class="table-scroll">
@@ -1018,10 +1086,29 @@
       </div>
     </div>
 
-    <div class="stat-row cols3">
-      <div class="stat-card"><div class="v" id="dStatRows">—</div><div class="l">Yuma sayı</div></div>
-      <div class="stat-card"><div class="v" id="dStatCustomers">—</div><div class="l">Unikal müştəri</div></div>
-      <div class="stat-card"><div class="v" id="dStatTotal">—</div><div class="l">Ümumi gəlir (₼)</div></div>
+    <div class="panel">
+      <div class="chart-head">
+        <div>
+          <h2>Data xülasəsi</h2>
+          <p class="desc">Seçilmiş dövr üzrə ümumi göstəricilər.</p>
+        </div>
+        <div class="chip-group" id="dataPeriodGroup">
+          <button class="chip active" data-dperiod2="today">Bu gün</button>
+          <button class="chip" data-dperiod2="week">Bu həftə</button>
+          <button class="chip" data-dperiod2="month">Bu ay</button>
+          <button class="chip" data-dperiod2="year">Bu il</button>
+          <button class="chip" data-dperiod2="custom">Xüsusi aralıq</button>
+        </div>
+      </div>
+      <div class="fin-custom-range" id="dataSumCustomRange">
+        <div class="field"><label>Tarixdən</label><input id="dataSumFrom" type="date"></div>
+        <div class="field"><label>Tarixədək</label><input id="dataSumTo" type="date"></div>
+      </div>
+      <div class="stat-row cols3">
+        <div class="stat-card"><div class="v" id="dStatRows">—</div><div class="l">Yuma sayı</div></div>
+        <div class="stat-card"><div class="v" id="dStatCustomers">—</div><div class="l">Unikal müştəri</div></div>
+        <div class="stat-card"><div class="v" id="dStatTotal">—</div><div class="l">Ümumi gəlir (₼)</div></div>
+      </div>
     </div>
 
     <div class="panel">
@@ -1035,6 +1122,7 @@
           <tbody id="dataTableBody"><tr><td colspan="5" class="empty">Yüklənir…</td></tr></tbody>
         </table>
       </div>
+      <div class="pagination" id="dataPagination"></div>
     </div>
    </div>
   </section>
@@ -1074,6 +1162,18 @@
         </div>
         <button class="btn-add income" id="addIncomeBtn">+ Yeni mədaxil</button>
       </div>
+      <input class="search-bar" id="incSearch" type="text" placeholder="Sərbəst axtarış: kateqoriya, qeyd…">
+      <button class="filter-toggle" id="incToggle">
+        <span>Ətraflı filtrlər</span>
+        <svg class="ft-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="filter-panel" id="incPanel">
+        <div class="row2">
+          <div class="field"><label>Tarixdən</label><input id="incDateFrom" type="date"></div>
+          <div class="field"><label>Tarixədək</label><input id="incDateTo" type="date"></div>
+        </div>
+        <button class="btn-ghost" id="incClear">Filtrləri təmizlə</button>
+      </div>
       <div class="table-scroll">
         <table>
           <thead><tr><th>№</th><th>Tarix</th><th>Məbləğ</th><th>Kateqoriya</th><th class="col-actions"></th></tr></thead>
@@ -1092,6 +1192,18 @@
         </div>
         <button class="btn-add expense" id="addExpenseBtn">+ Yeni məxaric</button>
       </div>
+      <input class="search-bar" id="expSearch" type="text" placeholder="Sərbəst axtarış: kateqoriya, qeyd…">
+      <button class="filter-toggle" id="expToggle">
+        <span>Ətraflı filtrlər</span>
+        <svg class="ft-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="filter-panel" id="expPanel">
+        <div class="row2">
+          <div class="field"><label>Tarixdən</label><input id="expDateFrom" type="date"></div>
+          <div class="field"><label>Tarixədək</label><input id="expDateTo" type="date"></div>
+        </div>
+        <button class="btn-ghost" id="expClear">Filtrləri təmizlə</button>
+      </div>
       <div class="table-scroll">
         <table>
           <thead><tr><th>№</th><th>Tarix</th><th>Məbləğ</th><th>Kateqoriya</th><th class="col-actions"></th></tr></thead>
@@ -1106,6 +1218,12 @@
   <!-- ================= LOYALTY ================= -->
   <section class="tabpage" id="tab-loyalty">
    <div class="subpage active" data-subpage="main">
+    <div class="chip-group" id="loyDatasetGroup" style="margin-bottom:16px; width:fit-content;">
+      <button class="chip active" data-loyds="points">Xallar</button>
+      <button class="chip" data-loyds="reminders">Xatırlatma</button>
+    </div>
+
+    <div class="dataset-view" id="loyds-points">
     <div class="panel">
       <h2>Loyallıq</h2>
       <p class="desc">Müştərilərin aktiv xal balansına görə sıralanması — kim ən çox xal toplayıb.</p>
@@ -1127,21 +1245,74 @@
       </div>
     </div>
 
-    <div class="stat-row cols5">
-      <div class="stat-card"><div class="v" id="loyStatTotalPoints">—</div><div class="l">Ümumi aktiv xal</div></div>
-      <div class="stat-card"><div class="v" id="loyStatAzn">—</div><div class="l">Xalların dəyəri (₼)</div></div>
-      <div class="stat-card"><div class="v" id="loyStatCashback">—</div><div class="l">Ümumi aktiv keşbek (₼)</div></div>
-      <div class="stat-card"><div class="v" id="loyStatHolders">—</div><div class="l">Xalı olan müştəri</div></div>
-      <div class="stat-card"><div class="v" id="loyStatCashbackHolders">—</div><div class="l">Keşbeki olan müştəri</div></div>
+    <div class="panel">
+      <div class="chart-head">
+        <div>
+          <h2>Loyallıq xülasəsi</h2>
+          <p class="desc">Bütün müştərilər üzrə cari xal və keşbek balansı.</p>
+        </div>
+      </div>
+      <div class="stat-row">
+        <div class="stat-card"><div class="v" id="loyStatTotalPoints">—</div><div class="l">Ümumi aktiv xal</div></div>
+        <div class="stat-card"><div class="v" id="loyStatCashback">—</div><div class="l">Ümumi aktiv keşbek (₼)</div></div>
+        <div class="stat-card"><div class="v" id="loyStatHolders">—</div><div class="l">Xalı olan müştəri</div></div>
+        <div class="stat-card"><div class="v" id="loyStatCashbackHolders">—</div><div class="l">Keşbeki olan müştəri</div></div>
+      </div>
     </div>
 
     <div class="panel">
       <div class="table-scroll">
         <table>
-          <thead><tr><th>№</th><th>Ad, soyad</th><th>Nömrə</th><th>Aktiv xal</th><th>Xalın dəyəri</th><th>Aktiv keşbek</th><th>Son yuma</th></tr></thead>
-          <tbody id="loyaltyTableBody"><tr><td colspan="7" class="empty">Yüklənir…</td></tr></tbody>
+          <thead><tr><th>№</th><th>Ad, soyad</th><th>Nömrə</th><th>Aktiv xal</th><th>Aktiv keşbek</th><th>Son yuma</th></tr></thead>
+          <tbody id="loyaltyTableBody"><tr><td colspan="6" class="empty">Yüklənir…</td></tr></tbody>
         </table>
       </div>
+      <div class="pagination" id="loyaltyPagination"></div>
+    </div>
+    </div>
+
+    <div class="dataset-view" id="loyds-reminders" style="display:none;">
+    <div class="panel">
+      <h2>Xatırlatma</h2>
+      <p class="desc">Neçə gündür sizdən xidmət almayan müştəriləri görün və qeyd aparın.</p>
+      <input class="search-bar" id="remSearch" type="text" placeholder="Sərbəst axtarış: ad, nömrə…">
+      <button class="filter-toggle" id="remToggle">
+        <span>Ətraflı filtrlər</span>
+        <svg class="ft-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="filter-panel" id="remPanel">
+        <div class="row3">
+          <div class="field"><label>Ad, soyad</label><input id="remName" type="text"></div>
+          <div class="field"><label>Nömrə</label><input id="remPhone" type="text"></div>
+          <div class="field"><label>Minimum xidmətsiz gün</label><input id="remMinDays" type="number" min="0" placeholder="Məs. 5"></div>
+        </div>
+        <button class="btn-ghost" id="remClear">Filtrləri təmizlə</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="chart-head">
+        <div>
+          <h2>Xatırlatma xülasəsi</h2>
+          <p class="desc">Seçilmiş filtrə uyğun müştərilər üzrə göstəricilər.</p>
+        </div>
+      </div>
+      <div class="stat-row cols3">
+        <div class="stat-card"><div class="v" id="remStatCount">—</div><div class="l">Müştəri sayı</div></div>
+        <div class="stat-card"><div class="v" id="remStatAvgDays">—</div><div class="l">Orta xidmətsiz gün</div></div>
+        <div class="stat-card"><div class="v" id="remStatMaxDays">—</div><div class="l">Ən uzun xidmətsiz gün</div></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>№</th><th>Ad, soyad</th><th>Nömrə</th><th>Ümumi xidmət sayı</th><th>Son istifadə</th><th>Xidmətsiz gün</th><th class="col-actions"></th></tr></thead>
+          <tbody id="reminderTableBody"><tr><td colspan="7" class="empty">Yüklənir…</td></tr></tbody>
+        </table>
+      </div>
+      <div class="pagination" id="reminderPagination"></div>
+    </div>
     </div>
    </div>
   </section>
@@ -1172,6 +1343,19 @@
     Məlumat yalnız YuCar komandası üçün saxlanılır və paylaşılmır.<br>
     010 111 2026 · yucar.az · Instagram @yucar.azerbaijan · TikTok @yucar_azerbaijan
   </footer>
+
+  <div class="modal-overlay" id="remNoteOverlay">
+    <div class="modal-box">
+      <h3>Qeyd əlavə et</h3>
+      <div class="field"><label>Qeyd</label><textarea id="remNoteText" rows="4" placeholder="Məs. Müştəriyə zəng etdim, xidmətdən narazı qaldığını bildirdi."></textarea></div>
+      <div class="modal-actions">
+        <button class="btn-ghost" id="remNoteCancelBtn">Ləğv et</button>
+        <div style="flex:1;"></div>
+        <button class="btn-primary" id="remNoteSaveBtn" style="width:auto; margin-top:0;">Yadda saxla</button>
+      </div>
+      <div class="save-msg" id="remNoteMsg"></div>
+    </div>
+  </div>
 
   <div class="modal-overlay" id="svcModalOverlay">
     <div class="modal-box">
@@ -1415,6 +1599,7 @@
 let allVisits = [];
 let allFinance = [];
 let allFinanceCategories = [];
+let allCustomerNotes = [];
 let allCustomers = [];
 let selectedCustomerId = null; // for sale tab
 function pointsForVisit(v) { return v.paidWithPoints ? 0 : Math.round((Number(v.priceFinal) || 0) * 10); }
@@ -1475,6 +1660,7 @@ const ICON_TRASH = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" 
 const ICON_WA = '<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2c-5.46 0-9.9 4.44-9.9 9.9 0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38c1.45.79 3.08 1.21 4.79 1.21 5.46 0 9.9-4.44 9.9-9.9S17.5 2 12.04 2zm5.71 14.13c-.24.68-1.19 1.25-1.94 1.41-.52.11-1.2.2-3.48-.75-2.92-1.21-4.8-4.17-4.94-4.36-.14-.19-1.18-1.57-1.18-3 0-1.43.75-2.13 1.02-2.42.27-.29.59-.36.79-.36.2 0 .39 0 .56.01.18.01.42-.07.66.5.24.58.82 2 .89 2.14.07.14.12.31.02.5-.1.19-.15.31-.29.48-.15.17-.31.38-.44.51-.15.15-.3.31-.13.6.17.29.76 1.25 1.63 2.03 1.12 1 2.06 1.31 2.35 1.46.29.15.46.13.63-.05.17-.19.71-.83.9-1.11.19-.29.38-.24.63-.14.27.09 1.68.79 1.97.94.29.14.48.21.55.33.07.12.07.68-.17 1.36z"/></svg>';
 const ICON_EYE = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg>';
 const ICON_HISTORY = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v5h5"/><path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"/><path d="M12 7v5l4 2"/></svg>';
+const ICON_NOTE = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12h6"/><path d="M9 16h6"/><path d="M13 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8Z"/><path d="M13 3v5h5"/></svg>';
 
 document.getElementById('fDate').value = todayStr();
 
@@ -1884,7 +2070,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     if (btn.dataset.tab === 'data') renderDataTab();
     if (btn.dataset.tab === 'home') { renderHomeChart(); updateBreakdownCharts(); }
     if (btn.dataset.tab === 'finance') renderFinanceTab();
-    if (btn.dataset.tab === 'loyalty') renderLoyaltyTab();
+    if (btn.dataset.tab === 'loyalty') renderActiveLoyaltyDataset();
     if (btn.dataset.tab === 'services') renderServicesTab();
     if (btn.dataset.tab === 'sale') renderSalesList();
   });
@@ -2494,7 +2680,82 @@ function customerSeqMap() {
   dir.forEach((c, i) => map.set(c.id, i + 1));
   return map;
 }
+
+function periodRangeGeneric(mode, fromId, toId) {
+  const today = new Date(todayStr() + 'T00:00:00');
+  let from, to = todayStr();
+  if (mode === 'today') from = todayStr();
+  else if (mode === 'week') { const d = new Date(today); d.setDate(d.getDate() - 6); from = localDateStr(d); }
+  else if (mode === 'month') from = localDateStr(new Date(today.getFullYear(), today.getMonth(), 1));
+  else if (mode === 'year') from = localDateStr(new Date(today.getFullYear(), 0, 1));
+  else if (mode === 'custom') { from = document.getElementById(fromId).value || '0000-01-01'; to = document.getElementById(toId).value || todayStr(); }
+  return { from, to };
+}
+function wirePeriodChipGroup(groupId, dataAttr, customRangeId, fromId, toId, onChange) {
+  const group = document.getElementById(groupId);
+  if (!group) return { mode: () => 'today' };
+  let mode = 'today';
+  group.querySelectorAll('.chip').forEach(b => {
+    b.addEventListener('click', () => {
+      group.querySelectorAll('.chip').forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+      mode = b.getAttribute(dataAttr);
+      const cr = document.getElementById(customRangeId);
+      if (cr) cr.classList.toggle('show', mode === 'custom');
+      onChange(mode);
+    });
+  });
+  const fromEl = document.getElementById(fromId);
+  const toEl = document.getElementById(toId);
+  if (fromEl) fromEl.addEventListener('change', () => { if (mode === 'custom') onChange(mode); });
+  if (toEl) toEl.addEventListener('change', () => { if (mode === 'custom') onChange(mode); });
+  return { mode: () => mode };
+}
+
+let salePeriodMode = 'today';
+function renderSaleSummary() {
+  const { from, to } = periodRangeGeneric(salePeriodMode, 'saleSumFrom', 'saleSumTo');
+  const vs = allVisits.filter(v => (v.date || '') >= from && (v.date || '') <= to);
+  const revenue = vs.reduce((s, v) => s + (Number(v.priceFinal) || 0), 0);
+  const uniqueCust = new Set(vs.map(v => v.customerId || v.phoneKey).filter(Boolean)).size;
+  document.getElementById('ssCount').textContent = vs.length;
+  document.getElementById('ssRevenue').textContent = revenue.toLocaleString('az-AZ', { maximumFractionDigits: 0 });
+  document.getElementById('ssAvg').textContent = vs.length ? (revenue / vs.length).toLocaleString('az-AZ', { maximumFractionDigits: 1 }) : '0';
+  document.getElementById('ssCustomers').textContent = uniqueCust;
+}
+
+let custPeriodMode = 'today';
+function renderCustomerSummary() {
+  const { from, to } = periodRangeGeneric(custPeriodMode, 'custSumFrom', 'custSumTo');
+  const dir = customerDirectory().map(c => ({ ...c, ...statsFor(c.id) }));
+  const newCount = dir.filter(c => (c.createdAt || '') >= from && (c.createdAt || '') <= (to + 'T23:59:59')).length;
+  const withActivity = dir.filter(c => c.count > 0 || allCustomers.some(x => x.id === c.id));
+  const avgPoints = withActivity.length ? Math.round(withActivity.reduce((s, c) => s + c.points, 0) / withActivity.length) : 0;
+  const avgCashback = withActivity.length ? Math.round((withActivity.reduce((s, c) => s + c.cashback, 0) / withActivity.length) * 100) / 100 : 0;
+  document.getElementById('csTotal').textContent = withActivity.length;
+  document.getElementById('csNew').textContent = newCount;
+  document.getElementById('csAvgPoints').textContent = avgPoints.toLocaleString('az-AZ');
+  document.getElementById('csAvgCashback').textContent = fmtAzn(avgCashback);
+}
+
+let dataSummaryPeriodMode = 'today';
+function renderDataSummary() {
+  const { from, to } = periodRangeGeneric(dataSummaryPeriodMode, 'dataSumFrom', 'dataSumTo');
+  const vs = allVisits.filter(v => (v.date || '') >= from && (v.date || '') <= to);
+  const uniqueCust = new Set(vs.map(v => v.customerId || v.phoneKey).filter(Boolean)).size;
+  const revenue = vs.reduce((s, v) => s + (Number(v.priceFinal) || 0), 0);
+  document.getElementById('dStatRows').textContent = vs.length;
+  document.getElementById('dStatCustomers').textContent = uniqueCust;
+  document.getElementById('dStatTotal').textContent = revenue.toLocaleString('az-AZ', { maximumFractionDigits: 0 });
+}
+
+wirePeriodChipGroup('salePeriodGroup', 'data-speriod', 'saleCustomRange', 'saleSumFrom', 'saleSumTo', (mode) => { salePeriodMode = mode; renderSaleSummary(); });
+wirePeriodChipGroup('custPeriodGroup', 'data-cperiod', 'custCustomRange', 'custSumFrom', 'custSumTo', (mode) => { custPeriodMode = mode; renderCustomerSummary(); });
+wirePeriodChipGroup('dataPeriodGroup', 'data-dperiod2', 'dataSumCustomRange', 'dataSumFrom', 'dataSumTo', (mode) => { dataSummaryPeriodMode = mode; renderDataSummary(); });
+
+let custPage = 1;
 function renderCustomerList() {
+  renderCustomerSummary();
   const qRaw = (document.getElementById('custSearch').value || '').toLowerCase().trim();
   const qDigits = normPhone(qRaw);
   const fName = (document.getElementById('cfName').value || '').toLowerCase().trim();
@@ -2522,19 +2783,29 @@ function renderCustomerList() {
   rows.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
   const seqMap = customerSeqMap();
   const body = document.getElementById('custListBody');
-  if (rows.length === 0) { body.innerHTML = '<tr><td colspan="6" class="empty">Müştəri tapılmadı.</td></tr>'; return; }
-  body.innerHTML = rows.map(c => `
+  const totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
+  if (custPage > totalPages) custPage = totalPages;
+  if (custPage < 1) custPage = 1;
+  if (rows.length === 0) {
+    body.innerHTML = '<tr><td colspan="7" class="empty">Müştəri tapılmadı.</td></tr>';
+    renderPagination('custPagination', 'custListBody', custPage, totalPages, (p) => { custPage = p; renderCustomerList(); });
+    return;
+  }
+  const startIdx = (custPage - 1) * PAGE_SIZE;
+  body.innerHTML = rows.slice(startIdx, startIdx + PAGE_SIZE).map(c => `
     <tr class="data-row" data-id="${c.id}">
       <td>#${seqMap.get(c.id) || 0}</td>
       <td>${escapeHtml(c.name || '—')}</td>
       <td>${escapeHtml(formatPhoneAZ(c.phone))}</td>
       <td>${c.count}</td>
       <td>${c.points}</td>
+      <td>${fmtAzn(c.cashback)} ₼</td>
       <td>${fmtDate(c.lastDate)}</td>
     </tr>`).join('');
   body.querySelectorAll('.data-row').forEach(el => {
     el.addEventListener('click', () => openCustomerDetail(el.getAttribute('data-id')));
   });
+  renderPagination('custPagination', 'custListBody', custPage, totalPages, (p) => { custPage = p; renderCustomerList(); });
 }
 document.getElementById('custSearch').addEventListener('input', renderCustomerList);
 document.getElementById('cfName').addEventListener('input', renderCustomerList);
@@ -2575,7 +2846,7 @@ function openCustomerDetail(id) {
   document.getElementById('detVisits').textContent = st.count;
   document.getElementById('detSpent').textContent = st.spent.toLocaleString('az-AZ', { maximumFractionDigits: 0 });
   document.getElementById('detPoints').textContent = st.points;
-  document.getElementById('detPointsAzn').textContent = `(≈ ${fmtAzn(pointsToAzn(st.points))} ₼)`;
+  document.getElementById('detCashback').textContent = fmtAzn(st.cashback);
   document.getElementById('detLast').textContent = fmtDate(st.lastDate);
   const body = document.getElementById('detHistoryBody');
   const sorted = [...st.visits].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
@@ -2603,11 +2874,13 @@ function openCustomerDetail(id) {
 /* ---------- EDIT / DELETE VISIT ---------- */
 let currentEditVisitId = null;
 
-function renderViewModal(title, rows) {
+function renderViewModal(title, rows, extraHtml) {
   document.getElementById('viewModalTitle').textContent = title;
-  document.getElementById('viewVisitBody').innerHTML = rows.map(([l, val]) =>
+  let html = rows.map(([l, val]) =>
     `<div class="view-row"><span class="vl">${escapeHtml(l)}</span><span class="vv">${escapeHtml(String(val))}</span></div>`
   ).join('');
+  if (extraHtml) html += extraHtml;
+  document.getElementById('viewVisitBody').innerHTML = html;
   document.getElementById('viewVisitOverlay').classList.add('show');
 }
 
@@ -2623,7 +2896,7 @@ function openViewVisit(id) {
     ['Ad, soyad', v.name || '—'],
     ['Ata adı', v.fatherName || '—'],
     ['Əlaqə nömrəsi', formatPhoneAZ(v.phone)],
-    ['Xal', `${custPoints} xal (${fmtAzn(pointsToAzn(custPoints))} ₼ dəyərində)`],
+    ['Xal', `${custPoints} xal`],
     ['Keşbek', `${fmtAzn(custCashback)} ₼`],
     ['Məkan', v.location || '—'],
     ['Avtomobil', v.car || '—'],
@@ -2637,6 +2910,18 @@ function openViewVisit(id) {
     ['Qeyd', v.note || '—'],
   ];
   renderViewModal('Yuma məlumatları', rows);
+}
+
+function customerNotesHtml(customerId) {
+  const notes = allCustomerNotes.filter(n => n.customerId === customerId)
+    .sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+  if (notes.length === 0) return '';
+  const items = notes.map(n => `
+    <div class="view-note-item">
+      <div class="view-note-date">${fmtDate(n.date)}</div>
+      <div class="view-note-text">${escapeHtml(n.note || '')}</div>
+    </div>`).join('');
+  return `<div class="view-notes-section"><div class="view-notes-title">Qeydlər</div>${items}</div>`;
 }
 
 function openViewCustomer(id) {
@@ -2653,11 +2938,11 @@ function openViewCustomer(id) {
     ['Şifrə', c.password || '—'],
     ['Yuma sayı', st.count],
     ['Xərclənib', fmtAzn(st.spent) + ' ₼'],
-    ['Xal', st.points + ` (≈ ${fmtAzn(pointsToAzn(st.points))} ₼ dəyərində)`],
+    ['Xal', String(st.points)],
     ['Keşbek', fmtAzn(st.cashback) + ' ₼'],
     ['Son yuma', fmtDate(st.lastDate)],
   ];
-  renderViewModal('Müştəri məlumatları', rows);
+  renderViewModal('Müştəri məlumatları', rows, customerNotesHtml(id));
 }
 
 function openHistoryModal(id) {
@@ -3193,9 +3478,19 @@ function financeViewRows(rec) {
 }
 
 let financePage = { income: 1, expense: 1 };
-const FINANCE_PAGE_SIZE = 20;
+const PAGE_SIZE = 10;
 
-function renderPagination(containerId, currentPage, totalPages, onPageChange) {
+function animateTableRefresh(bodyContainerId) {
+  const el = document.getElementById(bodyContainerId);
+  if (!el) return;
+  const wrap = el.closest('.table-scroll') || el.parentElement;
+  if (!wrap) return;
+  wrap.classList.remove('table-fade');
+  void wrap.offsetWidth;
+  wrap.classList.add('table-fade');
+}
+
+function renderPagination(containerId, bodyContainerId, currentPage, totalPages, onPageChange) {
   const el = document.getElementById(containerId);
   if (!el) return;
   if (totalPages <= 1) { el.innerHTML = ''; return; }
@@ -3205,22 +3500,35 @@ function renderPagination(containerId, currentPage, totalPages, onPageChange) {
   }
   el.innerHTML = html;
   el.querySelectorAll('.page-btn').forEach(b => {
-    b.addEventListener('click', () => onPageChange(parseInt(b.getAttribute('data-page'))));
+    b.addEventListener('click', () => {
+      onPageChange(parseInt(b.getAttribute('data-page')));
+      animateTableRefresh(bodyContainerId);
+    });
   });
 }
 
 function renderFinanceList(containerId, type) {
   const el = document.getElementById(containerId);
-  const items = allFinance.filter(f => f.type === type).sort((a, b) => (b.date || '').localeCompare(a.date || '') || (b.createdAt || '').localeCompare(a.createdAt || ''));
-  const chronological = [...items].sort((a, b) => (a.date || '').localeCompare(b.date || '') || (a.createdAt || '').localeCompare(b.createdAt || ''));
+  const p = type === 'income' ? 'inc' : 'exp';
+  const search = (document.getElementById(p + 'Search').value || '').toLowerCase().trim();
+  const fFrom = document.getElementById(p + 'DateFrom').value;
+  const fTo = document.getElementById(p + 'DateTo').value;
+  let items = allFinance.filter(f => f.type === type);
+  if (search) {
+    items = items.filter(f => [f.category, f.note, f.person].map(x => (x || '').toString().toLowerCase()).join(' ').includes(search));
+  }
+  if (fFrom) items = items.filter(f => (f.date || '') >= fFrom);
+  if (fTo) items = items.filter(f => (f.date || '') <= fTo);
+  items = items.sort((a, b) => (b.date || '').localeCompare(a.date || '') || (b.createdAt || '').localeCompare(a.createdAt || ''));
+  const chronological = [...allFinance.filter(f => f.type === type)].sort((a, b) => (a.date || '').localeCompare(b.date || '') || (a.createdAt || '').localeCompare(b.createdAt || ''));
   const seqMap = new Map();
   chronological.forEach((f, i) => seqMap.set(f.id, i + 1));
 
-  const totalPages = Math.max(1, Math.ceil(items.length / FINANCE_PAGE_SIZE));
+  const totalPages = Math.max(1, Math.ceil(items.length / PAGE_SIZE));
   if (financePage[type] > totalPages) financePage[type] = totalPages;
   if (financePage[type] < 1) financePage[type] = 1;
-  const startIdx = (financePage[type] - 1) * FINANCE_PAGE_SIZE;
-  const pageItems = items.slice(startIdx, startIdx + FINANCE_PAGE_SIZE);
+  const startIdx = (financePage[type] - 1) * PAGE_SIZE;
+  const pageItems = items.slice(startIdx, startIdx + PAGE_SIZE);
 
   if (items.length === 0) {
     el.innerHTML = '<tr><td colspan="5" class="empty">Hələ qeyd yoxdur.</td></tr>';
@@ -3248,7 +3556,7 @@ function renderFinanceList(containerId, type) {
       try { await db.doc('finance/' + b.getAttribute('data-fin-del')).delete(); } catch (e) { alert('Xəta baş verdi.'); }
     }));
   }
-  renderPagination(type + 'Pagination', financePage[type], totalPages, (p) => {
+  renderPagination(type + 'Pagination', containerId, financePage[type], totalPages, (p) => {
     financePage[type] = p;
     renderFinanceList(containerId, type);
   });
@@ -3298,7 +3606,32 @@ document.querySelectorAll('#finPeriodGroup .chip').forEach(b => {
 document.getElementById('finFrom').addEventListener('change', () => { if (finPeriodMode === 'custom') renderFinanceTab(); });
 document.getElementById('finTo').addEventListener('change', () => { if (finPeriodMode === 'custom') renderFinanceTab(); });
 
+document.getElementById('incSearch').addEventListener('input', () => renderFinanceList('incomeList', 'income'));
+document.getElementById('incDateFrom').addEventListener('change', () => renderFinanceList('incomeList', 'income'));
+document.getElementById('incDateTo').addEventListener('change', () => renderFinanceList('incomeList', 'income'));
+document.getElementById('incClear').addEventListener('click', () => {
+  ['incSearch', 'incDateFrom', 'incDateTo'].forEach(id => document.getElementById(id).value = '');
+  renderFinanceList('incomeList', 'income');
+});
+document.getElementById('incToggle').addEventListener('click', () => {
+  document.getElementById('incPanel').classList.toggle('show');
+  document.getElementById('incToggle').classList.toggle('open');
+});
+
+document.getElementById('expSearch').addEventListener('input', () => renderFinanceList('expenseList', 'expense'));
+document.getElementById('expDateFrom').addEventListener('change', () => renderFinanceList('expenseList', 'expense'));
+document.getElementById('expDateTo').addEventListener('change', () => renderFinanceList('expenseList', 'expense'));
+document.getElementById('expClear').addEventListener('click', () => {
+  ['expSearch', 'expDateFrom', 'expDateTo'].forEach(id => document.getElementById(id).value = '');
+  renderFinanceList('expenseList', 'expense');
+});
+document.getElementById('expToggle').addEventListener('click', () => {
+  document.getElementById('expPanel').classList.toggle('show');
+  document.getElementById('expToggle').classList.toggle('open');
+});
+
 /* ---------- LOYALTY TAB ---------- */
+let loyaltyPage = 1;
 function renderLoyaltyTab() {
   const qRaw = (document.getElementById('loySearch').value || '').toLowerCase().trim();
   const qDigits = normPhone(qRaw);
@@ -3320,23 +3653,30 @@ function renderLoyaltyTab() {
   const totalPoints = rows.reduce((s, c) => s + c.points, 0);
   const totalCashback = Math.round(rows.reduce((s, c) => s + c.cashback, 0) * 100) / 100;
   document.getElementById('loyStatTotalPoints').textContent = totalPoints.toLocaleString('az-AZ');
-  document.getElementById('loyStatAzn').textContent = fmtAzn(pointsToAzn(totalPoints));
   document.getElementById('loyStatCashback').textContent = fmtAzn(totalCashback);
   document.getElementById('loyStatHolders').textContent = rows.filter(c => c.points > 0).length;
   document.getElementById('loyStatCashbackHolders').textContent = rows.filter(c => c.cashback > 0).length;
 
   const body = document.getElementById('loyaltyTableBody');
-  if (rows.length === 0) { body.innerHTML = '<tr><td colspan="7" class="empty">Nəticə tapılmadı.</td></tr>'; return; }
-  body.innerHTML = rows.map((c, i) => `
+  const totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
+  if (loyaltyPage > totalPages) loyaltyPage = totalPages;
+  if (loyaltyPage < 1) loyaltyPage = 1;
+  if (rows.length === 0) {
+    body.innerHTML = '<tr><td colspan="6" class="empty">Nəticə tapılmadı.</td></tr>';
+    document.getElementById('loyaltyPagination').innerHTML = '';
+    return;
+  }
+  const startIdx = (loyaltyPage - 1) * PAGE_SIZE;
+  body.innerHTML = rows.slice(startIdx, startIdx + PAGE_SIZE).map((c, i) => `
     <tr class="data-row" data-id="${c.id}">
-      <td>#${i + 1}</td>
+      <td>#${startIdx + i + 1}</td>
       <td>${escapeHtml(c.name || '—')}</td>
       <td>${escapeHtml(formatPhoneAZ(c.phone))}</td>
       <td>${c.points.toLocaleString('az-AZ')}</td>
-      <td>${fmtAzn(pointsToAzn(c.points))} ₼</td>
       <td>${fmtAzn(c.cashback)} ₼</td>
       <td>${fmtDate(c.lastDate)}</td>
     </tr>`).join('');
+  renderPagination('loyaltyPagination', 'loyaltyTableBody', loyaltyPage, totalPages, (p) => { loyaltyPage = p; renderLoyaltyTab(); });
   body.querySelectorAll('.data-row').forEach(el => {
     el.addEventListener('click', () => {
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -3360,6 +3700,89 @@ document.getElementById('loyClear').addEventListener('click', () => {
 document.getElementById('loyToggle').addEventListener('click', () => {
   document.getElementById('loyPanel').classList.toggle('show');
   document.getElementById('loyToggle').classList.toggle('open');
+});
+
+/* ---------- LOYALTY DATASET TOGGLE + REMINDERS ---------- */
+function renderActiveLoyaltyDataset() {
+  const active = document.querySelector('#loyDatasetGroup .chip.active');
+  const ds = active ? active.getAttribute('data-loyds') : 'points';
+  if (ds === 'reminders') renderReminderTab();
+  else renderLoyaltyTab();
+}
+document.querySelectorAll('#loyDatasetGroup .chip').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#loyDatasetGroup .chip').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const ds = btn.getAttribute('data-loyds');
+    document.getElementById('loyds-points').style.display = ds === 'points' ? '' : 'none';
+    document.getElementById('loyds-reminders').style.display = ds === 'reminders' ? '' : 'none';
+    renderActiveLoyaltyDataset();
+  });
+});
+
+let reminderPage = 1;
+function renderReminderTab() {
+  const qRaw = (document.getElementById('remSearch').value || '').toLowerCase().trim();
+  const qDigits = normPhone(qRaw);
+  const fName = (document.getElementById('remName').value || '').toLowerCase().trim();
+  const fPhone = normPhone(document.getElementById('remPhone').value || '');
+  const fMinDays = parseInt(document.getElementById('remMinDays').value) || 0;
+
+  const today = new Date(todayStr() + 'T00:00:00');
+  let rows = customerDirectory().map(c => ({ ...c, ...statsFor(c.id) })).filter(c => c.count > 0);
+  rows = rows.map(c => {
+    const days = c.lastDate ? Math.floor((today - new Date(c.lastDate + 'T00:00:00')) / 86400000) : null;
+    return { ...c, daysSince: days };
+  }).filter(c => c.daysSince !== null);
+
+  if (qRaw) rows = rows.filter(c => (c.name || '').toLowerCase().includes(qRaw) || (qDigits && normPhone(c.phone).includes(qDigits)));
+  if (fName) rows = rows.filter(c => (c.name || '').toLowerCase().includes(fName));
+  if (fPhone) rows = rows.filter(c => normPhone(c.phone).includes(fPhone));
+  if (fMinDays) rows = rows.filter(c => c.daysSince >= fMinDays);
+  rows.sort((a, b) => b.daysSince - a.daysSince);
+
+  document.getElementById('remStatCount').textContent = rows.length;
+  document.getElementById('remStatAvgDays').textContent = rows.length ? Math.round(rows.reduce((s, c) => s + c.daysSince, 0) / rows.length) : 0;
+  document.getElementById('remStatMaxDays').textContent = rows.length ? Math.max(...rows.map(c => c.daysSince)) : 0;
+
+  const body = document.getElementById('reminderTableBody');
+  const totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
+  if (reminderPage > totalPages) reminderPage = totalPages;
+  if (reminderPage < 1) reminderPage = 1;
+  if (rows.length === 0) {
+    body.innerHTML = '<tr><td colspan="7" class="empty">Nəticə tapılmadı.</td></tr>';
+    document.getElementById('reminderPagination').innerHTML = '';
+    return;
+  }
+  const startIdx = (reminderPage - 1) * PAGE_SIZE;
+  body.innerHTML = rows.slice(startIdx, startIdx + PAGE_SIZE).map((c, i) => `
+    <tr class="data-row">
+      <td>#${startIdx + i + 1}</td>
+      <td>${escapeHtml(c.name || '—')}</td>
+      <td>${escapeHtml(formatPhoneAZ(c.phone))}</td>
+      <td>${c.count}</td>
+      <td>${fmtDate(c.lastDate)}</td>
+      <td>${c.daysSince}</td>
+      <td class="col-actions"><div class="row-actions">
+        <button class="icon-btn" data-rem-view="${c.id}" title="Bax">${ICON_EYE}</button>
+        <button class="icon-btn" data-rem-note="${c.id}" title="Qeyd əlavə et">${ICON_NOTE}</button>
+      </div></td>
+    </tr>`).join('');
+  body.querySelectorAll('[data-rem-view]').forEach(b => b.addEventListener('click', () => openViewCustomer(b.getAttribute('data-rem-view'))));
+  body.querySelectorAll('[data-rem-note]').forEach(b => b.addEventListener('click', () => openAddNoteModal(b.getAttribute('data-rem-note'))));
+  renderPagination('reminderPagination', 'reminderTableBody', reminderPage, totalPages, (p) => { reminderPage = p; renderReminderTab(); });
+}
+document.getElementById('remSearch').addEventListener('input', renderReminderTab);
+document.getElementById('remName').addEventListener('input', renderReminderTab);
+document.getElementById('remPhone').addEventListener('input', renderReminderTab);
+document.getElementById('remMinDays').addEventListener('input', renderReminderTab);
+document.getElementById('remClear').addEventListener('click', () => {
+  ['remSearch', 'remName', 'remPhone', 'remMinDays'].forEach(id => document.getElementById(id).value = '');
+  renderReminderTab();
+});
+document.getElementById('remToggle').addEventListener('click', () => {
+  document.getElementById('remPanel').classList.toggle('show');
+  document.getElementById('remToggle').classList.toggle('open');
 });
 
 /* ---------- SERVICES TAB ---------- */
@@ -3472,6 +3895,43 @@ function openServiceModal(id) {
   document.getElementById('svcMsg').className = 'save-msg';
   document.getElementById('svcModalOverlay').classList.add('show');
 }
+let remNoteCustomerId = null;
+function openAddNoteModal(customerId) {
+  remNoteCustomerId = customerId;
+  document.getElementById('remNoteText').value = '';
+  document.getElementById('remNoteMsg').className = 'save-msg';
+  document.getElementById('remNoteOverlay').classList.add('show');
+}
+document.getElementById('remNoteCancelBtn').addEventListener('click', () => {
+  document.getElementById('remNoteOverlay').classList.remove('show');
+});
+document.getElementById('remNoteOverlay').addEventListener('click', (e) => {
+  if (e.target.id === 'remNoteOverlay') document.getElementById('remNoteOverlay').classList.remove('show');
+});
+async function saveRemNote() {
+  const msg = document.getElementById('remNoteMsg');
+  const text = document.getElementById('remNoteText').value.trim();
+  if (!text) { msg.textContent = 'Qeyd mətnini daxil edin.'; msg.className = 'save-msg show err'; return; }
+  if (!remNoteCustomerId || !db) return;
+  const btn = document.getElementById('remNoteSaveBtn');
+  btn.disabled = true; btn.textContent = 'Saxlanılır…';
+  try {
+    await db.collection('customerNotes').add({
+      customerId: remNoteCustomerId,
+      note: text,
+      date: todayStr(),
+      createdAt: new Date().toISOString(),
+    });
+    document.getElementById('remNoteOverlay').classList.remove('show');
+  } catch (e) {
+    msg.textContent = 'Xəta baş verdi, yenidən cəhd edin.';
+    msg.className = 'save-msg show err';
+  } finally {
+    btn.disabled = false; btn.textContent = 'Yadda saxla';
+  }
+}
+document.getElementById('remNoteSaveBtn').addEventListener('click', saveRemNote);
+
 document.getElementById('svcAddBtn').addEventListener('click', () => openServiceModal(null));
 document.getElementById('svcCancelBtn').addEventListener('click', () => document.getElementById('svcModalOverlay').classList.remove('show'));
 document.getElementById('svcModalOverlay').addEventListener('click', (e) => {
@@ -3614,7 +4074,9 @@ document.getElementById('dashTo').addEventListener('change', () => { if (dashPer
 
 /* ---------- boot ---------- */
 /* ---------- DATA TAB ---------- */
+let salesPage = 1;
 function renderSalesList() {
+  renderSaleSummary();
   const body = document.getElementById('salesListBody');
   if (!body) return;
   const q = (document.getElementById('saleListSearch').value || '').toLowerCase().trim();
@@ -3646,11 +4108,16 @@ function renderSalesList() {
   if (fFrom) rows = rows.filter(v => (v.date || '') >= fFrom);
   if (fTo) rows = rows.filter(v => (v.date || '') <= fTo);
   rows.sort((a, b) => (b.date || '').localeCompare(a.date || '') || (b.createdAt || '').localeCompare(a.createdAt || ''));
+  const totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
+  if (salesPage > totalPages) salesPage = totalPages;
+  if (salesPage < 1) salesPage = 1;
   if (rows.length === 0) {
     body.innerHTML = '<tr><td colspan="5" class="empty">Hələ satış qeydə alınmayıb.</td></tr>';
+    renderPagination('salesPagination', 'salesListBody', salesPage, totalPages, (p) => { salesPage = p; renderSalesList(); });
     return;
   }
-  body.innerHTML = rows.slice(0, 300).map(v => {
+  const startIdx = (salesPage - 1) * PAGE_SIZE;
+  body.innerHTML = rows.slice(startIdx, startIdx + PAGE_SIZE).map(v => {
     const seq = seqMap.get(v.id) || 0;
     const isMilestone = seq > 0 && seq % 100 === 0;
     const priceTxt = v.paidWithPoints
@@ -3675,6 +4142,7 @@ function renderSalesList() {
   body.querySelectorAll('[data-sv-view]').forEach(b => b.addEventListener('click', () => openViewVisit(b.getAttribute('data-sv-view'))));
   body.querySelectorAll('[data-sv-edit]').forEach(b => b.addEventListener('click', () => openEditVisit(b.getAttribute('data-sv-edit'))));
   body.querySelectorAll('[data-sv-del]').forEach(b => b.addEventListener('click', () => deleteVisitDirect(b.getAttribute('data-sv-del'))));
+  renderPagination('salesPagination', 'salesListBody', salesPage, totalPages, (p) => { salesPage = p; renderSalesList(); });
 }
 document.getElementById('saleListSearch').addEventListener('input', renderSalesList);
 document.getElementById('sfName').addEventListener('input', renderSalesList);
@@ -3694,7 +4162,9 @@ document.getElementById('sfToggle').addEventListener('click', () => {
   document.getElementById('sfToggle').classList.toggle('open');
 });
 
+let dataPage = 1;
 function renderDataTab() {
+  renderDataSummary();
   const freeQ = (document.getElementById('dataSearch').value || '').toLowerCase().trim();
   const fName = (document.getElementById('dfName').value || '').toLowerCase().trim();
   const fPhone = normPhone(document.getElementById('dfPhone').value || '');
@@ -3724,13 +4194,11 @@ function renderDataTab() {
 
   const totalSum = rows.reduce((s, v) => s + (Number(v.priceFinal) || 0), 0);
   const uniqueCustomers = new Set(rows.map(v => v.customerId || v.phoneKey)).size;
-  document.getElementById('dStatRows').textContent = rows.length;
-  document.getElementById('dStatCustomers').textContent = uniqueCustomers;
-  document.getElementById('dStatTotal').textContent = totalSum.toLocaleString('az-AZ', { maximumFractionDigits: 0 });
 
   const body = document.getElementById('dataTableBody');
   if (rows.length === 0) {
     body.innerHTML = '<tr><td colspan="5" class="empty">Bu filtrlərə uyğun nəticə yoxdur.</td></tr>';
+    document.getElementById('dataPagination').innerHTML = '';
     return;
   }
 
@@ -3747,7 +4215,13 @@ function renderDataTab() {
     return { ...g, count: g.visits.length, total, lastDate };
   }).sort((a, b) => (seqMap.get(a.id) || 0) - (seqMap.get(b.id) || 0));
 
-  body.innerHTML = groups.map(g => {
+  const totalPages = Math.max(1, Math.ceil(groups.length / PAGE_SIZE));
+  if (dataPage > totalPages) dataPage = totalPages;
+  if (dataPage < 1) dataPage = 1;
+  const startIdx = (dataPage - 1) * PAGE_SIZE;
+  const pageGroups = groups.slice(startIdx, startIdx + PAGE_SIZE);
+
+  body.innerHTML = pageGroups.map(g => {
     return `
     <tr class="data-row" data-cid="${g.id}">
       <td>#${seqMap.get(g.id) || 0}</td>
@@ -3767,6 +4241,7 @@ function renderDataTab() {
   body.querySelectorAll('[data-edit-cust]').forEach(b => b.addEventListener('click', () => openEditCustomer(b.getAttribute('data-edit-cust'))));
   body.querySelectorAll('[data-del-cust]').forEach(b => b.addEventListener('click', () => deleteCustomer(b.getAttribute('data-del-cust'))));
   body.querySelectorAll('[data-history-cid]').forEach(b => b.addEventListener('click', () => openHistoryModal(b.getAttribute('data-history-cid'))));
+  renderPagination('dataPagination', 'dataTableBody', dataPage, totalPages, (p) => { dataPage = p; renderDataTab(); });
 }
 
 ['dataSearch','dfName','dfPhone','dfCar','dfEmployee'].forEach(id => {
@@ -3796,7 +4271,7 @@ function renderAll() {
   if (document.getElementById('tab-customers').classList.contains('active')) renderCustomerList();
   if (document.getElementById('tab-data').classList.contains('active')) renderDataTab();
   if (document.getElementById('tab-finance').classList.contains('active')) renderFinanceTab();
-  if (document.getElementById('tab-loyalty').classList.contains('active')) renderLoyaltyTab();
+  if (document.getElementById('tab-loyalty').classList.contains('active')) renderActiveLoyaltyDataset();
 }
 
 function init() {
@@ -3822,6 +4297,10 @@ function init() {
   );
   db.collection('financeCategories').limit(500).onSnapshot(
     snap => { allFinanceCategories = snap.docs.map(d => ({ id: d.id, ...d.data() })); },
+    (e) => console.error(e)
+  );
+  db.collection('customerNotes').limit(2000).onSnapshot(
+    snap => { allCustomerNotes = snap.docs.map(d => ({ id: d.id, ...d.data() })); renderAll(); },
     (e) => console.error(e)
   );
   db.collection('services').limit(500).onSnapshot(
