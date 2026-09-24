@@ -592,6 +592,7 @@
       <button class="tab-btn" data-tab="customers">Müştərilər</button>
       <button class="tab-btn" data-tab="data">Data</button>
       <button class="tab-btn" data-tab="finance">Maliyyə</button>
+      <button class="tab-btn" data-tab="loyalty">Loyallıq</button>
     </nav>
     <div class="topbar-right">
       <button class="logout-btn" id="staffLogoutBtn" title="Çıxış">Çıxış</button>
@@ -896,7 +897,7 @@
           <h2>Müştərilər</h2>
           <p class="desc">Bütün müştərilər — üstünə klikləyin, tam tarixçəsini görün.</p>
         </div>
-        <button class="btn-primary" id="addCustomerBtn" style="width:auto; margin-top:0;">+ Yeni müştəri</button>
+        <button class="btn-add income" id="addCustomerBtn" style="width:auto;">+ Yeni müştəri</button>
       </div>
       <input class="search-bar" id="custSearch" type="text" placeholder="Sərbəst axtarış: ad, soyad, nömrə…">
       <button class="filter-toggle" id="cfToggle">
@@ -1079,6 +1080,44 @@
         </table>
       </div>
       <div class="pagination" id="expensePagination"></div>
+    </div>
+   </div>
+  </section>
+
+  <!-- ================= LOYALTY ================= -->
+  <section class="tabpage" id="tab-loyalty">
+   <div class="subpage active" data-subpage="main">
+    <div class="panel">
+      <h2>Loyallıq</h2>
+      <p class="desc">Müştərilərin aktiv xal balansına görə sıralanması — kim ən çox xal toplayıb.</p>
+      <input class="search-bar" id="loySearch" type="text" placeholder="Sərbəst axtarış: ad, nömrə…">
+      <button class="filter-toggle" id="loyToggle">
+        <span>Ətraflı filtrlər</span>
+        <svg class="ft-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="filter-panel" id="loyPanel">
+        <div class="row3">
+          <div class="field"><label>Ad, soyad</label><input id="loyName" type="text"></div>
+          <div class="field"><label>Nömrə</label><input id="loyPhone" type="text"></div>
+          <div class="field"><label>Minimum xal</label><input id="loyMinPoints" type="number" min="0"></div>
+        </div>
+        <button class="btn-ghost" id="loyClear">Filtrləri təmizlə</button>
+      </div>
+    </div>
+
+    <div class="stat-row cols3">
+      <div class="stat-card"><div class="v" id="loyStatTotalPoints">—</div><div class="l">Ümumi aktiv xal</div></div>
+      <div class="stat-card"><div class="v" id="loyStatAzn">—</div><div class="l">Xalların manat qarşılığı (₼)</div></div>
+      <div class="stat-card"><div class="v" id="loyStatHolders">—</div><div class="l">Xalı olan müştəri</div></div>
+    </div>
+
+    <div class="panel">
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>№</th><th>Ad, soyad</th><th>Nömrə</th><th>Aktiv xal</th><th>Manat qarşılığı</th><th>Son yuma</th></tr></thead>
+          <tbody id="loyaltyTableBody"><tr><td colspan="6" class="empty">Yüklənir…</td></tr></tbody>
+        </table>
+      </div>
     </div>
    </div>
   </section>
@@ -1576,6 +1615,9 @@ const SIDEBAR_CONFIG = {
     { id: 'income', label: 'Mədaxil' },
     { id: 'expense', label: 'Məxaric' },
   ],
+  loyalty: [
+    { id: 'main', label: 'Xallar' },
+  ],
 };
 
 function renderTopTabs(section) {
@@ -1616,6 +1658,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     if (btn.dataset.tab === 'data') renderDataTab();
     if (btn.dataset.tab === 'home') { renderHomeChart(); updateBreakdownCharts(); }
     if (btn.dataset.tab === 'finance') renderFinanceTab();
+    if (btn.dataset.tab === 'loyalty') renderLoyaltyTab();
     if (btn.dataset.tab === 'sale') renderSalesList();
   });
 });
@@ -2885,12 +2928,17 @@ document.getElementById('finDeleteBtn').addEventListener('click', async () => {
 
 function financeViewRows(rec) {
   const isIncome = rec.type === 'income';
+  const matchedCustomer = rec.person ? customerDirectory().find(c => c.name === rec.person) : null;
+  const personLine = rec.person
+    ? [rec.person, matchedCustomer && matchedCustomer.fatherName, matchedCustomer && formatPhoneAZ(matchedCustomer.phone)]
+        .filter(Boolean).join(' · ')
+    : '—';
   return [
     ['Növ', isIncome ? 'Mədaxil' : 'Məxaric'],
     ['Məbləğ', fmtAzn(rec.amount) + ' ₼'],
     ['Tarix', fmtDate(rec.date)],
     ['Kateqoriya', rec.category || '—'],
-    ['Müştəri', rec.person || '—'],
+    ['Müştəri', personLine],
     ['Ödəniş üsulu', rec.method || '—'],
     ['Qeyd', rec.note || '—'],
   ];
@@ -3001,6 +3049,63 @@ document.querySelectorAll('#finPeriodGroup .chip').forEach(b => {
 });
 document.getElementById('finFrom').addEventListener('change', () => { if (finPeriodMode === 'custom') renderFinanceTab(); });
 document.getElementById('finTo').addEventListener('change', () => { if (finPeriodMode === 'custom') renderFinanceTab(); });
+
+/* ---------- LOYALTY TAB ---------- */
+function renderLoyaltyTab() {
+  const qRaw = (document.getElementById('loySearch').value || '').toLowerCase().trim();
+  const qDigits = normPhone(qRaw);
+  const fName = (document.getElementById('loyName').value || '').toLowerCase().trim();
+  const fPhone = normPhone(document.getElementById('loyPhone').value || '');
+  const fMinPoints = parseInt(document.getElementById('loyMinPoints').value) || 0;
+
+  let rows = customerDirectory().map(c => ({ ...c, ...statsFor(c.id) })).filter(c => c.points > 0);
+  if (qRaw) {
+    rows = rows.filter(c => (c.name || '').toLowerCase().includes(qRaw) || (qDigits && normPhone(c.phone).includes(qDigits)));
+  }
+  if (fName) rows = rows.filter(c => (c.name || '').toLowerCase().includes(fName));
+  if (fPhone) rows = rows.filter(c => normPhone(c.phone).includes(fPhone));
+  if (fMinPoints) rows = rows.filter(c => c.points >= fMinPoints);
+  rows.sort((a, b) => b.points - a.points);
+
+  const totalPoints = rows.reduce((s, c) => s + c.points, 0);
+  document.getElementById('loyStatTotalPoints').textContent = totalPoints.toLocaleString('az-AZ');
+  document.getElementById('loyStatAzn').textContent = fmtAzn(pointsToAzn(totalPoints));
+  document.getElementById('loyStatHolders').textContent = rows.length;
+
+  const body = document.getElementById('loyaltyTableBody');
+  if (rows.length === 0) { body.innerHTML = '<tr><td colspan="6" class="empty">Nəticə tapılmadı.</td></tr>'; return; }
+  body.innerHTML = rows.map((c, i) => `
+    <tr class="data-row" data-id="${c.id}">
+      <td>#${i + 1}</td>
+      <td>${escapeHtml(c.name || '—')}</td>
+      <td>${escapeHtml(formatPhoneAZ(c.phone))}</td>
+      <td>${c.points.toLocaleString('az-AZ')}</td>
+      <td>${fmtAzn(pointsToAzn(c.points))} ₼</td>
+      <td>${fmtDate(c.lastDate)}</td>
+    </tr>`).join('');
+  body.querySelectorAll('.data-row').forEach(el => {
+    el.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tabpage').forEach(p => p.classList.remove('active'));
+      document.querySelector('.tab-btn[data-tab="customers"]').classList.add('active');
+      document.getElementById('tab-customers').classList.add('active');
+      showCustomerList();
+      openCustomerDetail(el.getAttribute('data-id'));
+    });
+  });
+}
+document.getElementById('loySearch').addEventListener('input', renderLoyaltyTab);
+document.getElementById('loyName').addEventListener('input', renderLoyaltyTab);
+document.getElementById('loyPhone').addEventListener('input', renderLoyaltyTab);
+document.getElementById('loyMinPoints').addEventListener('input', renderLoyaltyTab);
+document.getElementById('loyClear').addEventListener('click', () => {
+  ['loySearch', 'loyName', 'loyPhone', 'loyMinPoints'].forEach(id => document.getElementById(id).value = '');
+  renderLoyaltyTab();
+});
+document.getElementById('loyToggle').addEventListener('click', () => {
+  document.getElementById('loyPanel').classList.toggle('show');
+  document.getElementById('loyToggle').classList.toggle('open');
+});
 
 /* ---------- HOME DASHBOARD (unified period filter) ---------- */
 let dashPeriodMode = 'today';
@@ -3260,6 +3365,7 @@ function renderAll() {
   if (document.getElementById('tab-customers').classList.contains('active')) renderCustomerList();
   if (document.getElementById('tab-data').classList.contains('active')) renderDataTab();
   if (document.getElementById('tab-finance').classList.contains('active')) renderFinanceTab();
+  if (document.getElementById('tab-loyalty').classList.contains('active')) renderLoyaltyTab();
 }
 
 function init() {
