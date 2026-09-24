@@ -652,6 +652,7 @@
         </button>
         <div class="user-menu-dropdown" id="userMenuDropdown">
           <div class="user-menu-name" id="userMenuName">—</div>
+          <button class="user-menu-item" id="showUsersBtn">İstifadəçilər</button>
           <button class="user-menu-item" id="addUserBtn">+ Yeni istifadəçi əlavə et</button>
           <button class="user-menu-item" id="changePasswordBtn">Şifrəni dəyiş</button>
           <button class="user-menu-item danger" id="staffLogoutBtn">Çıxış</button>
@@ -1382,9 +1383,23 @@
     010 111 2026 · yucar.az · Instagram @yucar.aze · TikTok @yucar.aze
   </footer>
 
+  <div class="modal-overlay" id="usersListOverlay">
+    <div class="modal-box">
+      <div class="panel-head-row" style="margin-bottom:10px;">
+        <h3 style="margin:0;">İstifadəçilər</h3>
+        <button class="btn-add income" id="usersListAddBtn" style="width:auto;">+ Yeni</button>
+      </div>
+      <div id="usersListBody"></div>
+      <div class="modal-actions">
+        <div style="flex:1;"></div>
+        <button class="btn-ghost" id="usersListCloseBtn">Bağla</button>
+      </div>
+    </div>
+  </div>
+
   <div class="modal-overlay" id="addUserOverlay">
     <div class="modal-box">
-      <h3>Yeni istifadəçi əlavə et</h3>
+      <h3 id="addUserTitle">Yeni istifadəçi əlavə et</h3>
       <div class="field"><label>Ad, soyad</label><input id="newUserName" type="text" autocomplete="off"></div>
       <div class="field"><label>Şifrə</label><input id="newUserPassword" type="text" autocomplete="off"></div>
       <div class="modal-actions">
@@ -1713,8 +1728,90 @@ let currentStaffUser = null;
     }
   });
 
+  let editingUserId = null;
+
+  function renderUsersList() {
+    const body = document.getElementById('usersListBody');
+    if (allStaffUsers.length === 0) {
+      body.innerHTML = '<div class="empty">İstifadəçi tapılmadı.</div>';
+      return;
+    }
+    body.innerHTML = allStaffUsers.map(u => `
+      <div class="svc-item">
+        <div class="svc-icon">👤</div>
+        <div class="svc-info">
+          <div class="svc-name">${u.name}${currentStaffUser && u.id === currentStaffUser.id ? ' (siz)' : ''}</div>
+        </div>
+        <div class="row-actions">
+          <button class="icon-btn" data-edit-user="${u.id}" title="Redaktə et">${ICON_EDIT}</button>
+          <button class="icon-btn danger" data-del-user="${u.id}" title="Sil">${ICON_TRASH}</button>
+        </div>
+      </div>`).join('');
+    body.querySelectorAll('[data-edit-user]').forEach(b => b.addEventListener('click', () => openEditUser(b.getAttribute('data-edit-user'))));
+    body.querySelectorAll('[data-del-user]').forEach(b => b.addEventListener('click', () => deleteUser(b.getAttribute('data-del-user'))));
+  }
+
+  function openEditUser(id) {
+    const u = allStaffUsers.find(x => x.id === id);
+    if (!u) return;
+    editingUserId = id;
+    document.getElementById('addUserTitle').textContent = 'İstifadəçini redaktə et';
+    document.getElementById('addUserSaveBtn').textContent = 'Yadda saxla';
+    document.getElementById('newUserName').value = u.name;
+    document.getElementById('newUserPassword').value = u.password || '';
+    document.getElementById('addUserMsg').className = 'save-msg';
+    document.getElementById('addUserOverlay').classList.add('show');
+  }
+
+  async function deleteUser(id) {
+    if (allStaffUsers.length <= 1) {
+      alert('Son istifadəçini silmək olmaz.');
+      return;
+    }
+    const u = allStaffUsers.find(x => x.id === id);
+    if (!u) return;
+    const selfWarn = currentStaffUser && id === currentStaffUser.id ? ' Bu sizin öz hesabınızdır — silsəniz sistemdən çıxacaqsınız.' : '';
+    if (!confirm(`"${u.name}" istifadəçisini silmək istədiyinizə əminsiniz?${selfWarn}`)) return;
+    try {
+      await db.doc('staffUsers/' + id).delete();
+      allStaffUsers = allStaffUsers.filter(x => x.id !== id);
+      renderUsersList();
+      if (currentStaffUser && id === currentStaffUser.id) {
+        localStorage.removeItem('yucar_staff_ok');
+        localStorage.removeItem('yucar_staff_id');
+        location.reload();
+      }
+    } catch (e) {
+      alert('Xəta baş verdi, yenidən cəhd edin.');
+    }
+  }
+
+  document.getElementById('showUsersBtn').addEventListener('click', () => {
+    document.getElementById('userMenuDropdown').classList.remove('show');
+    renderUsersList();
+    document.getElementById('usersListOverlay').classList.add('show');
+  });
+  document.getElementById('usersListCloseBtn').addEventListener('click', () => {
+    document.getElementById('usersListOverlay').classList.remove('show');
+  });
+  document.getElementById('usersListOverlay').addEventListener('click', (e) => {
+    if (e.target.id === 'usersListOverlay') document.getElementById('usersListOverlay').classList.remove('show');
+  });
+  document.getElementById('usersListAddBtn').addEventListener('click', () => {
+    editingUserId = null;
+    document.getElementById('addUserTitle').textContent = 'Yeni istifadəçi əlavə et';
+    document.getElementById('addUserSaveBtn').textContent = 'Əlavə et';
+    document.getElementById('newUserName').value = '';
+    document.getElementById('newUserPassword').value = '';
+    document.getElementById('addUserMsg').className = 'save-msg';
+    document.getElementById('addUserOverlay').classList.add('show');
+  });
+
   document.getElementById('addUserBtn').addEventListener('click', () => {
     document.getElementById('userMenuDropdown').classList.remove('show');
+    editingUserId = null;
+    document.getElementById('addUserTitle').textContent = 'Yeni istifadəçi əlavə et';
+    document.getElementById('addUserSaveBtn').textContent = 'Əlavə et';
     document.getElementById('newUserName').value = '';
     document.getElementById('newUserPassword').value = '';
     document.getElementById('addUserMsg').className = 'save-msg';
@@ -1735,15 +1832,28 @@ let currentStaffUser = null;
       msg.className = 'save-msg show err';
       return;
     }
-    if (allStaffUsers.some(u => normUser(u.name) === normUser(name))) {
+    const dupe = allStaffUsers.some(u => normUser(u.name) === normUser(name) && u.id !== editingUserId);
+    if (dupe) {
       msg.textContent = 'Bu adda istifadəçi artıq mövcuddur.';
       msg.className = 'save-msg show err';
       return;
     }
     try {
-      const ref = await db.collection('staffUsers').add({ name, password, createdAt: new Date().toISOString() });
-      allStaffUsers.push({ id: ref.id, name, password });
+      if (editingUserId) {
+        await db.doc('staffUsers/' + editingUserId).update({ name, password });
+        const idx = allStaffUsers.findIndex(u => u.id === editingUserId);
+        if (idx >= 0) { allStaffUsers[idx].name = name; allStaffUsers[idx].password = password; }
+        if (currentStaffUser && editingUserId === currentStaffUser.id) {
+          currentStaffUser.name = name;
+          currentStaffUser.password = password;
+          document.getElementById('userMenuName').textContent = name;
+        }
+      } else {
+        const ref = await db.collection('staffUsers').add({ name, password, createdAt: new Date().toISOString() });
+        allStaffUsers.push({ id: ref.id, name, password });
+      }
       document.getElementById('addUserOverlay').classList.remove('show');
+      if (document.getElementById('usersListOverlay').classList.contains('show')) renderUsersList();
     } catch (e) {
       msg.textContent = 'Xəta baş verdi, yenidən cəhd edin.';
       msg.className = 'save-msg show err';
