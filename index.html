@@ -1665,6 +1665,10 @@ let currentStaffUser = null;
 
   async function init() {
     await loadStaffUsers();
+    const savedName = localStorage.getItem('yucar_staff_saved_name');
+    const savedPassword = localStorage.getItem('yucar_staff_saved_password');
+    if (savedName) nameInput.value = savedName;
+    if (savedPassword) input.value = savedPassword;
     const savedId = localStorage.getItem('yucar_staff_id');
     if (localStorage.getItem('yucar_staff_ok') === '1' && savedId) {
       const user = allStaffUsers.find(u => u.id === savedId);
@@ -1682,6 +1686,8 @@ let currentStaffUser = null;
     if (match && nameVal) {
       localStorage.setItem('yucar_staff_ok', '1');
       localStorage.setItem('yucar_staff_id', match.id);
+      localStorage.setItem('yucar_staff_saved_name', nameInput.value.trim());
+      localStorage.setItem('yucar_staff_saved_password', passVal);
       err.style.display = 'none';
       unlock(match);
     } else {
