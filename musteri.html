@@ -513,7 +513,7 @@
   .order-fab:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(5,187,52,0.48); }
 
   .m-redeem-item {
-    display: flex; justify-content: space-between; align-items: center; gap: 12px;
+    display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;
     padding: 12px 0; border-top: 1px solid var(--line);
   }
   .m-redeem-item:first-of-type { border-top: none; }
@@ -524,6 +524,8 @@
     background: var(--surface-2); color: var(--ink-soft);
   }
   .m-redeem-item.ok .mr-status { background: var(--teal); color: #fff; }
+  .mr-status-group { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; }
+  .mr-remain { font-size: 11px; color: var(--ink-faint); white-space: nowrap; }
   button.mr-btn {
     border: none; cursor: pointer; font-family: inherit; transition: all .15s ease;
     box-shadow: 0 3px 10px rgba(5,187,52,0.3);
@@ -591,7 +593,7 @@
           <div class="mp-azn-amount" id="mPointsAzn">—</div>
         </div>
       </div>
-      <div class="mp-hint">1 ₼ xərcləmə = 10 xal · 100 xal = 0.5 ₼ endirim</div>
+      <div class="mp-hint">1 ₼ xərcləmə = 10 xal + 2% keşbek · 100 xal = 0.5 ₼ endirim</div>
     </div>
 
     <div class="m-progress-box">
@@ -600,8 +602,8 @@
     </div>
 
     <div class="m-card">
-      <div class="m-title" style="font-size:16px;">Xallarla nə əldə edə bilərəm?</div>
-      <p class="m-sub" style="margin-bottom:6px;">Topladığınız xallarla aşağıdakı yumaları pulsuz əldə edə bilərsiniz.</p>
+      <div class="m-title" style="font-size:16px;">Xal və ya keşbeklə nə əldə edə bilərəm?</div>
+      <p class="m-sub" style="margin-bottom:6px;">Topladığınız xal və ya keşbeklə aşağıdakı yumaları pulsuz əldə edə bilərsiniz.</p>
       <div id="mRedeemList"></div>
     </div>
 
@@ -704,6 +706,8 @@ function escapeHtml(s) {
 
 function pointsForVisit(v) { return v.paidWithPoints ? 0 : Math.round((Number(v.priceFinal) || 0) * 10); }
 function pointsRedeemedForVisit(v) { return v.paidWithPoints ? (Number(v.pointsRedeemed) || 0) : 0; }
+function cashbackForVisit(v) { return (v.paidWithPoints || v.paidWithCashback) ? 0 : Math.round((Number(v.priceFinal) || 0) * 0.02 * 100) / 100; }
+function cashbackRedeemedForVisit(v) { return v.paidWithCashback ? (Number(v.cashbackRedeemed) || 0) : 0; }
 function pointsToAzn(points) { return points / 200; }
 function fmtAzn(n) { return n.toLocaleString('az-AZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
 
@@ -895,39 +899,57 @@ const REDEEM_OPTIONS = [
   { label: 'Böyük Avtomobil yuması', price: 25 },
 ];
 function pointsNeededForAzn(azn) { return Math.round(azn * 200); }
-function renderRedeemOptions(points) {
+function renderRedeemOptions(points, cashback) {
   const body = document.getElementById('mRedeemList');
   if (!body) return;
   body.innerHTML = REDEEM_OPTIONS.map(opt => {
-    const need = pointsNeededForAzn(opt.price);
-    const enough = points >= need;
-    const remain = points - need;
-    const statusEl = enough
-      ? `<button class="mr-status mr-btn" data-redeem-label="${escapeHtml(opt.label)}" data-redeem-need="${need}">Kifayət edir · qalıq ${remain.toLocaleString('az-AZ')}</button>`
-      : `<div class="mr-status">Daha ${(need - points).toLocaleString('az-AZ')} xal</div>`;
+    const needXal = pointsNeededForAzn(opt.price);
+    const needCashback = opt.price;
+    const enoughXal = points >= needXal;
+    const enoughCashback = cashback >= needCashback;
+    const enough = enoughXal || enoughCashback;
+    let statusEl;
+    if (enough) {
+      const remainXal = Math.max(points - needXal, 0);
+      const remainCashback = Math.max(cashback - needCashback, 0);
+      const buttons = [
+        enoughXal ? `<button class="mr-status mr-btn" data-redeem-label="${escapeHtml(opt.label)}" data-redeem-method="xal" data-redeem-need="${needXal}">Xal ilə sifariş et</button>` : '',
+        enoughCashback ? `<button class="mr-status mr-btn" data-redeem-label="${escapeHtml(opt.label)}" data-redeem-method="cashback" data-redeem-need="${needCashback}">Keşbek ilə sifariş et</button>` : '',
+      ].join('');
+      statusEl = `<div class="mr-status-group">${buttons}<div class="mr-remain">Kifayət edir · qalıq ${remainXal.toLocaleString('az-AZ')} xal və ${fmtAzn(remainCashback)} ₼</div></div>`;
+    } else {
+      statusEl = `<div class="mr-status">Daha ${(needXal - points).toLocaleString('az-AZ')} xal və ${fmtAzn(needCashback - cashback)} ₼ keşbek</div>`;
+    }
     return `
       <div class="m-redeem-item${enough ? ' ok' : ''}">
         <div>
           <div class="mr-name">${opt.label}</div>
-          <div class="mr-need">${need.toLocaleString('az-AZ')} xal = ${fmtAzn(opt.price)} ₼ (tam pulsuz)</div>
+          <div class="mr-need">${needXal.toLocaleString('az-AZ')} xal və ya ${fmtAzn(needCashback)} ₼ keşbek (tam pulsuz)</div>
         </div>
         ${statusEl}
       </div>`;
   }).join('');
   body.querySelectorAll('[data-redeem-label]').forEach(btn => {
-    btn.addEventListener('click', () => sendPointsOrder(btn.getAttribute('data-redeem-label'), parseInt(btn.getAttribute('data-redeem-need'), 10)));
+    btn.addEventListener('click', () => sendPointsOrder(
+      btn.getAttribute('data-redeem-label'),
+      parseFloat(btn.getAttribute('data-redeem-need')),
+      btn.getAttribute('data-redeem-method')
+    ));
   });
 }
 
-function sendPointsOrder(label, need) {
+function sendPointsOrder(label, need, method) {
   const nameEl = document.getElementById('mName2');
   const custName = nameEl ? nameEl.textContent.trim() : '';
+  const paymentLine = method === 'cashback'
+    ? `Ödəniş: Keşbek ilə (${fmtAzn(need)} ₼)`
+    : `Ödəniş: Xal ilə (${need.toLocaleString('az-AZ')} xal)`;
   const lines = [
     'Salam, YuCar xidmətinə sifariş vermək istəyirəm.',
     '',
     `Ad, soyad: ${custName || '—'}`,
     `Xidmət: ${label}`,
-    `Ödəniş: Xal ilə (${need.toLocaleString('az-AZ')} xal)`,
+    paymentLine,
   ];
   const waUrl = `https://wa.me/994101112026?text=${encodeURIComponent(lines.join('\n'))}`;
   window.open(waUrl, '_blank');
@@ -1036,11 +1058,12 @@ function renderProfile(visitsAsc) {
   const count = visitsAsc.length;
   const spent = visitsAsc.reduce((s, v) => s + (Number(v.priceFinal) || 0), 0);
   const points = visitsAsc.reduce((s, v) => s + pointsForVisit(v) - pointsRedeemedForVisit(v), 0);
+  const cashback = visitsAsc.reduce((s, v) => s + cashbackForVisit(v) - cashbackRedeemedForVisit(v), 0);
   document.getElementById('mVisitCount').textContent = count;
   document.getElementById('mSpent').textContent = fmtAzn(spent);
   document.getElementById('mPointsAmount').textContent = points.toLocaleString('az-AZ');
-  document.getElementById('mPointsAzn').textContent = fmtAzn(pointsToAzn(points)) + ' ₼';
-  renderRedeemOptions(points);
+  document.getElementById('mPointsAzn').textContent = fmtAzn(cashback) + ' ₼';
+  renderRedeemOptions(points, cashback);
 
   const posInCycle = count % 6;
   const remaining = 5 - posInCycle;
@@ -1074,23 +1097,30 @@ function renderProfile(visitsAsc) {
     const seq = count - idxDesc; // sequence number (1-indexed, ascending)
     const isFree = seq % 6 === 0;
     const isPointsPaid = !!v.paidWithPoints;
+    const isCashbackPaid = !!v.paidWithCashback;
     const parts = [v.car, v.service, v.addon].filter(Boolean);
     let priceTxt;
     if (isPointsPaid) priceTxt = `-${(v.pointsRedeemed || 0).toLocaleString('az-AZ')} xal`;
+    else if (isCashbackPaid) priceTxt = `-${fmtAzn(v.cashbackRedeemed || 0)} ₼ keşbek`;
     else if (isFree) priceTxt = 'Pulsuz 🎉';
     else priceTxt = v.priceFinal ? Number(v.priceFinal).toLocaleString('az-AZ') + ' ₼' : '—';
     const ptsBadge = isPointsPaid
       ? `<span class="m-history-pts spend">-${(v.pointsRedeemed || 0).toLocaleString('az-AZ')} xal</span>`
       : `<span class="m-history-pts">+${pointsForVisit(v)} xal</span>`;
+    const cashbackEarned = cashbackForVisit(v);
+    const cashbackBadge = isCashbackPaid
+      ? `<span class="m-history-pts spend">-${fmtAzn(v.cashbackRedeemed || 0)} ₼ keşbek</span>`
+      : (cashbackEarned > 0 ? `<span class="m-history-pts">+${fmtAzn(cashbackEarned)} ₼ keşbek</span>` : '');
     return `
       <div class="m-history-item">
         <div class="m-history-top">
           <span class="m-history-date"><span class="m-history-seq">#${seq}</span>${fmtDate(v.date)}</span>
-          <span class="m-history-price${isFree || isPointsPaid ? ' free' : ''}">${priceTxt}</span>
+          <span class="m-history-price${isFree || isPointsPaid || isCashbackPaid ? ' free' : ''}">${priceTxt}</span>
         </div>
         <div class="m-history-desc">${escapeHtml(parts.join(' · ') || 'Yuma')}</div>
         <div class="m-history-bottom">
           ${ptsBadge}
+          ${cashbackBadge}
           ${isFree ? '<span class="m-history-free-tag">6-cı yuma</span>' : ''}
         </div>
       </div>`;

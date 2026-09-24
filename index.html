@@ -151,6 +151,10 @@
     box-shadow: 0 3px 10px rgba(5,187,52,0.18);
   }
   .points-pay-btn.insufficient { border-style: solid; border-color: var(--danger); background: #f6dcd4; color: #7a2e1a; }
+  .points-pay-btn.cashback.active {
+    border-style: solid; border-color: var(--teal-deep); background: var(--surface-2); color: var(--teal-deep);
+    box-shadow: 0 3px 10px rgba(4,148,40,0.18);
+  }
   .panel-head-row h2 { margin-bottom: 3px; }
   .panel .desc { margin: 0 0 16px; font-size: 13px; color: var(--ink-soft); }
 
@@ -815,6 +819,9 @@
         <button type="button" class="points-pay-btn" id="pointsPayBtn" style="display:none;">
           <span id="pointsPayLabel">💠 Xal ilə ödə</span>
         </button>
+        <button type="button" class="points-pay-btn cashback" id="cashbackPayBtn" style="display:none;">
+          <span id="cashbackPayLabel">💵 Keşbek ilə ödə</span>
+        </button>
         <div class="row2">
           <div class="field"><label>Ödəniş üsulu</label>
             <select id="fPayment">
@@ -1101,21 +1108,26 @@
           <div class="field"><label>Nömrə</label><input id="loyPhone" type="text"></div>
           <div class="field"><label>Minimum xal</label><input id="loyMinPoints" type="number" min="0"></div>
         </div>
+        <div class="row2">
+          <div class="field"><label>Minimum keşbek (₼)</label><input id="loyMinCashback" type="number" min="0" step="0.01"></div>
+        </div>
         <button class="btn-ghost" id="loyClear">Filtrləri təmizlə</button>
       </div>
     </div>
 
-    <div class="stat-row cols3">
+    <div class="stat-row cols5">
       <div class="stat-card"><div class="v" id="loyStatTotalPoints">—</div><div class="l">Ümumi aktiv xal</div></div>
-      <div class="stat-card"><div class="v" id="loyStatAzn">—</div><div class="l">Xalların manat qarşılığı (₼)</div></div>
+      <div class="stat-card"><div class="v" id="loyStatAzn">—</div><div class="l">Xalların dəyəri (₼)</div></div>
+      <div class="stat-card"><div class="v" id="loyStatCashback">—</div><div class="l">Ümumi aktiv keşbek (₼)</div></div>
       <div class="stat-card"><div class="v" id="loyStatHolders">—</div><div class="l">Xalı olan müştəri</div></div>
+      <div class="stat-card"><div class="v" id="loyStatCashbackHolders">—</div><div class="l">Keşbeki olan müştəri</div></div>
     </div>
 
     <div class="panel">
       <div class="table-scroll">
         <table>
-          <thead><tr><th>№</th><th>Ad, soyad</th><th>Nömrə</th><th>Aktiv xal</th><th>Manat qarşılığı</th><th>Son yuma</th></tr></thead>
-          <tbody id="loyaltyTableBody"><tr><td colspan="6" class="empty">Yüklənir…</td></tr></tbody>
+          <thead><tr><th>№</th><th>Ad, soyad</th><th>Nömrə</th><th>Aktiv xal</th><th>Xalın dəyəri</th><th>Aktiv keşbek</th><th>Son yuma</th></tr></thead>
+          <tbody id="loyaltyTableBody"><tr><td colspan="7" class="empty">Yüklənir…</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -1340,6 +1352,8 @@ let allCustomers = [];
 let selectedCustomerId = null; // for sale tab
 function pointsForVisit(v) { return v.paidWithPoints ? 0 : Math.round((Number(v.priceFinal) || 0) * 10); }
 function pointsRedeemedForVisit(v) { return v.paidWithPoints ? (Number(v.pointsRedeemed) || 0) : 0; }
+function cashbackForVisit(v) { return (v.paidWithPoints || v.paidWithCashback) ? 0 : Math.round((Number(v.priceFinal) || 0) * 0.02 * 100) / 100; }
+function cashbackRedeemedForVisit(v) { return v.paidWithCashback ? (Number(v.cashbackRedeemed) || 0) : 0; }
 function pointsToAzn(points) { return points / 200; }
 function fmtAzn(n) { return n.toLocaleString('az-AZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
 
@@ -1536,7 +1550,7 @@ function recalcPrice() {
   document.getElementById('fPriceGross').value = gross || '';
   const freeCheck = document.getElementById('freeWashCheck');
   const isFreeMode = document.getElementById('freeWashBanner').classList.contains('show') && freeCheck && freeCheck.checked;
-  if (isFreeMode || salePayWithPoints) {
+  if (isFreeMode || salePayWithPoints || salePayWithCashback) {
     document.getElementById('fDiscount').value = gross || 0;
     document.getElementById('fPriceFinal').value = 0;
   } else {
@@ -1544,6 +1558,7 @@ function recalcPrice() {
     document.getElementById('fPriceFinal').value = gross ? Math.max(gross - discount, 0) : '';
   }
   updatePointsPayButton();
+  updateCashbackPayButton();
 }
 document.getElementById('freeWashCheck').addEventListener('change', recalcPrice);
 document.getElementById('fService').addEventListener('change', recalcPrice);
@@ -1592,8 +1607,57 @@ document.getElementById('pointsPayBtn').addEventListener('click', () => {
       return;
     }
     salePayWithPoints = true;
+    salePayWithCashback = false;
   } else {
     salePayWithPoints = false;
+  }
+  recalcPrice();
+});
+
+let salePayWithCashback = false;
+function updateCashbackPayButton() {
+  const btn = document.getElementById('cashbackPayBtn');
+  const label = document.getElementById('cashbackPayLabel');
+  if (!btn) return;
+  const freeCheck = document.getElementById('freeWashCheck');
+  const isFreeMode = document.getElementById('freeWashBanner').classList.contains('show') && freeCheck && freeCheck.checked;
+  if (!selectedCustomerId || selectedCustomerId === 'NEW' || isFreeMode) {
+    btn.style.display = 'none';
+    return;
+  }
+  const gross = parseFloat(document.getElementById('fPriceGross').value) || 0;
+  if (gross <= 0) { btn.style.display = 'none'; return; }
+  btn.style.display = '';
+  const avail = statsFor(selectedCustomerId).cashback;
+  const needed = gross;
+  btn.classList.remove('insufficient');
+  if (salePayWithCashback) {
+    const remain = avail - needed;
+    btn.classList.add('active');
+    label.textContent = `✅ Keşbek ilə ödənilir · qalıq ${fmtAzn(remain)} ₼`;
+  } else {
+    btn.classList.remove('active');
+    label.textContent = `💵 Keşbek ilə ödə (mövcud: ${fmtAzn(avail)} ₼)`;
+  }
+}
+document.getElementById('cashbackPayBtn').addEventListener('click', () => {
+  if (!selectedCustomerId) return;
+  const gross = parseFloat(document.getElementById('fPriceGross').value) || 0;
+  const avail = statsFor(selectedCustomerId).cashback;
+  const needed = gross;
+  if (!salePayWithCashback) {
+    if (avail < needed) {
+      const btn = document.getElementById('cashbackPayBtn');
+      const label = document.getElementById('cashbackPayLabel');
+      btn.classList.add('insufficient');
+      label.textContent = `❌ Çatışmır · ${fmtAzn(needed - avail)} ₼ lazımdır`;
+      setTimeout(() => { btn.classList.remove('insufficient'); updateCashbackPayButton(); }, 2600);
+      return;
+    }
+    salePayWithCashback = true;
+    salePayWithPoints = false;
+  } else {
+    salePayWithCashback = false;
   }
   recalcPrice();
 });
@@ -1701,8 +1765,11 @@ function statsFor(customerId) {
   const earnedPoints = vs.reduce((s, v) => s + pointsForVisit(v), 0);
   const redeemedPoints = vs.reduce((s, v) => s + pointsRedeemedForVisit(v), 0);
   const points = earnedPoints - redeemedPoints;
+  const earnedCashback = vs.reduce((s, v) => s + cashbackForVisit(v), 0);
+  const redeemedCashback = vs.reduce((s, v) => s + cashbackRedeemedForVisit(v), 0);
+  const cashback = Math.round((earnedCashback - redeemedCashback) * 100) / 100;
   const lastDate = count ? vs[vs.length - 1].date : null;
-  return { visits: vs, count, spent, points, lastDate };
+  return { visits: vs, count, spent, points, cashback, lastDate };
 }
 
 /* ---------- HOME ---------- */
@@ -2072,7 +2139,7 @@ function selectCustomer(id) {
   document.getElementById('selNm').textContent = c.name;
   document.getElementById('selMeta').textContent =
     st.count === 0 ? `${formatPhoneAZ(c.phone)} · yeni müştəri` :
-    `${formatPhoneAZ(c.phone)} · ${st.count} yuma edib · ${st.points} xal · son yuma ${fmtDate(st.lastDate)}`;
+    `${formatPhoneAZ(c.phone)} · ${st.count} yuma edib · ${st.points} xal · ${fmtAzn(st.cashback)} ₼ keşbek · son yuma ${fmtDate(st.lastDate)}`;
   document.getElementById('selectedCustomerBox').classList.add('show');
   document.getElementById('saleForm').classList.add('show');
   saleSearch.value = c.name;
@@ -2083,6 +2150,7 @@ function selectCustomer(id) {
 function startNewCustomer(typedName) {
   selectedCustomerId = 'NEW';
   salePayWithPoints = false;
+  salePayWithCashback = false;
   suggBox.classList.remove('show');
   document.getElementById('selectedCustomerBox').classList.remove('show');
   document.getElementById('newCustomerBox').classList.add('show');
@@ -2093,17 +2161,21 @@ function startNewCustomer(typedName) {
   document.getElementById('saleForm').classList.add('show');
   document.getElementById('freeWashBanner').classList.remove('show');
   document.getElementById('pointsPayBtn').style.display = 'none';
+  document.getElementById('cashbackPayBtn').style.display = 'none';
 }
 
 function resetSelection(clearSearch) {
   selectedCustomerId = null;
   salePayWithPoints = false;
+  salePayWithCashback = false;
   document.getElementById('selectedCustomerBox').classList.remove('show');
   document.getElementById('newCustomerBox').classList.remove('show');
   document.getElementById('saleForm').classList.remove('show');
   document.getElementById('freeWashBanner').classList.remove('show');
   document.getElementById('pointsPayBtn').style.display = 'none';
   document.getElementById('pointsPayBtn').classList.remove('active', 'insufficient');
+  document.getElementById('cashbackPayBtn').style.display = 'none';
+  document.getElementById('cashbackPayBtn').classList.remove('active', 'insufficient');
   document.getElementById('ncPhone').value = '';
   document.getElementById('ncFatherName').value = '';
   document.getElementById('ncIdSeries').value = '';
@@ -2169,10 +2241,12 @@ async function saveSale() {
   const date = document.getElementById('fDate').value || todayStr();
   const priceFinalVal = parseFloat(document.getElementById('fPriceFinal').value) || 0;
   const earnedPts = Math.round(priceFinalVal * 10);
+  const earnedCashbackVal = (salePayWithPoints || salePayWithCashback) ? 0 : Math.round(priceFinalVal * 0.02 * 100) / 100;
   const carBrand = document.getElementById('fCarBrand').value.trim();
   const carModel = document.getElementById('fCarModel').value.trim();
   const grossForPoints = parseFloat(document.getElementById('fPriceGross').value) || 0;
   const pointsUsedNow = salePayWithPoints ? Math.round(grossForPoints * 200) : 0;
+  const cashbackUsedNow = salePayWithCashback ? Math.round(grossForPoints * 100) / 100 : 0;
   const record = {
     customerId, phoneKey: customerId,
     name: customerName, fatherName: customerFatherName, phone: customerPhone, location: customerLocation,
@@ -2189,6 +2263,8 @@ async function saveSale() {
     date, reminded: false, pointsEarned: earnedPts,
     paidWithPoints: salePayWithPoints,
     pointsRedeemed: pointsUsedNow,
+    paidWithCashback: salePayWithCashback,
+    cashbackRedeemed: cashbackUsedNow,
     createdAt: new Date().toISOString(),
   };
 
@@ -2216,9 +2292,13 @@ async function saveSale() {
     if (salePayWithPoints) {
       const remainPts = priorStats.points - pointsUsedNow;
       msg.textContent = `✅ Satış yaddaşa verildi — ${customerName} üçün ${n}-cı yumadır. ${pointsUsedNow.toLocaleString('az-AZ')} xal istifadə edildi (qalıq ${remainPts.toLocaleString('az-AZ')} xal).`;
+    } else if (salePayWithCashback) {
+      const remainCashback = priorStats.cashback - cashbackUsedNow;
+      msg.textContent = `✅ Satış yaddaşa verildi — ${customerName} üçün ${n}-cı yumadır. ${fmtAzn(cashbackUsedNow)} ₼ keşbek istifadə edildi (qalıq ${fmtAzn(remainCashback)} ₼).`;
     } else {
       const totalPts = priorStats.points + earnedPts;
-      msg.textContent = `✅ Satış yaddaşa verildi — ${customerName} üçün ${n}-cı yumadır. +${earnedPts} xal qazandı (cəmi ${totalPts} xal ≈ ${fmtAzn(pointsToAzn(totalPts))} ₼).`;
+      const totalCashback = priorStats.cashback + earnedCashbackVal;
+      msg.textContent = `✅ Satış yaddaşa verildi — ${customerName} üçün ${n}-cı yumadır. +${earnedPts} xal və +${fmtAzn(earnedCashbackVal)} ₼ keşbek qazandı (cəmi ${totalPts} xal, ${fmtAzn(totalCashback)} ₼ keşbek).`;
     }
     msg.className = 'save-msg show ok';
     ['fCarBrand','fCarModel','fPriceGross','fDiscount','fPriceFinal','fEmployee','fNote'].forEach(id => document.getElementById(id).value = '');
@@ -2371,13 +2451,17 @@ function renderViewModal(title, rows) {
 function openViewVisit(id) {
   const v = allVisits.find(x => x.id === id);
   if (!v) return;
-  const custPoints = statsFor(v.customerId || v.phoneKey).points || 0;
+  const cid = v.customerId || v.phoneKey;
+  const custStats = statsFor(cid);
+  const custPoints = custStats.points || 0;
+  const custCashback = custStats.cashback || 0;
   const rows = [
     ['Tarix', fmtDate(v.date)],
     ['Ad, soyad', v.name || '—'],
     ['Ata adı', v.fatherName || '—'],
     ['Əlaqə nömrəsi', formatPhoneAZ(v.phone)],
-    ['Xal', `${custPoints} xal (${fmtAzn(pointsToAzn(custPoints))} ₼)`],
+    ['Xal', `${custPoints} xal (${fmtAzn(pointsToAzn(custPoints))} ₼ dəyərində)`],
+    ['Keşbek', `${fmtAzn(custCashback)} ₼`],
     ['Məkan', v.location || '—'],
     ['Avtomobil', v.car || '—'],
     ['Paket seçimi və əlavə xidmət', [v.service, v.addon].filter(Boolean).join(', ') || '—'],
@@ -2406,7 +2490,8 @@ function openViewCustomer(id) {
     ['Şifrə', c.password || '—'],
     ['Yuma sayı', st.count],
     ['Xərclənib', fmtAzn(st.spent) + ' ₼'],
-    ['Xal', st.points + ` (≈ ${fmtAzn(pointsToAzn(st.points))} ₼)`],
+    ['Xal', st.points + ` (≈ ${fmtAzn(pointsToAzn(st.points))} ₼ dəyərində)`],
+    ['Keşbek', fmtAzn(st.cashback) + ' ₼'],
     ['Son yuma', fmtDate(st.lastDate)],
   ];
   renderViewModal('Müştəri məlumatları', rows);
@@ -3057,23 +3142,28 @@ function renderLoyaltyTab() {
   const fName = (document.getElementById('loyName').value || '').toLowerCase().trim();
   const fPhone = normPhone(document.getElementById('loyPhone').value || '');
   const fMinPoints = parseInt(document.getElementById('loyMinPoints').value) || 0;
+  const fMinCashback = parseFloat(document.getElementById('loyMinCashback').value) || 0;
 
-  let rows = customerDirectory().map(c => ({ ...c, ...statsFor(c.id) })).filter(c => c.points > 0);
+  let rows = customerDirectory().map(c => ({ ...c, ...statsFor(c.id) })).filter(c => c.points > 0 || c.cashback > 0);
   if (qRaw) {
     rows = rows.filter(c => (c.name || '').toLowerCase().includes(qRaw) || (qDigits && normPhone(c.phone).includes(qDigits)));
   }
   if (fName) rows = rows.filter(c => (c.name || '').toLowerCase().includes(fName));
   if (fPhone) rows = rows.filter(c => normPhone(c.phone).includes(fPhone));
   if (fMinPoints) rows = rows.filter(c => c.points >= fMinPoints);
+  if (fMinCashback) rows = rows.filter(c => c.cashback >= fMinCashback);
   rows.sort((a, b) => b.points - a.points);
 
   const totalPoints = rows.reduce((s, c) => s + c.points, 0);
+  const totalCashback = Math.round(rows.reduce((s, c) => s + c.cashback, 0) * 100) / 100;
   document.getElementById('loyStatTotalPoints').textContent = totalPoints.toLocaleString('az-AZ');
   document.getElementById('loyStatAzn').textContent = fmtAzn(pointsToAzn(totalPoints));
-  document.getElementById('loyStatHolders').textContent = rows.length;
+  document.getElementById('loyStatCashback').textContent = fmtAzn(totalCashback);
+  document.getElementById('loyStatHolders').textContent = rows.filter(c => c.points > 0).length;
+  document.getElementById('loyStatCashbackHolders').textContent = rows.filter(c => c.cashback > 0).length;
 
   const body = document.getElementById('loyaltyTableBody');
-  if (rows.length === 0) { body.innerHTML = '<tr><td colspan="6" class="empty">Nəticə tapılmadı.</td></tr>'; return; }
+  if (rows.length === 0) { body.innerHTML = '<tr><td colspan="7" class="empty">Nəticə tapılmadı.</td></tr>'; return; }
   body.innerHTML = rows.map((c, i) => `
     <tr class="data-row" data-id="${c.id}">
       <td>#${i + 1}</td>
@@ -3081,6 +3171,7 @@ function renderLoyaltyTab() {
       <td>${escapeHtml(formatPhoneAZ(c.phone))}</td>
       <td>${c.points.toLocaleString('az-AZ')}</td>
       <td>${fmtAzn(pointsToAzn(c.points))} ₼</td>
+      <td>${fmtAzn(c.cashback)} ₼</td>
       <td>${fmtDate(c.lastDate)}</td>
     </tr>`).join('');
   body.querySelectorAll('.data-row').forEach(el => {
@@ -3098,8 +3189,9 @@ document.getElementById('loySearch').addEventListener('input', renderLoyaltyTab)
 document.getElementById('loyName').addEventListener('input', renderLoyaltyTab);
 document.getElementById('loyPhone').addEventListener('input', renderLoyaltyTab);
 document.getElementById('loyMinPoints').addEventListener('input', renderLoyaltyTab);
+document.getElementById('loyMinCashback').addEventListener('input', renderLoyaltyTab);
 document.getElementById('loyClear').addEventListener('click', () => {
-  ['loySearch', 'loyName', 'loyPhone', 'loyMinPoints'].forEach(id => document.getElementById(id).value = '');
+  ['loySearch', 'loyName', 'loyPhone', 'loyMinPoints', 'loyMinCashback'].forEach(id => document.getElementById(id).value = '');
   renderLoyaltyTab();
 });
 document.getElementById('loyToggle').addEventListener('click', () => {
@@ -3226,6 +3318,8 @@ function renderSalesList() {
     const isMilestone = seq > 0 && seq % 100 === 0;
     const priceTxt = v.paidWithPoints
       ? `${(v.pointsRedeemed || 0).toLocaleString('az-AZ')} xal`
+      : v.paidWithCashback
+      ? `${fmtAzn(v.cashbackRedeemed || 0)} ₼ keşbek`
       : (v.priceFinal ? Number(v.priceFinal).toLocaleString('az-AZ') + ' ₼' : '—');
     const fullName = [v.name, v.fatherName].filter(Boolean).join(' ');
     return `
