@@ -198,6 +198,8 @@
     transition: transform .18s ease, box-shadow .18s ease;
   }
   .stat-card:hover { transform: translateY(-3px); box-shadow: 0 10px 24px rgba(16,34,31,0.09); }
+  .stat-card.clickable { cursor: pointer; }
+  .stat-card.active-filter { border-color: var(--teal); background: var(--amber-soft); box-shadow: 0 4px 14px rgba(5,187,52,0.18); }
   .stat-card .v { font-size: 25px; font-weight: 800; font-family: 'Manrope', sans-serif; background: linear-gradient(135deg, var(--teal-deep), var(--teal)); -webkit-background-clip: text; background-clip: text; color: transparent; }
   .stat-card .l { font-size: 12px; color: var(--ink-soft); margin-top: 3px; }
   .stat-card .stat-sub { display: block; font-size: 10.5px; color: var(--ink-faint); margin-top: 1px; }
@@ -685,7 +687,7 @@
       <div class="chart-head">
         <div>
           <h2>Maliyyə xülasəsi</h2>
-          <p class="desc">Seçilmiş dövr üzrə müştəri və yuma göstəriciləri.</p>
+          <p class="desc">Satış, gəlir, xərc, qazanc və kassa.</p>
         </div>
         <div class="chip-group" id="dashPeriodGroup">
           <button class="chip active" data-dperiod="today">Bu gün</button>
@@ -698,21 +700,6 @@
       <div class="fin-custom-range" id="dashCustomRange">
         <div class="field"><label>Tarixdən</label><input id="dashFrom" type="date"></div>
         <div class="field"><label>Tarixədək</label><input id="dashTo" type="date"></div>
-      </div>
-      <div class="stat-row">
-        <div class="stat-card"><div class="v" id="dTotalCust">—</div><div class="l">Ümumi müştəri sayı</div></div>
-        <div class="stat-card"><div class="v" id="dNewCust">—</div><div class="l">Yeni müştəri sayı</div></div>
-        <div class="stat-card"><div class="v" id="dRepeatCust">—</div><div class="l">Təkrar müştəri sayı</div></div>
-        <div class="stat-card"><div class="v" id="dVisits">—</div><div class="l">Yuma sayı</div></div>
-      </div>
-    </div>
-
-    <div class="panel">
-      <div class="chart-head">
-        <div>
-          <h2>Maliyyə xülasəsi</h2>
-          <p class="desc">Satış, gəlir, xərc, qazanc və kassa.</p>
-        </div>
       </div>
       <div class="stat-row cols5">
         <div class="stat-card"><div class="v" id="dSalesCount">—</div><div class="l">Satış sayı</div></div>
@@ -1031,25 +1018,23 @@
       <div class="chart-head">
         <div>
           <h2>Müştəri xülasəsi</h2>
-          <p class="desc">Seçilmiş dövrdə əlavə olunan müştərilər üzrə göstəricilər.</p>
+          <p class="desc">Kartlara klikləyərək uyğun müştəriləri aşağıdakı siyahıda görün.</p>
         </div>
-        <div class="chip-group" id="custPeriodGroup">
-          <button class="chip active" data-cperiod="today">Bu gün</button>
-          <button class="chip" data-cperiod="week">Bu həftə</button>
-          <button class="chip" data-cperiod="month">Bu ay</button>
-          <button class="chip" data-cperiod="year">Bu il</button>
-          <button class="chip" data-cperiod="custom">Xüsusi aralıq</button>
-        </div>
-      </div>
-      <div class="fin-custom-range" id="custCustomRange">
-        <div class="field"><label>Tarixdən</label><input id="custSumFrom" type="date"></div>
-        <div class="field"><label>Tarixədək</label><input id="custSumTo" type="date"></div>
       </div>
       <div class="stat-row">
-        <div class="stat-card"><div class="v" id="csTotal">—</div><div class="l">Ümumi müştəri sayı</div></div>
-        <div class="stat-card"><div class="v" id="csNew">—</div><div class="l">Yeni müştəri (dövrdə)</div></div>
-        <div class="stat-card"><div class="v" id="csAvgPoints">—</div><div class="l">Orta xal</div></div>
-        <div class="stat-card"><div class="v" id="csAvgCashback">—</div><div class="l">Orta keşbek (₼)</div></div>
+        <div class="stat-card clickable" data-cs-filter="total"><div class="v" id="csTotal">—</div><div class="l">Ümumi müştəri sayı</div></div>
+        <div class="stat-card clickable" data-cs-filter="repeat"><div class="v" id="csRepeat">—</div><div class="l">Təkrar müştəri sayı</div></div>
+        <div class="stat-card clickable" data-cs-filter="ideal"><div class="v" id="csIdeal">—</div><div class="l">İdeal müştəri sayı</div></div>
+        <div class="stat-card clickable" data-cs-filter="active"><div class="v" id="csActive">—</div><div class="l">Aktiv müştərilər (son 30 gün)</div></div>
+      </div>
+      <div class="stat-row" style="margin-top:12px;">
+        <div class="stat-card clickable" data-cs-filter="passive"><div class="v" id="csPassive">—</div><div class="l">Passiv müştərilər (60+ gün)</div></div>
+        <div class="stat-card"><div class="v" id="csAvgValue">—</div><div class="l">Orta müştəri dəyəri (₼)</div></div>
+        <div class="stat-card"><div class="v" id="csAvgOrders">—</div><div class="l">Müştəri başına orta sifariş</div></div>
+        <div class="stat-card"><div class="v" id="csRepeatRate">—</div><div class="l">Təkrar alış faizi</div></div>
+      </div>
+      <div class="stat-row" style="margin-top:12px;">
+        <div class="stat-card"><div class="v" id="csTotalRevenue">—</div><div class="l">Ümumi müştəri gəliri (₼)</div></div>
       </div>
     </div>
 
@@ -3283,19 +3268,53 @@ function renderSaleSummary() {
   document.getElementById('ssCustomers').textContent = uniqueCust;
 }
 
-let custPeriodMode = 'today';
-function renderCustomerSummary() {
-  const { from, to } = periodRangeGeneric(custPeriodMode, 'custSumFrom', 'custSumTo');
-  const dir = customerDirectory().map(c => ({ ...c, ...statsFor(c.id) }));
-  const newCount = dir.filter(c => (c.createdAt || '') >= from && (c.createdAt || '') <= (to + 'T23:59:59')).length;
-  const withActivity = dir.filter(c => c.count > 0 || allCustomers.some(x => x.id === c.id));
-  const avgPoints = withActivity.length ? Math.round(withActivity.reduce((s, c) => s + c.points, 0) / withActivity.length) : 0;
-  const avgCashback = withActivity.length ? Math.round((withActivity.reduce((s, c) => s + c.cashback, 0) / withActivity.length) * 100) / 100 : 0;
-  document.getElementById('csTotal').textContent = withActivity.length;
-  document.getElementById('csNew').textContent = newCount;
-  document.getElementById('csAvgPoints').textContent = avgPoints.toLocaleString('az-AZ');
-  document.getElementById('csAvgCashback').textContent = fmtAzn(avgCashback);
+let customerQuickFilter = null;
+function customerMatchesQuickFilter(c, key) {
+  if (!key || key === 'total') return true;
+  const today = new Date(todayStr() + 'T00:00:00');
+  const daysSince = c.lastDate ? Math.floor((today - new Date(c.lastDate + 'T00:00:00')) / 86400000) : null;
+  if (key === 'repeat') return c.count >= 2;
+  if (key === 'ideal') return c.count > 10;
+  if (key === 'active') return daysSince !== null && daysSince <= 30;
+  if (key === 'passive') return daysSince !== null && daysSince >= 60;
+  return true;
 }
+function renderCustomerSummary() {
+  const dir = customerDirectory().map(c => ({ ...c, ...statsFor(c.id) }));
+  const withActivity = dir.filter(c => c.count > 0 || allCustomers.some(x => x.id === c.id));
+  const total = withActivity.length;
+
+  const repeatCustomers = withActivity.filter(c => customerMatchesQuickFilter(c, 'repeat'));
+  const idealCustomers = withActivity.filter(c => customerMatchesQuickFilter(c, 'ideal'));
+  const activeCustomers = withActivity.filter(c => customerMatchesQuickFilter(c, 'active'));
+  const passiveCustomers = withActivity.filter(c => customerMatchesQuickFilter(c, 'passive'));
+
+  const totalRevenue = withActivity.reduce((s, c) => s + c.spent, 0);
+  const totalOrders = withActivity.reduce((s, c) => s + c.count, 0);
+  const avgValue = total ? Math.round((totalRevenue / total) * 100) / 100 : 0;
+  const avgOrders = total ? Math.round((totalOrders / total) * 10) / 10 : 0;
+  const repeatRate = total ? Math.round((repeatCustomers.length / total) * 100) : 0;
+
+  document.getElementById('csTotal').textContent = total;
+  document.getElementById('csRepeat').textContent = repeatCustomers.length;
+  document.getElementById('csIdeal').textContent = idealCustomers.length;
+  document.getElementById('csActive').textContent = activeCustomers.length;
+  document.getElementById('csPassive').textContent = passiveCustomers.length;
+  document.getElementById('csAvgValue').textContent = fmtAzn(avgValue);
+  document.getElementById('csAvgOrders').textContent = avgOrders.toLocaleString('az-AZ');
+  document.getElementById('csRepeatRate').textContent = repeatRate + '%';
+  document.getElementById('csTotalRevenue').textContent = totalRevenue.toLocaleString('az-AZ', { maximumFractionDigits: 0 });
+}
+document.querySelectorAll('[data-cs-filter]').forEach(card => {
+  card.addEventListener('click', () => {
+    const key = card.getAttribute('data-cs-filter');
+    customerQuickFilter = (customerQuickFilter === key) ? null : key;
+    document.querySelectorAll('[data-cs-filter]').forEach(c => c.classList.remove('active-filter'));
+    if (customerQuickFilter) card.classList.add('active-filter');
+    custPage = 1;
+    renderCustomerList();
+  });
+});
 
 let dataSummaryPeriodMode = 'today';
 function renderDataSummary() {
@@ -3309,7 +3328,6 @@ function renderDataSummary() {
 }
 
 wirePeriodChipGroup('salePeriodGroup', 'data-speriod', 'saleCustomRange', 'saleSumFrom', 'saleSumTo', (mode) => { salePeriodMode = mode; renderSaleSummary(); });
-wirePeriodChipGroup('custPeriodGroup', 'data-cperiod', 'custCustomRange', 'custSumFrom', 'custSumTo', (mode) => { custPeriodMode = mode; renderCustomerSummary(); });
 wirePeriodChipGroup('dataPeriodGroup', 'data-dperiod2', 'dataSumCustomRange', 'dataSumFrom', 'dataSumTo', (mode) => { dataSummaryPeriodMode = mode; renderDataSummary(); });
 
 let custPage = 1;
@@ -3339,6 +3357,7 @@ function renderCustomerList() {
   if (fMinPoints) rows = rows.filter(c => c.points >= fMinPoints);
   if (fLastFrom) rows = rows.filter(c => (c.lastDate || '') >= fLastFrom);
   if (fLastTo) rows = rows.filter(c => (c.lastDate || '') <= fLastTo);
+  if (customerQuickFilter) rows = rows.filter(c => customerMatchesQuickFilter(c, customerQuickFilter));
   rows.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
   const seqMap = customerSeqMap();
   const body = document.getElementById('custListBody');
@@ -3375,6 +3394,8 @@ document.getElementById('cfPhone').addEventListener('input', renderCustomerList)
 });
 document.getElementById('cfClear').addEventListener('click', () => {
   ['custSearch', 'cfName', 'cfPhone', 'cfMinVisits', 'cfMinPoints', 'cfLastFrom', 'cfLastTo'].forEach(id => document.getElementById(id).value = '');
+  customerQuickFilter = null;
+  document.querySelectorAll('[data-cs-filter]').forEach(c => c.classList.remove('active-filter'));
   renderCustomerList();
 });
 document.getElementById('cfToggle').addEventListener('click', () => {
@@ -4580,25 +4601,7 @@ function dashPeriodRange(mode) {
 
 function renderDashboardStats() {
   const { from, to } = dashPeriodRange(dashPeriodMode);
-  const dir = customerDirectory();
   const visitsInPeriod = allVisits.filter(v => v.date >= from && v.date <= to);
-
-  const totalVisitCount = {};
-  allVisits.forEach(v => {
-    const cid = v.customerId || v.phoneKey;
-    if (!cid) return;
-    totalVisitCount[cid] = (totalVisitCount[cid] || 0) + 1;
-  });
-  const custsInPeriod = new Set(visitsInPeriod.map(v => v.customerId || v.phoneKey).filter(Boolean));
-  let newCount = 0, repeatCount = 0;
-  custsInPeriod.forEach(cid => {
-    if ((totalVisitCount[cid] || 0) <= 1) newCount++; else repeatCount++;
-  });
-
-  document.getElementById('dTotalCust').textContent = dir.length;
-  document.getElementById('dNewCust').textContent = newCount;
-  document.getElementById('dRepeatCust').textContent = repeatCount;
-  document.getElementById('dVisits').textContent = visitsInPeriod.length;
 
   const salesRevenue = visitsInPeriod.reduce((s, v) => s + (Number(v.priceFinal) || 0), 0);
   const expensePeriod = allFinance.filter(f => f.type === 'expense' && f.date >= from && f.date <= to)
