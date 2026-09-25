@@ -1429,6 +1429,9 @@
       <h3 id="addUserTitle">Yeni istifadəçi əlavə et</h3>
       <div class="field"><label>Ad, soyad</label><input id="newUserName" type="text" autocomplete="off"></div>
       <div class="field"><label>Şifrə</label><input id="newUserPassword" type="text" autocomplete="off"></div>
+      <label class="perm-check" id="adminRoleField" style="display:none; margin-bottom:12px;">
+        <input type="checkbox" id="newUserIsAdmin"> Admin hüquqları (bütün bölmələrə tam giriş, digər istifadəçiləri idarə edə bilər)
+      </label>
       <div class="modal-actions">
         <button class="btn-ghost" id="addUserCancelBtn">Ləğv et</button>
         <div style="flex:1;"></div>
@@ -1846,6 +1849,14 @@ function startPermissionObserver() {
     document.getElementById('newUserName').value = u.name;
     document.getElementById('newUserPassword').value = u.password || '';
     document.getElementById('addUserMsg').className = 'save-msg';
+    const adminField = document.getElementById('adminRoleField');
+    const viewerIsAdmin = currentStaffUser && currentStaffUser.role === 'admin';
+    if (viewerIsAdmin) {
+      adminField.style.display = '';
+      document.getElementById('newUserIsAdmin').checked = u.role === 'admin';
+    } else {
+      adminField.style.display = 'none';
+    }
     document.getElementById('addUserOverlay').classList.add('show');
   }
 
@@ -1969,20 +1980,36 @@ function startPermissionObserver() {
       msg.className = 'save-msg show err';
       return;
     }
+    const viewerIsAdmin = currentStaffUser && currentStaffUser.role === 'admin';
+    const chosenRole = viewerIsAdmin
+      ? (document.getElementById('newUserIsAdmin').checked ? 'admin' : 'staff')
+      : null;
     try {
       if (editingUserId) {
-        await db.doc('staffUsers/' + editingUserId).update({ name, password });
+        const updateData = { name, password };
+        if (chosenRole) updateData.role = chosenRole;
+        await db.doc('staffUsers/' + editingUserId).update(updateData);
         const idx = allStaffUsers.findIndex(u => u.id === editingUserId);
-        if (idx >= 0) { allStaffUsers[idx].name = name; allStaffUsers[idx].password = password; }
+        if (idx >= 0) {
+          allStaffUsers[idx].name = name; allStaffUsers[idx].password = password;
+          if (chosenRole) allStaffUsers[idx].role = chosenRole;
+        }
         if (currentStaffUser && editingUserId === currentStaffUser.id) {
           currentStaffUser.name = name;
           currentStaffUser.password = password;
+          if (chosenRole) currentStaffUser.role = chosenRole;
           document.getElementById('userMenuName').textContent = name;
+          const isAdmin = currentStaffUser.role === 'admin';
+          document.getElementById('showUsersBtn').style.display = isAdmin ? '' : 'none';
+          document.getElementById('selfEditBtn').style.display = isAdmin ? 'none' : '';
+          applyTabVisibility();
+          applyPermissionVisibility();
         }
       } else {
         const defaultPerms = { edit: false, delete: false, customers: false, data: false, finance: false, loyalty: false, services: false };
-        const ref = await db.collection('staffUsers').add({ name, password, role: 'staff', permissions: defaultPerms, createdAt: new Date().toISOString() });
-        allStaffUsers.push({ id: ref.id, name, password, role: 'staff', permissions: defaultPerms });
+        const role = chosenRole || 'staff';
+        const ref = await db.collection('staffUsers').add({ name, password, role, permissions: defaultPerms, createdAt: new Date().toISOString() });
+        allStaffUsers.push({ id: ref.id, name, password, role, permissions: defaultPerms });
       }
       document.getElementById('addUserOverlay').classList.remove('show');
       if (document.getElementById('usersListOverlay').classList.contains('show')) renderUsersList();
