@@ -1586,8 +1586,17 @@
       </div>
 
       <div id="subStep2" style="display:none;">
-        <div class="lbl" style="font-weight:700; margin-bottom:8px;">Xidmətlər (aylıq say)</div>
+        <div class="field"><label>Avtomobil ölçüsü (əlavə xidmətlərin qiymətini təyin edir)</label>
+          <select id="subCarSize">
+            <option value="Sedan">Sedan</option>
+            <option value="SUV">SUV</option>
+            <option value="Böyük Avtomobil">Böyük Avtomobil</option>
+          </select>
+        </div>
+        <div class="lbl" style="font-weight:700; margin-bottom:8px;">Əsas xidmətlər (aylıq say)</div>
         <div id="subServiceList"></div>
+        <div class="lbl" style="font-weight:700; margin:14px 0 8px;">Əlavə xidmətlər (aylıq say)</div>
+        <div id="subAddonList"></div>
         <div class="row2" style="margin-top:14px;">
           <div class="field"><label>Endirim faizi (%)</label><input id="subDiscountPct" type="number" min="0" max="100" value="20"></div>
           <div class="field"><label>Başlanğıc tarixi</label><input id="subStartDate" type="date"></div>
@@ -4592,6 +4601,7 @@ document.getElementById('subChangeCustomerBtn').addEventListener('click', () => 
 document.getElementById('subCancelNewCustomerBtn').addEventListener('click', () => { subResetSelection(true); subCustSearch.focus(); });
 
 function subRenderServiceList(prefill) {
+  const carSize = document.getElementById('subCarSize').value || 'Sedan';
   const list = document.getElementById('subServiceList');
   list.innerHTML = CORE_SERVICES.map(s => {
     const pre = prefill ? prefill.find(x => x.serviceName === s.name) : null;
@@ -4601,12 +4611,28 @@ function subRenderServiceList(prefill) {
       <input type="number" class="subSvcQty" data-sname="${escapeHtml(s.name)}" min="0" value="${pre ? pre.qtyPerMonth : 0}" placeholder="Aylıq say">
     </div>`;
   }).join('');
-  list.querySelectorAll('.subSvcCk, .subSvcQty').forEach(el => {
+
+  const addonList = document.getElementById('subAddonList');
+  addonList.innerHTML = SIZE_ADDONS.map(a => {
+    const pre = prefill ? prefill.find(x => x.serviceName === a.label) : null;
+    const price = (a.prices && a.prices[carSize]) || 0;
+    return `
+    <div class="sub-svc-row">
+      <label class="sub-svc-check"><input type="checkbox" class="subSvcCk" data-sname="${escapeHtml(a.label)}" data-sprice="${price}" ${pre ? 'checked' : ''}> ${escapeHtml(a.label)} (${price} ₼/dəfə)</label>
+      <input type="number" class="subSvcQty" data-sname="${escapeHtml(a.label)}" min="0" value="${pre ? pre.qtyPerMonth : 0}" placeholder="Aylıq say">
+    </div>`;
+  }).join('');
+
+  document.querySelectorAll('#subServiceList .subSvcCk, #subServiceList .subSvcQty, #subAddonList .subSvcCk, #subAddonList .subSvcQty').forEach(el => {
     el.addEventListener('input', subRecalcPrice);
     el.addEventListener('change', subRecalcPrice);
   });
   subRecalcPrice();
 }
+document.getElementById('subCarSize').addEventListener('change', () => {
+  const selected = subSelectedServices();
+  subRenderServiceList(selected);
+});
 function subSelectedServices() {
   const rows = [];
   document.querySelectorAll('.subSvcCk').forEach(ck => {
@@ -4675,6 +4701,7 @@ function openNewSubModal() {
   subCustSearch.value = '';
   document.getElementById('subDiscountPct').value = 20;
   document.getElementById('subStartDate').value = todayStr();
+  document.getElementById('subCarSize').value = 'Sedan';
   subResetSelection(true);
   subRenderServiceList(null);
   subGoToStep1();
@@ -4722,6 +4749,7 @@ async function saveSubscription() {
 
     const data = {
       customerId, customerName, customerPhone,
+      carSize: document.getElementById('subCarSize').value || 'Sedan',
       services, discountPercent: discountPct,
       normalMonthlyPrice: normal, discountedMonthlyPrice: final,
       startDate, status: 'active',
@@ -4770,6 +4798,7 @@ function openEditSub(id) {
   document.getElementById('subNewCustomerBox').classList.remove('show');
   document.getElementById('subDiscountPct').value = s.discountPercent;
   document.getElementById('subStartDate').value = s.startDate;
+  document.getElementById('subCarSize').value = s.carSize || 'Sedan';
   document.getElementById('subMsg').className = 'save-msg';
   document.getElementById('newSubOverlay').classList.add('show');
   subGoToStep2();
@@ -4789,6 +4818,7 @@ function openSubDetail(id) {
   const rows = [
     ['Müştəri', s.customerName || '—'],
     ['Nömrə', formatPhoneAZ(s.customerPhone)],
+    ['Avtomobil ölçüsü', s.carSize || '—'],
     ['Xidmətlər', svcTxt || '—'],
     ['Normal aylıq qiymət', fmtAzn(s.normalMonthlyPrice) + ' ₼'],
     ['Endirim', s.discountPercent + '%'],
