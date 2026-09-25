@@ -403,6 +403,12 @@
 
   .sale-form { margin-top: 18px; display: none; }
   .sale-form.show { display: block; animation: fadeSlideUp .3s cubic-bezier(.2,.8,.2,1); }
+  .perm-check-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 8px; }
+  .perm-check {
+    display: flex; align-items: center; gap: 9px; font-size: 13.5px; font-weight: 600; color: var(--ink);
+    cursor: pointer;
+  }
+  .perm-check input[type="checkbox"] { width: 17px; height: 17px; accent-color: var(--teal); cursor: pointer; flex-shrink: 0; }
   .field { margin-bottom: 12px; }
   .field label { display: block; font-size: 12.5px; color: var(--ink-soft); margin-bottom: 5px; }
   .field input, .field select, .field textarea {
@@ -1395,6 +1401,28 @@
     </div>
   </div>
 
+  <div class="modal-overlay" id="permissionsOverlay">
+    <div class="modal-box">
+      <h3 id="permissionsTitle">İcazələr</h3>
+      <p class="desc" style="margin:0 0 10px;">Bu istifadəçinin daxil ola biləcəyi bölmələri və edə biləcəyi əməliyyatları seçin.</p>
+      <div class="perm-check-list">
+        <label class="perm-check"><input type="checkbox" id="permEdit"> Düzəliş (redaktə etmə)</label>
+        <label class="perm-check"><input type="checkbox" id="permDelete"> Silmək</label>
+        <label class="perm-check"><input type="checkbox" id="permCustomers"> Müştərilər bölməsi</label>
+        <label class="perm-check"><input type="checkbox" id="permData"> Data bölməsi</label>
+        <label class="perm-check"><input type="checkbox" id="permFinance"> Maliyyə bölməsi</label>
+        <label class="perm-check"><input type="checkbox" id="permLoyalty"> Loyallıq bölməsi</label>
+        <label class="perm-check"><input type="checkbox" id="permServices"> Xidmətlər bölməsi</label>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-ghost" id="permissionsCancelBtn">Ləğv et</button>
+        <div style="flex:1;"></div>
+        <button class="btn-ghost" id="permissionsSaveBtn">Yadda saxla</button>
+      </div>
+      <div class="save-msg" id="permissionsMsg"></div>
+    </div>
+  </div>
+
   <div class="modal-overlay" id="addUserOverlay">
     <div class="modal-box">
       <h3 id="addUserTitle">Yeni istifadəçi əlavə et</h3>
@@ -1646,6 +1674,44 @@
 <script>
 let allStaffUsers = [];
 let currentStaffUser = null;
+
+function hasPermission(key) {
+  if (!currentStaffUser) return false;
+  if (currentStaffUser.role === 'admin') return true;
+  const perms = currentStaffUser.permissions || {};
+  return !!perms[key];
+}
+
+const PERM_TAB_MAP = { customers: 'customers', data: 'data', finance: 'finance', loyalty: 'loyalty', services: 'services' };
+function applyTabVisibility() {
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    const tab = btn.dataset.tab;
+    if (tab === 'home' || tab === 'sale') { btn.style.display = ''; return; }
+    const key = PERM_TAB_MAP[tab];
+    if (!key) { btn.style.display = ''; return; }
+    btn.style.display = hasPermission(key) ? '' : 'none';
+  });
+}
+
+const PERM_EDIT_SELECTOR = '[data-sv-edit], [data-edit-cust], [data-fin-edit], [data-svc-edit], [data-edit-user]';
+const PERM_DELETE_SELECTOR = '[data-sv-del], [data-del-cust], [data-fin-del], [data-svc-del], [data-del-user]';
+function applyPermissionVisibility() {
+  if (!currentStaffUser) return;
+  const canEdit = hasPermission('edit');
+  const canDelete = hasPermission('delete');
+  document.querySelectorAll(PERM_EDIT_SELECTOR).forEach(el => { el.style.display = canEdit ? '' : 'none'; });
+  document.querySelectorAll(PERM_DELETE_SELECTOR).forEach(el => { el.style.display = canDelete ? '' : 'none'; });
+}
+let permObserverStarted = false;
+function startPermissionObserver() {
+  if (permObserverStarted) { applyPermissionVisibility(); return; }
+  permObserverStarted = true;
+  const root = document.getElementById('appRoot');
+  if (!root) return;
+  const observer = new MutationObserver(() => applyPermissionVisibility());
+  observer.observe(root, { childList: true, subtree: true });
+  applyPermissionVisibility();
+}
 (function () {
   const gate = document.getElementById('passGate');
   const root = document.getElementById('appRoot');
@@ -1661,9 +1727,16 @@ let currentStaffUser = null;
       allStaffUsers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       if (allStaffUsers.length === 0) {
         const ref = await db.collection('staffUsers').add({
-          name: 'Admin', password: STAFF_PASSCODE, createdAt: new Date().toISOString(),
+          name: 'Admin', password: STAFF_PASSCODE, role: 'admin', permissions: {}, createdAt: new Date().toISOString(),
         });
-        allStaffUsers = [{ id: ref.id, name: 'Admin', password: STAFF_PASSCODE }];
+        allStaffUsers = [{ id: ref.id, name: 'Admin', password: STAFF_PASSCODE, role: 'admin', permissions: {} }];
+      } else if (!allStaffUsers.some(u => u.role === 'admin')) {
+        // migration: legacy data with no role field yet — promote the original Admin user
+        const legacyAdmin = allStaffUsers.find(u => u.name === 'Admin') || allStaffUsers[0];
+        if (legacyAdmin) {
+          try { await db.doc('staffUsers/' + legacyAdmin.id).update({ role: 'admin' }); } catch (e) {}
+          legacyAdmin.role = 'admin';
+        }
       }
     } catch (e) { console.error(e); }
   }
@@ -1674,6 +1747,10 @@ let currentStaffUser = null;
     root.style.display = 'block';
     const nameEl = document.getElementById('userMenuName');
     if (nameEl && user) nameEl.textContent = user.name;
+    const isAdmin = user && user.role === 'admin';
+    document.getElementById('showUsersBtn').style.display = isAdmin ? '' : 'none';
+    applyTabVisibility();
+    startPermissionObserver();
   }
 
   async function init() {
@@ -1745,14 +1822,17 @@ let currentStaffUser = null;
         <div class="svc-icon">👤</div>
         <div class="svc-info">
           <div class="svc-name">${u.name}${currentStaffUser && u.id === currentStaffUser.id ? ' (siz)' : ''}</div>
+          <div class="svc-prices">${u.role === 'admin' ? 'Admin — bütün icazələr' : 'İşçi'}</div>
         </div>
         <div class="row-actions">
+          ${u.role === 'admin' ? '' : `<button class="icon-btn" data-perm-user="${u.id}" title="İcazə ver">${ICON_PERM}</button>`}
           <button class="icon-btn" data-edit-user="${u.id}" title="Redaktə et">${ICON_EDIT}</button>
           <button class="icon-btn danger" data-del-user="${u.id}" title="Sil">${ICON_TRASH}</button>
         </div>
       </div>`).join('');
     body.querySelectorAll('[data-edit-user]').forEach(b => b.addEventListener('click', () => openEditUser(b.getAttribute('data-edit-user'))));
     body.querySelectorAll('[data-del-user]').forEach(b => b.addEventListener('click', () => deleteUser(b.getAttribute('data-del-user'))));
+    body.querySelectorAll('[data-perm-user]').forEach(b => b.addEventListener('click', () => openPermissionsModal(b.getAttribute('data-perm-user'))));
   }
 
   function openEditUser(id) {
@@ -1789,6 +1869,57 @@ let currentStaffUser = null;
       alert('Xəta baş verdi, yenidən cəhd edin.');
     }
   }
+
+  let permEditingUserId = null;
+  function openPermissionsModal(id) {
+    const u = allStaffUsers.find(x => x.id === id);
+    if (!u) return;
+    permEditingUserId = id;
+    const p = u.permissions || {};
+    document.getElementById('permissionsTitle').textContent = `İcazələr — ${u.name}`;
+    document.getElementById('permEdit').checked = !!p.edit;
+    document.getElementById('permDelete').checked = !!p.delete;
+    document.getElementById('permCustomers').checked = !!p.customers;
+    document.getElementById('permData').checked = !!p.data;
+    document.getElementById('permFinance').checked = !!p.finance;
+    document.getElementById('permLoyalty').checked = !!p.loyalty;
+    document.getElementById('permServices').checked = !!p.services;
+    document.getElementById('permissionsMsg').className = 'save-msg';
+    document.getElementById('permissionsOverlay').classList.add('show');
+  }
+  document.getElementById('permissionsCancelBtn').addEventListener('click', () => {
+    document.getElementById('permissionsOverlay').classList.remove('show');
+  });
+  document.getElementById('permissionsOverlay').addEventListener('click', (e) => {
+    if (e.target.id === 'permissionsOverlay') document.getElementById('permissionsOverlay').classList.remove('show');
+  });
+  document.getElementById('permissionsSaveBtn').addEventListener('click', async () => {
+    if (!permEditingUserId || !db) return;
+    const msg = document.getElementById('permissionsMsg');
+    const permissions = {
+      edit: document.getElementById('permEdit').checked,
+      delete: document.getElementById('permDelete').checked,
+      customers: document.getElementById('permCustomers').checked,
+      data: document.getElementById('permData').checked,
+      finance: document.getElementById('permFinance').checked,
+      loyalty: document.getElementById('permLoyalty').checked,
+      services: document.getElementById('permServices').checked,
+    };
+    try {
+      await db.doc('staffUsers/' + permEditingUserId).update({ permissions });
+      const idx = allStaffUsers.findIndex(u => u.id === permEditingUserId);
+      if (idx >= 0) allStaffUsers[idx].permissions = permissions;
+      if (currentStaffUser && permEditingUserId === currentStaffUser.id) {
+        currentStaffUser.permissions = permissions;
+        applyTabVisibility();
+        applyPermissionVisibility();
+      }
+      document.getElementById('permissionsOverlay').classList.remove('show');
+    } catch (e) {
+      msg.textContent = 'Xəta baş verdi, yenidən cəhd edin.';
+      msg.className = 'save-msg show err';
+    }
+  });
 
   document.getElementById('showUsersBtn').addEventListener('click', () => {
     document.getElementById('userMenuDropdown').classList.remove('show');
@@ -1843,8 +1974,9 @@ let currentStaffUser = null;
           document.getElementById('userMenuName').textContent = name;
         }
       } else {
-        const ref = await db.collection('staffUsers').add({ name, password, createdAt: new Date().toISOString() });
-        allStaffUsers.push({ id: ref.id, name, password });
+        const defaultPerms = { edit: false, delete: false, customers: false, data: false, finance: false, loyalty: false, services: false };
+        const ref = await db.collection('staffUsers').add({ name, password, role: 'staff', permissions: defaultPerms, createdAt: new Date().toISOString() });
+        allStaffUsers.push({ id: ref.id, name, password, role: 'staff', permissions: defaultPerms });
       }
       document.getElementById('addUserOverlay').classList.remove('show');
       if (document.getElementById('usersListOverlay').classList.contains('show')) renderUsersList();
@@ -1920,6 +2052,7 @@ const ICON_WA_OUTLINE = '<svg width="14" height="14" viewBox="0 0 24 24" fill="n
 const ICON_EYE = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg>';
 const ICON_HISTORY = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v5h5"/><path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"/><path d="M12 7v5l4 2"/></svg>';
 const ICON_NOTE = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12h6"/><path d="M9 16h6"/><path d="M13 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8Z"/><path d="M13 3v5h5"/></svg>';
+const ICON_PERM = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/></svg>';
 
 document.getElementById('fDate').value = todayStr();
 
