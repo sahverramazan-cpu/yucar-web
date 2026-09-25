@@ -1379,7 +1379,7 @@
           <div class="field"><label>Vəziyyət</label>
             <select id="subFStatus">
               <option value="">Hamısı</option>
-              <option value="ontime">Vaxtında</option>
+              <option value="ontime">Bu gün</option>
               <option value="overdue">Gecikir</option>
             </select>
           </div>
@@ -4825,7 +4825,7 @@ function openSubDetail(id) {
     ['Endirimli aylıq qiymət', fmtAzn(s.discountedMonthlyPrice) + ' ₼'],
     ['Başlanğıc tarixi', fmtDate(s.startDate)],
     ['Növbəti ödəniş', fmtDate(st.nextPaymentDate)],
-    ['Vəziyyət', st.isOverdue ? `Gecikir (${st.overdueDays} gün)` : 'Vaxtında'],
+    ['Vəziyyət', st.isOverdue ? `Gecikir (${st.overdueDays} gün)` : 'Bu gün'],
   ];
   document.getElementById('subDetailRows').innerHTML = rows.map(([l, v]) =>
     `<div class="view-row"><span class="vl">${escapeHtml(l)}</span><span class="vv">${escapeHtml(String(v))}</span></div>`
@@ -4897,9 +4897,11 @@ function renderSubTab() {
       <td>${fmtAzn(s.discountedMonthlyPrice)} ₼</td>
       <td>${fmtDate(s.startDate)}</td>
       <td>${fmtDate(s.nextPaymentDate)}</td>
-      <td>${s.isOverdue ? `<span class="badge pts" style="background:#f6dcd4;color:#7a2e1a;">Gecikir (${s.overdueDays} gün)</span>` : '<span class="badge pts">Vaxtında</span>'}</td>
+      <td>${s.isOverdue ? `<span class="badge pts" style="background:#f6dcd4;color:#7a2e1a;">Gecikir (${s.overdueDays} gün)</span>` : '<span class="badge pts">Bu gün</span>'}</td>
       <td class="col-actions"><div class="row-actions">
         <button class="icon-btn" data-sub-view="${s.id}" title="Bax">${ICON_EYE}</button>
+        <button class="icon-btn" data-sub-note="${s.customerId}" title="Qeyd əlavə et">${ICON_NOTE}</button>
+        <button class="icon-btn" data-sub-wa="${s.customerId}" data-sub-wa-name="${escapeHtml(s.customerName || '')}" data-sub-wa-phone="${escapeHtml(s.customerPhone || '')}" title="WhatsApp-da yaz">${ICON_WA_OUTLINE}</button>
         <button class="icon-btn" data-sub-edit="${s.id}" title="Redaktə et">${ICON_EDIT}</button>
         <button class="icon-btn danger" data-sub-del="${s.id}" title="Sil">${ICON_TRASH}</button>
       </div></td>
@@ -4908,6 +4910,8 @@ function renderSubTab() {
   body.querySelectorAll('[data-sub-view]').forEach(b => b.addEventListener('click', () => openSubDetail(b.getAttribute('data-sub-view'))));
   body.querySelectorAll('[data-sub-edit]').forEach(b => b.addEventListener('click', () => openEditSub(b.getAttribute('data-sub-edit'))));
   body.querySelectorAll('[data-sub-del]').forEach(b => b.addEventListener('click', () => deleteSub(b.getAttribute('data-sub-del'))));
+  body.querySelectorAll('[data-sub-note]').forEach(b => b.addEventListener('click', () => openAddNoteModal(b.getAttribute('data-sub-note'))));
+  body.querySelectorAll('[data-sub-wa]').forEach(b => b.addEventListener('click', () => sendWaReminder(b.getAttribute('data-sub-wa'), b.getAttribute('data-sub-wa-name'), b.getAttribute('data-sub-wa-phone'))));
   renderPagination('subPagination', 'subTableBody', subPage, totalPages, (p) => { subPage = p; renderSubTab(); });
 }
 document.getElementById('subSearch').addEventListener('input', renderSubTab);
