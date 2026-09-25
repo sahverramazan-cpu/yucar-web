@@ -419,6 +419,11 @@
   .perm-table td:first-child { text-align: left; font-weight: 700; color: var(--ink); white-space: nowrap; }
   .perm-table input[type="checkbox"] { width: 17px; height: 17px; accent-color: var(--teal); cursor: pointer; }
   .perm-table .perm-na { color: var(--ink-faint); }
+  .sub-svc-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 9px 0; border-top: 1px solid var(--line); }
+  .sub-svc-row:first-of-type { border-top: none; }
+  .sub-svc-check { display: flex; align-items: center; gap: 8px; font-size: 13.5px; font-weight: 600; color: var(--ink); cursor: pointer; }
+  .sub-svc-check input[type="checkbox"] { width: 17px; height: 17px; accent-color: var(--teal); cursor: pointer; flex-shrink: 0; }
+  .subSvcQty { width: 74px; padding: 7px 9px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); font-family: inherit; font-size: 13px; flex-shrink: 0; }
   .field { margin-bottom: 12px; }
   .field label { display: block; font-size: 12.5px; color: var(--ink-soft); margin-bottom: 5px; }
   .field input, .field select, .field textarea {
@@ -1258,6 +1263,7 @@
     <div class="chip-group" id="loyDatasetGroup" style="margin-bottom:16px; width:fit-content;">
       <button class="chip active" data-loyds="points">Xallar</button>
       <button class="chip" data-loyds="reminders">Xatırlatma</button>
+      <button class="chip" data-loyds="subs">Abunəliklər</button>
     </div>
 
     <div class="dataset-view" id="loyds-points">
@@ -1349,6 +1355,62 @@
         </table>
       </div>
       <div class="pagination" id="reminderPagination"></div>
+    </div>
+    </div>
+
+    <div class="dataset-view" id="loyds-subs" style="display:none;">
+    <div class="panel">
+      <div class="panel-head-row">
+        <div>
+          <h2>Abunəliklər</h2>
+          <p class="desc">Aylıq təkrar xidmət paketi ilə müştərilərə endirim təklif edin.</p>
+        </div>
+        <button class="btn-add income" id="openNewSubBtn" style="width:auto;">+ Yeni abunəlik</button>
+      </div>
+      <input class="search-bar" id="subSearch" type="text" placeholder="Sərbəst axtarış: ad, nömrə…">
+      <button class="filter-toggle" id="subToggle">
+        <span>Ətraflı filtrlər</span>
+        <svg class="ft-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="filter-panel" id="subPanel">
+        <div class="row3">
+          <div class="field"><label>Ad, soyad</label><input id="subFName" type="text"></div>
+          <div class="field"><label>Nömrə</label><input id="subFPhone" type="text"></div>
+          <div class="field"><label>Vəziyyət</label>
+            <select id="subFStatus">
+              <option value="">Hamısı</option>
+              <option value="ontime">Vaxtında</option>
+              <option value="overdue">Gecikir</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn-ghost" id="subClear">Filtrləri təmizlə</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="chart-head">
+        <div>
+          <h2>Abunəlik xülasəsi</h2>
+          <p class="desc">Kartlara klikləyərək uyğun abunəçiləri aşağıda görün.</p>
+        </div>
+      </div>
+      <div class="stat-row">
+        <div class="stat-card clickable" data-sub-filter="all"><div class="v" id="subStatActive">—</div><div class="l">Aktiv abunəçi</div></div>
+        <div class="stat-card clickable" data-sub-filter="overdue"><div class="v" id="subStatOverdue">—</div><div class="l">Gecikən abunəçi</div></div>
+        <div class="stat-card"><div class="v" id="subStatMonthly">—</div><div class="l">Aylıq gözlənilən gəlir (₼)</div></div>
+        <div class="stat-card"><div class="v" id="subStatDiscount">—</div><div class="l">Aylıq verilən endirim (₼)</div></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>№</th><th>Ad, soyad</th><th>Nömrə</th><th>Xidmətlər</th><th>Aylıq qiymət</th><th>Başlanğıc</th><th>Növbəti ödəniş</th><th>Vəziyyət</th><th class="col-actions"></th></tr></thead>
+          <tbody id="subTableBody"><tr><td colspan="9" class="empty">Yüklənir…</td></tr></tbody>
+        </table>
+      </div>
+      <div class="pagination" id="subPagination"></div>
     </div>
     </div>
    </div>
@@ -1484,6 +1546,81 @@
         <button class="btn-ghost" id="waEditSaveBtn">Yadda saxla</button>
       </div>
       <div class="save-msg" id="waEditMsg"></div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="newSubOverlay">
+    <div class="modal-box" style="max-width: 640px; max-height: 94vh;">
+      <h2 style="margin-bottom:4px; font-size:18px;">Yeni abunəlik</h2>
+      <p class="desc" style="margin-bottom:12px; font-size:12.5px;" id="subStepDesc">Müştərini seçin — əvvəl gəlibsə siyahıdan seçin, yoxdursa yeni müştəri kimi əlavə edin.</p>
+
+      <div id="subStep1">
+        <div class="search-wrap">
+          <input id="subCustSearch" type="text" placeholder="Müştəri adını yazın…" autocomplete="off">
+          <div class="suggestions" id="subCustSuggestions"></div>
+        </div>
+        <div class="selected-customer" id="subSelectedCustomerBox">
+          <div class="head">
+            <div>
+              <div class="nm" id="subSelNm"></div>
+              <div class="metaline" id="subSelMeta"></div>
+            </div>
+            <button class="change-btn" id="subChangeCustomerBtn">Başqa müştəri seç</button>
+          </div>
+        </div>
+        <div class="new-customer-box" id="subNewCustomerBox">
+          <div class="lbl">Yeni müştəri məlumatları</div>
+          <div class="row2">
+            <div class="field"><label>Ad, soyad</label><input id="subNcName" type="text"></div>
+            <div class="field"><label>Ata adı</label><input id="subNcFatherName" type="text"></div>
+          </div>
+          <div class="field">
+            <label>Əlaqə nömrəsi</label>
+            <div class="phone-input">
+              <span class="phone-prefix">+994</span>
+              <input id="subNcPhone" type="tel" placeholder="50 123 45 67" inputmode="numeric" maxlength="15">
+            </div>
+          </div>
+          <button class="change-btn" id="subCancelNewCustomerBtn" style="margin-top:2px;">Ləğv et</button>
+        </div>
+      </div>
+
+      <div id="subStep2" style="display:none;">
+        <div class="lbl" style="font-weight:700; margin-bottom:8px;">Xidmətlər (aylıq say)</div>
+        <div id="subServiceList"></div>
+        <div class="row2" style="margin-top:14px;">
+          <div class="field"><label>Endirim faizi (%)</label><input id="subDiscountPct" type="number" min="0" max="100" value="20"></div>
+          <div class="field"><label>Başlanğıc tarixi</label><input id="subStartDate" type="date"></div>
+        </div>
+        <div class="fin-custom-range show" id="subPriceSummary" style="grid-template-columns: 1fr 1fr 1fr;">
+          <div class="field"><label>Normal aylıq qiymət</label><div class="stat-card" style="padding:9px 11px;"><div class="v" id="subNormalPrice" style="font-size:16px;">0 ₼</div></div></div>
+          <div class="field"><label>Endirim</label><div class="stat-card" style="padding:9px 11px;"><div class="v" id="subDiscountAmt" style="font-size:16px; color:var(--danger);">0 ₼</div></div></div>
+          <div class="field"><label>Endirimli aylıq qiymət</label><div class="stat-card" style="padding:9px 11px;"><div class="v" id="subFinalPrice" style="font-size:16px; color:var(--teal-deep);">0 ₼</div></div></div>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-ghost" id="subBackBtn" style="display:none;">← Geri</button>
+        <div style="flex:1;"></div>
+        <button class="btn-ghost" id="subSaveBtn" style="display:none;">Yadda saxla</button>
+        <button class="btn-primary" id="subNextBtn" style="width:auto; margin-top:0; display:none;">Növbəti addım →</button>
+      </div>
+      <div class="save-msg" id="subMsg"></div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="subDetailOverlay">
+    <div class="modal-box">
+      <h3>Abunəlik məlumatları</h3>
+      <div id="subDetailRows"></div>
+      <div class="view-notes-section">
+        <div class="view-notes-title">Ödəniş tarixçəsi</div>
+        <div id="subPaymentHistory"></div>
+      </div>
+      <div class="modal-actions">
+        <div style="flex:1;"></div>
+        <button class="btn-ghost" id="subDetailCloseBtn">Bağla</button>
+      </div>
     </div>
   </div>
 
@@ -1745,6 +1882,9 @@ const PERM_BUTTON_MAP = [
   { selector: '[data-fin-edit]', section: 'finance', action: 'edit' },
   { selector: '[data-fin-del]', section: 'finance', action: 'delete' },
   { selector: '#tab-loyalty [data-rem-note]', section: 'loyalty', action: 'add' },
+  { selector: '#openNewSubBtn', section: 'loyalty', action: 'add' },
+  { selector: '[data-sub-edit]', section: 'loyalty', action: 'edit' },
+  { selector: '[data-sub-del]', section: 'loyalty', action: 'delete' },
   { selector: '#tab-loyalty [data-edit-cust]', section: 'loyalty', action: 'edit' },
   { selector: '#tab-loyalty [data-del-cust]', section: 'loyalty', action: 'delete' },
   { selector: '#svcAddBtn', section: 'services', action: 'add' },
@@ -2104,6 +2244,7 @@ let allVisits = [];
 let allFinance = [];
 let allFinanceCategories = [];
 let allCustomerNotes = [];
+let allSubscriptions = [];
 let allCustomers = [];
 let selectedCustomerId = null; // for sale tab
 function pointsForVisit(v) { return v.paidWithPoints ? 0 : Math.round((Number(v.priceFinal) || 0) * 10); }
@@ -4287,6 +4428,7 @@ function renderActiveLoyaltyDataset() {
   const active = document.querySelector('#loyDatasetGroup .chip.active');
   const ds = active ? active.getAttribute('data-loyds') : 'points';
   if (ds === 'reminders') renderReminderTab();
+  else if (ds === 'subs') renderSubTab();
   else renderLoyaltyTab();
 }
 document.querySelectorAll('#loyDatasetGroup .chip').forEach(btn => {
@@ -4296,6 +4438,7 @@ document.querySelectorAll('#loyDatasetGroup .chip').forEach(btn => {
     const ds = btn.getAttribute('data-loyds');
     document.getElementById('loyds-points').style.display = ds === 'points' ? '' : 'none';
     document.getElementById('loyds-reminders').style.display = ds === 'reminders' ? '' : 'none';
+    document.getElementById('loyds-subs').style.display = ds === 'subs' ? '' : 'none';
     renderActiveLoyaltyDataset();
   });
 });
@@ -4367,6 +4510,398 @@ document.getElementById('remClear').addEventListener('click', () => {
 document.getElementById('remToggle').addEventListener('click', () => {
   document.getElementById('remPanel').classList.toggle('show');
   document.getElementById('remToggle').classList.toggle('open');
+});
+
+/* ---------- SUBSCRIPTIONS ---------- */
+let subSelectedCustomerId = null;
+let subEditingId = null;
+const subCustSearch = document.getElementById('subCustSearch');
+const subSuggBox = document.getElementById('subCustSuggestions');
+
+function subPositionSuggestions() {
+  const rect = subCustSearch.getBoundingClientRect();
+  subSuggBox.style.position = 'fixed';
+  subSuggBox.style.top = (rect.bottom + 6) + 'px';
+  subSuggBox.style.left = rect.left + 'px';
+  subSuggBox.style.width = rect.width + 'px';
+  subSuggBox.style.right = 'auto';
+}
+subCustSearch.addEventListener('input', () => {
+  const q = subCustSearch.value.trim().toLowerCase();
+  subResetSelection(false);
+  if (!q) { subSuggBox.classList.remove('show'); return; }
+  const dir = customerDirectory();
+  const matches = dir.filter(c => (c.name || '').toLowerCase().includes(q)).slice(0, 6);
+  let html = matches.map(c => {
+    const st = statsFor(c.id);
+    return `<div class="sug" data-id="${c.id}">
+      <div><div class="nm">${escapeHtml(c.name)}</div><div class="ph">${escapeHtml(formatPhoneAZ(c.phone))}</div></div>
+      <div class="cnt">${st.count} yuma</div>
+    </div>`;
+  }).join('');
+  html += `<div class="newrow" id="subCreateNewRow">+ "${escapeHtml(subCustSearch.value.trim())}" adında yeni müştəri yarat</div>`;
+  subSuggBox.innerHTML = html;
+  subPositionSuggestions();
+  subSuggBox.classList.add('show');
+  subSuggBox.querySelectorAll('.sug').forEach(el => {
+    el.addEventListener('click', () => subSelectCustomer(el.getAttribute('data-id')));
+  });
+  document.getElementById('subCreateNewRow').addEventListener('click', () => subStartNewCustomer(subCustSearch.value.trim()));
+});
+subCustSearch.addEventListener('focus', () => { if (subCustSearch.value.trim()) { subPositionSuggestions(); subSuggBox.classList.add('show'); } });
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('#newSubOverlay .search-wrap')) subSuggBox.classList.remove('show');
+});
+document.querySelector('#newSubOverlay .modal-box').addEventListener('scroll', () => {
+  if (subSuggBox.classList.contains('show')) subPositionSuggestions();
+});
+
+function subSelectCustomer(id) {
+  const dir = customerDirectory();
+  const c = dir.find(x => x.id === id);
+  if (!c) return;
+  subSelectedCustomerId = id;
+  subSuggBox.classList.remove('show');
+  document.getElementById('subNewCustomerBox').classList.remove('show');
+  const st = statsFor(id);
+  document.getElementById('subSelNm').textContent = c.name;
+  document.getElementById('subSelMeta').textContent =
+    st.count === 0 ? `${formatPhoneAZ(c.phone)} · yeni müştəri` :
+    `${formatPhoneAZ(c.phone)} · ${st.count} yuma edib · son yuma ${fmtDate(st.lastDate)}`;
+  document.getElementById('subSelectedCustomerBox').classList.add('show');
+  subCustSearch.value = c.name;
+}
+function subStartNewCustomer(typedName) {
+  subSelectedCustomerId = 'NEW';
+  subSuggBox.classList.remove('show');
+  document.getElementById('subSelectedCustomerBox').classList.remove('show');
+  document.getElementById('subNewCustomerBox').classList.add('show');
+  document.getElementById('subNcName').value = typedName || '';
+  document.getElementById('subNcFatherName').value = '';
+  document.getElementById('subNcPhone').value = '';
+}
+function subResetSelection(clearSearch) {
+  subSelectedCustomerId = null;
+  document.getElementById('subSelectedCustomerBox').classList.remove('show');
+  document.getElementById('subNewCustomerBox').classList.remove('show');
+  document.getElementById('subNcPhone').value = '';
+  document.getElementById('subNcFatherName').value = '';
+  if (clearSearch) subCustSearch.value = '';
+}
+document.getElementById('subChangeCustomerBtn').addEventListener('click', () => { subResetSelection(true); subCustSearch.focus(); });
+document.getElementById('subCancelNewCustomerBtn').addEventListener('click', () => { subResetSelection(true); subCustSearch.focus(); });
+
+function subRenderServiceList(prefill) {
+  const list = document.getElementById('subServiceList');
+  list.innerHTML = CORE_SERVICES.map(s => {
+    const pre = prefill ? prefill.find(x => x.serviceName === s.name) : null;
+    return `
+    <div class="sub-svc-row">
+      <label class="sub-svc-check"><input type="checkbox" class="subSvcCk" data-sname="${escapeHtml(s.name)}" data-sprice="${s.price}" ${pre ? 'checked' : ''}> ${escapeHtml(s.name)} (${s.price} ₼/dəfə)</label>
+      <input type="number" class="subSvcQty" data-sname="${escapeHtml(s.name)}" min="0" value="${pre ? pre.qtyPerMonth : 0}" placeholder="Aylıq say">
+    </div>`;
+  }).join('');
+  list.querySelectorAll('.subSvcCk, .subSvcQty').forEach(el => {
+    el.addEventListener('input', subRecalcPrice);
+    el.addEventListener('change', subRecalcPrice);
+  });
+  subRecalcPrice();
+}
+function subSelectedServices() {
+  const rows = [];
+  document.querySelectorAll('.subSvcCk').forEach(ck => {
+    const qtyEl = document.querySelector(`.subSvcQty[data-sname="${CSS.escape(ck.getAttribute('data-sname'))}"]`);
+    const qty = qtyEl ? (parseInt(qtyEl.value) || 0) : 0;
+    if (ck.checked && qty > 0) {
+      rows.push({ serviceName: ck.getAttribute('data-sname'), unitPrice: parseFloat(ck.getAttribute('data-sprice')) || 0, qtyPerMonth: qty });
+    }
+  });
+  return rows;
+}
+function subRecalcPrice() {
+  const services = subSelectedServices();
+  const normal = services.reduce((s, x) => s + x.unitPrice * x.qtyPerMonth, 0);
+  const discountPct = parseFloat(document.getElementById('subDiscountPct').value) || 0;
+  const discountAmt = Math.round(normal * (discountPct / 100) * 100) / 100;
+  const final = Math.round((normal - discountAmt) * 100) / 100;
+  document.getElementById('subNormalPrice').textContent = fmtAzn(normal) + ' ₼';
+  document.getElementById('subDiscountAmt').textContent = fmtAzn(discountAmt) + ' ₼';
+  document.getElementById('subFinalPrice').textContent = fmtAzn(final) + ' ₼';
+  return { normal, discountAmt, final };
+}
+document.getElementById('subDiscountPct').addEventListener('input', subRecalcPrice);
+
+function subGoToStep2() {
+  if (!subEditingId) {
+    if (!subSelectedCustomerId) {
+      document.getElementById('subMsg').textContent = 'Müştəri seçin və ya yeni müştəri yaradın.';
+      document.getElementById('subMsg').className = 'save-msg show err';
+      return;
+    }
+    if (subSelectedCustomerId === 'NEW') {
+      const name = document.getElementById('subNcName').value.trim();
+      const fatherName = document.getElementById('subNcFatherName').value.trim();
+      const phoneDigits = digitsOnlyLocal(document.getElementById('subNcPhone').value);
+      if (!name || !fatherName || phoneDigits.length !== 9) {
+        document.getElementById('subMsg').textContent = 'Ad, soyad, ata adı daxil edin və nömrəni tam yazın (9 rəqəm).';
+        document.getElementById('subMsg').className = 'save-msg show err';
+        return;
+      }
+    }
+  }
+  document.getElementById('subMsg').className = 'save-msg';
+  document.getElementById('subStep1').style.display = 'none';
+  document.getElementById('subStep2').style.display = '';
+  document.getElementById('subStepDesc').textContent = 'Xidmətləri, endirim faizini və başlanğıc tarixini seçin.';
+  document.getElementById('subBackBtn').style.display = '';
+  document.getElementById('subSaveBtn').style.display = '';
+  document.getElementById('subNextBtn').style.display = 'none';
+  if (!document.getElementById('subStartDate').value) document.getElementById('subStartDate').value = todayStr();
+}
+function subGoToStep1() {
+  document.getElementById('subStep1').style.display = '';
+  document.getElementById('subStep2').style.display = 'none';
+  document.getElementById('subStepDesc').textContent = 'Müştərini seçin — əvvəl gəlibsə siyahıdan seçin, yoxdursa yeni müştəri kimi əlavə edin.';
+  document.getElementById('subBackBtn').style.display = 'none';
+  document.getElementById('subSaveBtn').style.display = 'none';
+  document.getElementById('subNextBtn').style.display = '';
+}
+document.getElementById('subNextBtn').addEventListener('click', subGoToStep2);
+document.getElementById('subBackBtn').addEventListener('click', subGoToStep1);
+
+function openNewSubModal() {
+  subEditingId = null;
+  subSelectedCustomerId = null;
+  subCustSearch.value = '';
+  document.getElementById('subDiscountPct').value = 20;
+  document.getElementById('subStartDate').value = todayStr();
+  subResetSelection(true);
+  subRenderServiceList(null);
+  subGoToStep1();
+  document.getElementById('subMsg').className = 'save-msg';
+  document.getElementById('newSubOverlay').classList.add('show');
+  setTimeout(() => subCustSearch.focus(), 50);
+}
+document.getElementById('openNewSubBtn').addEventListener('click', openNewSubModal);
+
+async function saveSubscription() {
+  const msg = document.getElementById('subMsg');
+  const services = subSelectedServices();
+  if (services.length === 0) { msg.textContent = 'Ən azı bir xidmət seçin və aylıq say daxil edin.'; msg.className = 'save-msg show err'; return; }
+  const startDate = document.getElementById('subStartDate').value || todayStr();
+  const discountPct = parseFloat(document.getElementById('subDiscountPct').value) || 0;
+  const { normal, final } = subRecalcPrice();
+
+  const btn = document.getElementById('subSaveBtn');
+  btn.disabled = true; btn.textContent = 'Saxlanılır…';
+  try {
+    let customerId = subEditingId ? allSubscriptions.find(s => s.id === subEditingId).customerId : subSelectedCustomerId;
+    let customerName, customerPhone;
+
+    if (!subEditingId && subSelectedCustomerId === 'NEW') {
+      customerName = document.getElementById('subNcName').value.trim();
+      const fatherName = document.getElementById('subNcFatherName').value.trim();
+      const key = digitsOnlyLocal(document.getElementById('subNcPhone').value);
+      customerPhone = formatPhoneAZ(key);
+      customerId = key;
+      const existing = customerDirectory().find(c => c.id === key);
+      if (!existing) {
+        await db.doc('customers/' + key).set({
+          name: customerName, fatherName, phone: customerPhone, location: '',
+          nameLower: normalizeName(customerName), password: generateCustomerPassword(),
+          createdAt: new Date().toISOString(),
+        });
+      } else {
+        customerName = existing.name; customerPhone = existing.phone;
+      }
+    } else {
+      const c = customerDirectory().find(x => x.id === customerId);
+      if (!c) { msg.textContent = 'Müştəri tapılmadı.'; msg.className = 'save-msg show err'; btn.disabled = false; btn.textContent = 'Yadda saxla'; return; }
+      customerName = c.name; customerPhone = c.phone;
+    }
+
+    const data = {
+      customerId, customerName, customerPhone,
+      services, discountPercent: discountPct,
+      normalMonthlyPrice: normal, discountedMonthlyPrice: final,
+      startDate, status: 'active',
+    };
+    if (subEditingId) {
+      await db.doc('subscriptions/' + subEditingId).update(data);
+    } else {
+      data.createdAt = new Date().toISOString();
+      await db.collection('subscriptions').add(data);
+    }
+    document.getElementById('newSubOverlay').classList.remove('show');
+  } catch (e) {
+    msg.textContent = 'Xəta baş verdi, yenidən cəhd edin.';
+    msg.className = 'save-msg show err';
+  } finally {
+    btn.disabled = false; btn.textContent = 'Yadda saxla';
+  }
+}
+document.getElementById('subSaveBtn').addEventListener('click', saveSubscription);
+
+function subscriptionStatus(sub) {
+  const cName = (sub.customerName || '').toLowerCase().trim();
+  const payments = allFinance.filter(f => f.type === 'income' && f.category === 'Abunə ödənişi' &&
+    (f.person || '').toLowerCase().trim() === cName && (f.date || '') >= sub.startDate)
+    .sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+  const paymentsMade = payments.length;
+  const start = new Date(sub.startDate + 'T00:00:00');
+  const nextDate = new Date(start);
+  nextDate.setMonth(nextDate.getMonth() + paymentsMade);
+  const nextPaymentDate = localDateStr(nextDate);
+  const today = new Date(todayStr() + 'T00:00:00');
+  const overdueDays = Math.floor((today - nextDate) / 86400000);
+  const isOverdue = overdueDays > 0;
+  return { payments, paymentsMade, nextPaymentDate, overdueDays: Math.max(overdueDays, 0), isOverdue };
+}
+
+function openEditSub(id) {
+  const s = allSubscriptions.find(x => x.id === id);
+  if (!s) return;
+  subEditingId = id;
+  subSelectedCustomerId = s.customerId;
+  subCustSearch.value = s.customerName || '';
+  document.getElementById('subSelNm').textContent = s.customerName || '';
+  document.getElementById('subSelMeta').textContent = formatPhoneAZ(s.customerPhone);
+  document.getElementById('subSelectedCustomerBox').classList.add('show');
+  document.getElementById('subNewCustomerBox').classList.remove('show');
+  document.getElementById('subDiscountPct').value = s.discountPercent;
+  document.getElementById('subStartDate').value = s.startDate;
+  document.getElementById('subMsg').className = 'save-msg';
+  document.getElementById('newSubOverlay').classList.add('show');
+  subGoToStep2();
+  subRenderServiceList(s.services);
+}
+
+async function deleteSub(id) {
+  if (!confirm('Bu abunəliyi silmək istədiyinizə əminsiniz?')) return;
+  try { await db.doc('subscriptions/' + id).delete(); } catch (e) { alert('Xəta baş verdi.'); }
+}
+
+function openSubDetail(id) {
+  const s = allSubscriptions.find(x => x.id === id);
+  if (!s) return;
+  const st = subscriptionStatus(s);
+  const svcTxt = (s.services || []).map(x => `${x.qtyPerMonth}x ${x.serviceName}`).join(', ');
+  const rows = [
+    ['Müştəri', s.customerName || '—'],
+    ['Nömrə', formatPhoneAZ(s.customerPhone)],
+    ['Xidmətlər', svcTxt || '—'],
+    ['Normal aylıq qiymət', fmtAzn(s.normalMonthlyPrice) + ' ₼'],
+    ['Endirim', s.discountPercent + '%'],
+    ['Endirimli aylıq qiymət', fmtAzn(s.discountedMonthlyPrice) + ' ₼'],
+    ['Başlanğıc tarixi', fmtDate(s.startDate)],
+    ['Növbəti ödəniş', fmtDate(st.nextPaymentDate)],
+    ['Vəziyyət', st.isOverdue ? `Gecikir (${st.overdueDays} gün)` : 'Vaxtında'],
+  ];
+  document.getElementById('subDetailRows').innerHTML = rows.map(([l, v]) =>
+    `<div class="view-row"><span class="vl">${escapeHtml(l)}</span><span class="vv">${escapeHtml(String(v))}</span></div>`
+  ).join('');
+  const histBody = document.getElementById('subPaymentHistory');
+  if (st.payments.length === 0) {
+    histBody.innerHTML = '<div class="empty">Hələ ödəniş qeydə alınmayıb.</div>';
+  } else {
+    histBody.innerHTML = st.payments.slice().reverse().map(p => `
+      <div class="view-note-item">
+        <div class="view-note-date">${fmtDate(p.date)}</div>
+        <div class="view-note-text">${fmtAzn(p.amount)} ₼</div>
+      </div>`).join('');
+  }
+  document.getElementById('subDetailOverlay').classList.add('show');
+}
+document.getElementById('subDetailCloseBtn').addEventListener('click', () => {
+  document.getElementById('subDetailOverlay').classList.remove('show');
+});
+document.getElementById('subDetailOverlay').addEventListener('click', (e) => {
+  if (e.target.id === 'subDetailOverlay') document.getElementById('subDetailOverlay').classList.remove('show');
+});
+
+let subPage = 1;
+let subQuickFilter = null;
+function renderSubTab() {
+  const qRaw = (document.getElementById('subSearch').value || '').toLowerCase().trim();
+  const qDigits = normPhone(qRaw);
+  const fName = (document.getElementById('subFName').value || '').toLowerCase().trim();
+  const fPhone = normPhone(document.getElementById('subFPhone').value || '');
+  const fStatus = document.getElementById('subFStatus').value;
+
+  const withStatus = allSubscriptions.map(s => ({ ...s, ...subscriptionStatus(s) }));
+  let rows = withStatus;
+  if (qRaw) rows = rows.filter(s => (s.customerName || '').toLowerCase().includes(qRaw) || (qDigits && normPhone(s.customerPhone).includes(qDigits)));
+  if (fName) rows = rows.filter(s => (s.customerName || '').toLowerCase().includes(fName));
+  if (fPhone) rows = rows.filter(s => normPhone(s.customerPhone).includes(fPhone));
+  if (fStatus === 'overdue') rows = rows.filter(s => s.isOverdue);
+  if (fStatus === 'ontime') rows = rows.filter(s => !s.isOverdue);
+  if (subQuickFilter === 'overdue') rows = rows.filter(s => s.isOverdue);
+
+  const totalMonthly = allSubscriptions.reduce((s, x) => s + (Number(x.discountedMonthlyPrice) || 0), 0);
+  const totalDiscount = allSubscriptions.reduce((s, x) => s + ((Number(x.normalMonthlyPrice) || 0) - (Number(x.discountedMonthlyPrice) || 0)), 0);
+  const overdueCount = withStatus.filter(s => s.isOverdue).length;
+  document.getElementById('subStatActive').textContent = allSubscriptions.length;
+  document.getElementById('subStatOverdue').textContent = overdueCount;
+  document.getElementById('subStatMonthly').textContent = fmtAzn(totalMonthly);
+  document.getElementById('subStatDiscount').textContent = fmtAzn(totalDiscount);
+
+  rows.sort((a, b) => (b.isOverdue - a.isOverdue) || (b.overdueDays - a.overdueDays));
+  const body = document.getElementById('subTableBody');
+  const totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
+  if (subPage > totalPages) subPage = totalPages;
+  if (subPage < 1) subPage = 1;
+  if (rows.length === 0) {
+    body.innerHTML = '<tr><td colspan="9" class="empty">Abunəlik tapılmadı.</td></tr>';
+    document.getElementById('subPagination').innerHTML = '';
+    return;
+  }
+  const startIdx = (subPage - 1) * PAGE_SIZE;
+  body.innerHTML = rows.slice(startIdx, startIdx + PAGE_SIZE).map((s, i) => {
+    const svcTxt = (s.services || []).map(x => `${x.qtyPerMonth}x ${x.serviceName}`).join(', ');
+    return `
+    <tr class="data-row">
+      <td>#${startIdx + i + 1}</td>
+      <td>${escapeHtml(s.customerName || '—')}</td>
+      <td>${escapeHtml(formatPhoneAZ(s.customerPhone))}</td>
+      <td>${escapeHtml(svcTxt || '—')}</td>
+      <td>${fmtAzn(s.discountedMonthlyPrice)} ₼</td>
+      <td>${fmtDate(s.startDate)}</td>
+      <td>${fmtDate(s.nextPaymentDate)}</td>
+      <td>${s.isOverdue ? `<span class="badge pts" style="background:#f6dcd4;color:#7a2e1a;">Gecikir (${s.overdueDays} gün)</span>` : '<span class="badge pts">Vaxtında</span>'}</td>
+      <td class="col-actions"><div class="row-actions">
+        <button class="icon-btn" data-sub-view="${s.id}" title="Bax">${ICON_EYE}</button>
+        <button class="icon-btn" data-sub-edit="${s.id}" title="Redaktə et">${ICON_EDIT}</button>
+        <button class="icon-btn danger" data-sub-del="${s.id}" title="Sil">${ICON_TRASH}</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+  body.querySelectorAll('[data-sub-view]').forEach(b => b.addEventListener('click', () => openSubDetail(b.getAttribute('data-sub-view'))));
+  body.querySelectorAll('[data-sub-edit]').forEach(b => b.addEventListener('click', () => openEditSub(b.getAttribute('data-sub-edit'))));
+  body.querySelectorAll('[data-sub-del]').forEach(b => b.addEventListener('click', () => deleteSub(b.getAttribute('data-sub-del'))));
+  renderPagination('subPagination', 'subTableBody', subPage, totalPages, (p) => { subPage = p; renderSubTab(); });
+}
+document.getElementById('subSearch').addEventListener('input', renderSubTab);
+document.getElementById('subFName').addEventListener('input', renderSubTab);
+document.getElementById('subFPhone').addEventListener('input', renderSubTab);
+document.getElementById('subFStatus').addEventListener('change', renderSubTab);
+document.getElementById('subClear').addEventListener('click', () => {
+  ['subSearch', 'subFName', 'subFPhone'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('subFStatus').value = '';
+  renderSubTab();
+});
+document.getElementById('subToggle').addEventListener('click', () => {
+  document.getElementById('subPanel').classList.toggle('show');
+  document.getElementById('subToggle').classList.toggle('open');
+});
+document.querySelectorAll('[data-sub-filter]').forEach(card => {
+  card.addEventListener('click', () => {
+    const key = card.getAttribute('data-sub-filter');
+    subQuickFilter = (subQuickFilter === key) ? null : key;
+    document.querySelectorAll('[data-sub-filter]').forEach(c => c.classList.remove('active-filter'));
+    if (subQuickFilter) card.classList.add('active-filter');
+    subPage = 1;
+    renderSubTab();
+  });
 });
 
 /* ---------- SERVICES TAB ---------- */
@@ -4866,6 +5401,11 @@ function init() {
     snap => { allCustomerNotes = snap.docs.map(d => ({ id: d.id, ...d.data() })); renderAll(); },
     (e) => console.error(e)
   );
+  db.collection('subscriptions').limit(1000).onSnapshot(
+    snap => { allSubscriptions = snap.docs.map(d => ({ id: d.id, ...d.data() })); renderAll(); },
+    (e) => console.error(e)
+  );
+  seedSubscriptionCategoryIfMissing();
   db.collection('services').limit(500).onSnapshot(
     snap => {
       allServices = snap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -4875,6 +5415,15 @@ function init() {
     (e) => console.error(e)
   );
 }
+async function seedSubscriptionCategoryIfMissing() {
+  try {
+    const snap = await db.collection('financeCategories').where('name', '==', 'Abunə ödənişi').limit(1).get();
+    if (snap.empty) {
+      await db.collection('financeCategories').add({ name: 'Abunə ödənişi', type: 'income', createdAt: new Date().toISOString() });
+    }
+  } catch (e) { /* non-fatal */ }
+}
+
 async function seedServicesIfEmpty() {
   try {
     const snap = await db.collection('services').limit(1).get();
