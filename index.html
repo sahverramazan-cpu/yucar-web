@@ -659,6 +659,7 @@
         <div class="user-menu-dropdown" id="userMenuDropdown">
           <div class="user-menu-name" id="userMenuName">—</div>
           <button class="user-menu-item" id="showUsersBtn">İstifadəçilər</button>
+          <button class="user-menu-item" id="selfEditBtn">Ad və şifrəni dəyiş</button>
           <button class="user-menu-item danger" id="staffLogoutBtn">Çıxış</button>
         </div>
       </div>
@@ -1749,6 +1750,7 @@ function startPermissionObserver() {
     if (nameEl && user) nameEl.textContent = user.name;
     const isAdmin = user && user.role === 'admin';
     document.getElementById('showUsersBtn').style.display = isAdmin ? '' : 'none';
+    document.getElementById('selfEditBtn').style.display = isAdmin ? 'none' : '';
     applyTabVisibility();
     startPermissionObserver();
   }
@@ -1925,6 +1927,10 @@ function startPermissionObserver() {
     document.getElementById('userMenuDropdown').classList.remove('show');
     renderUsersList();
     document.getElementById('usersListOverlay').classList.add('show');
+  });
+  document.getElementById('selfEditBtn').addEventListener('click', () => {
+    document.getElementById('userMenuDropdown').classList.remove('show');
+    if (currentStaffUser) openEditUser(currentStaffUser.id);
   });
   document.getElementById('usersListCloseBtn').addEventListener('click', () => {
     document.getElementById('usersListOverlay').classList.remove('show');
