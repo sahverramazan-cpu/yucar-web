@@ -1519,7 +1519,6 @@
     <div class="modal-box">
       <h3 id="svcModalTitle">Yeni xidmət</h3>
       <div class="field"><label>Ad</label><input id="svcName" type="text"></div>
-      <div class="field"><label>İkon (emoji)</label><input id="svcIcon" type="text" placeholder="Məs. 🚗" maxlength="4"></div>
       <div class="field" id="svcFlatPriceField"><label>Qiymət (₼)</label><input id="svcFlatPrice" type="number" step="0.01"></div>
       <div class="field" id="svcPricingModeField" style="display:none;">
         <label>Qiymətləndirmə növü</label>
@@ -2307,7 +2306,7 @@ function rebuildServiceCatalog() {
   const packages = allServices.filter(s => s.type === 'package').sort((a, b) => (a.order || 0) - (b.order || 0));
   if (cores.length === 0 && addons.length === 0 && packages.length === 0) return;
 
-  CORE_SERVICES = cores.map(c => ({ id: c.id, name: c.name, icon: c.icon || '🚗', price: Number(c.price) || 0, order: c.order || 0 }));
+  CORE_SERVICES = cores.map(c => ({ id: c.id, name: c.name, price: Number(c.price) || 0, order: c.order || 0 }));
   PACKAGE_SERVICES = packages;
   ADDON_SERVICES = addons;
 
@@ -2335,7 +2334,7 @@ function rebuildServiceCatalog() {
 
 function serviceOptionsHtml(selectedValue) {
   return '<option value="">Seçin</option>' + CORE_SERVICES.map(c =>
-    `<option value="${escapeHtml(c.name)}"${c.name === selectedValue ? ' selected' : ''}>${c.icon || ''} ${escapeHtml(c.name)} — ${c.price} AZN</option>`
+    `<option value="${escapeHtml(c.name)}"${c.name === selectedValue ? ' selected' : ''}>${escapeHtml(c.name)} — ${c.price} AZN</option>`
   ).join('');
 }
 function serviceFilterOptionsHtml() {
@@ -4383,7 +4382,6 @@ function renderServicesTab() {
     }
     return `
       <div class="svc-item">
-        <div class="svc-icon">${s.icon || '🔧'}</div>
         <div class="svc-info">
           <div class="svc-name">${escapeHtml(s.name || '—')}</div>
           <div class="svc-prices">${escapeHtml(priceTxt || '—')}</div>
@@ -4434,7 +4432,6 @@ function openServiceModal(id) {
   const s = id ? allServices.find(x => x.id === id) : null;
   document.getElementById('svcModalTitle').textContent = id ? 'Xidməti redaktə et' : 'Yeni xidmət';
   document.getElementById('svcName').value = s ? s.name : '';
-  document.getElementById('svcIcon').value = s ? (s.icon || '') : '';
 
   const flatField = document.getElementById('svcFlatPriceField');
   const modeField = document.getElementById('svcPricingModeField');
@@ -4505,10 +4502,9 @@ document.getElementById('svcModalOverlay').addEventListener('click', (e) => {
 async function saveService() {
   const msg = document.getElementById('svcMsg');
   const name = document.getElementById('svcName').value.trim();
-  const icon = document.getElementById('svcIcon').value.trim();
   if (!name) { msg.textContent = 'Ad daxil edin.'; msg.className = 'save-msg show err'; return; }
 
-  const data = { type: svcCategory, name, icon };
+  const data = { type: svcCategory, name };
   if (svcCategory === 'addon') {
     const mode = document.getElementById('svcPricingMode').value;
     data.pricingMode = mode;

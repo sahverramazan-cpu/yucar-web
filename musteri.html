@@ -813,7 +813,7 @@ function rebuildServiceCatalog() {
   const addons = allServices.filter(s => s.type === 'addon').sort((a, b) => (a.order || 0) - (b.order || 0));
   if (cores.length === 0 && addons.length === 0) return;
 
-  CORE_SERVICES = cores.map(c => ({ id: c.id, name: c.name, icon: c.icon || '🚗', price: Number(c.price) || 0, order: c.order || 0 }));
+  CORE_SERVICES = cores.map(c => ({ id: c.id, name: c.name, price: Number(c.price) || 0, order: c.order || 0 }));
 
   PACKAGE_PRICES = {};
   CORE_SERVICES.forEach(c => { PACKAGE_PRICES[c.name] = c.price; });
@@ -843,7 +843,7 @@ function rebuildServiceCatalog() {
 
 function ordServiceOptionsHtml(selectedValue) {
   return '<option value="">Seçin</option>' + CORE_SERVICES.map(c =>
-    `<option value="${escapeHtml(c.name)}"${c.name === selectedValue ? ' selected' : ''}>${c.icon || ''} ${escapeHtml(c.name)} — ${c.price} AZN</option>`
+    `<option value="${escapeHtml(c.name)}"${c.name === selectedValue ? ' selected' : ''}>${escapeHtml(c.name)} — ${c.price} AZN</option>`
   ).join('');
 }
 function ordAddonGroupHtml() {
