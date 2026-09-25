@@ -120,6 +120,22 @@
   }
   .user-menu-item:hover { background: var(--surface-2); color: var(--ink); }
   .user-menu-item.danger:hover { background: #fbeae6; color: var(--danger); }
+  .kebab-btn { transform: none; }
+  .kebab-menu {
+    position: fixed; z-index: 90; background: var(--surface); border: 1px solid var(--line);
+    border-radius: 14px; box-shadow: 0 12px 30px rgba(16,34,31,0.18); padding: 6px; min-width: 180px;
+    animation: fadeSlideDown .15s ease;
+  }
+  .kebab-menu-item {
+    display: flex; align-items: center; gap: 9px; width: 100%; text-align: left; font-family: inherit;
+    font-size: 13px; font-weight: 600; color: var(--ink-soft);
+    padding: 8px 10px; border-radius: 9px; border: none; background: transparent;
+    cursor: pointer; transition: background .15s ease, color .15s ease;
+  }
+  .kebab-menu-item svg { flex-shrink: 0; }
+  .kebab-menu-item:hover { background: var(--surface-2); color: var(--ink); }
+  .kebab-menu-item.danger { color: var(--danger); }
+  .kebab-menu-item.danger:hover { background: #fbeae6; }
 
   .topbar-nav { display: flex; gap: 3px; flex: 1; overflow-x: auto; min-width: 0; }
   .topbar-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; margin-left: auto; }
@@ -1879,26 +1895,11 @@ function applyTabVisibility() {
 
 const PERM_BUTTON_MAP = [
   { selector: '#openNewSaleBtn', section: 'sale', action: 'add' },
-  { selector: '#tab-sale [data-sv-edit]', section: 'sale', action: 'edit' },
-  { selector: '#tab-sale [data-sv-del]', section: 'sale', action: 'delete' },
   { selector: '#addCustomerBtn', section: 'customers', action: 'add' },
-  { selector: '#tab-customers [data-edit-cust]', section: 'customers', action: 'edit' },
-  { selector: '#tab-customers [data-del-cust]', section: 'customers', action: 'delete' },
-  { selector: '#tab-data [data-edit-cust]', section: 'data', action: 'edit' },
-  { selector: '#tab-data [data-del-cust]', section: 'data', action: 'delete' },
   { selector: '#addIncomeBtn', section: 'finance', action: 'add' },
   { selector: '#addExpenseBtn', section: 'finance', action: 'add' },
-  { selector: '[data-fin-edit]', section: 'finance', action: 'edit' },
-  { selector: '[data-fin-del]', section: 'finance', action: 'delete' },
-  { selector: '#tab-loyalty [data-rem-note]', section: 'loyalty', action: 'add' },
   { selector: '#openNewSubBtn', section: 'loyalty', action: 'add' },
-  { selector: '[data-sub-edit]', section: 'loyalty', action: 'edit' },
-  { selector: '[data-sub-del]', section: 'loyalty', action: 'delete' },
-  { selector: '#tab-loyalty [data-edit-cust]', section: 'loyalty', action: 'edit' },
-  { selector: '#tab-loyalty [data-del-cust]', section: 'loyalty', action: 'delete' },
   { selector: '#svcAddBtn', section: 'services', action: 'add' },
-  { selector: '[data-svc-edit]', section: 'services', action: 'edit' },
-  { selector: '[data-svc-del]', section: 'services', action: 'delete' },
 ];
 function applyPermissionVisibility() {
   if (!currentStaffUser) return;
@@ -2031,14 +2032,13 @@ function startPermissionObserver() {
           <div class="svc-prices">${u.role === 'admin' ? 'Admin — bütün icazələr' : 'İşçi'}</div>
         </div>
         <div class="row-actions">
-          ${u.role === 'admin' ? '' : `<button class="icon-btn" data-perm-user="${u.id}" title="İcazə ver">${ICON_PERM}</button>`}
-          <button class="icon-btn" data-edit-user="${u.id}" title="Redaktə et">${ICON_EDIT}</button>
-          <button class="icon-btn danger" data-del-user="${u.id}" title="Sil">${ICON_TRASH}</button>
+          ${kebabBtn([
+            ...(u.role === 'admin' ? [] : [{ label: 'İcazə ver', icon: ICON_PERM, onClick: () => openPermissionsModal(u.id) }]),
+            { label: 'Redaktə et', icon: ICON_EDIT, onClick: () => openEditUser(u.id) },
+            { label: 'Sil', icon: ICON_TRASH, danger: true, onClick: () => deleteUser(u.id) },
+          ])}
         </div>
       </div>`).join('');
-    body.querySelectorAll('[data-edit-user]').forEach(b => b.addEventListener('click', () => openEditUser(b.getAttribute('data-edit-user'))));
-    body.querySelectorAll('[data-del-user]').forEach(b => b.addEventListener('click', () => deleteUser(b.getAttribute('data-del-user'))));
-    body.querySelectorAll('[data-perm-user]').forEach(b => b.addEventListener('click', () => openPermissionsModal(b.getAttribute('data-perm-user'))));
   }
 
   function openEditUser(id) {
@@ -2311,6 +2311,48 @@ function initials(name) {
 
 const ICON_EDIT = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
 const ICON_TRASH = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>';
+const ICON_KEBAB = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.9"/><circle cx="12" cy="12" r="1.9"/><circle cx="12" cy="19" r="1.9"/></svg>';
+
+let kebabRegistry = new Map();
+let kebabCounter = 0;
+function kebabBtn(actions) {
+  const id = 'kb' + (++kebabCounter);
+  kebabRegistry.set(id, actions);
+  return `<button class="icon-btn kebab-btn" data-kebab-id="${id}" title="Əməliyyatlar">${ICON_KEBAB}</button>`;
+}
+document.addEventListener('click', (e) => {
+  const openMenu = document.querySelector('.kebab-menu');
+  const btn = e.target.closest('.kebab-btn');
+  if (openMenu) openMenu.remove();
+  if (!btn) return;
+  e.stopPropagation();
+  const actions = kebabRegistry.get(btn.getAttribute('data-kebab-id'));
+  if (!actions || actions.length === 0) return;
+  const menu = document.createElement('div');
+  menu.className = 'kebab-menu';
+  menu.innerHTML = actions.map((a, i) =>
+    `<button class="kebab-menu-item${a.danger ? ' danger' : ''}" data-kebab-action="${i}">${a.icon || ''}<span>${a.label}</span></button>`
+  ).join('');
+  document.body.appendChild(menu);
+  const rect = btn.getBoundingClientRect();
+  const menuW = menu.offsetWidth;
+  let left = rect.right - menuW;
+  if (left < 8) left = 8;
+  if (left + menuW > window.innerWidth - 8) left = window.innerWidth - menuW - 8;
+  let top = rect.bottom + 4;
+  if (top + menu.offsetHeight > window.innerHeight - 8) top = rect.top - menu.offsetHeight - 4;
+  menu.style.top = top + 'px';
+  menu.style.left = left + 'px';
+  menu.querySelectorAll('[data-kebab-action]').forEach(item => {
+    item.addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      const idx = parseInt(item.getAttribute('data-kebab-action'));
+      menu.remove();
+      actions[idx].onClick();
+    });
+  });
+});
+
 const ICON_WA = '<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2c-5.46 0-9.9 4.44-9.9 9.9 0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38c1.45.79 3.08 1.21 4.79 1.21 5.46 0 9.9-4.44 9.9-9.9S17.5 2 12.04 2zm5.71 14.13c-.24.68-1.19 1.25-1.94 1.41-.52.11-1.2.2-3.48-.75-2.92-1.21-4.8-4.17-4.94-4.36-.14-.19-1.18-1.57-1.18-3 0-1.43.75-2.13 1.02-2.42.27-.29.59-.36.79-.36.2 0 .39 0 .56.01.18.01.42-.07.66.5.24.58.82 2 .89 2.14.07.14.12.31.02.5-.1.19-.15.31-.29.48-.15.17-.31.38-.44.51-.15.15-.3.31-.13.6.17.29.76 1.25 1.63 2.03 1.12 1 2.06 1.31 2.35 1.46.29.15.46.13.63-.05.17-.19.71-.83.9-1.11.19-.29.38-.24.63-.14.27.09 1.68.79 1.97.94.29.14.48.21.55.33.07.12.07.68-.17 1.36z"/></svg>';
 const ICON_WA_OUTLINE = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>';
 const ICON_EYE = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg>';
@@ -3590,14 +3632,13 @@ function openCustomerDetail(id) {
       <td>${escapeHtml(v.payment || '—')}</td>
       <td>${escapeHtml(v.employee || '—')}</td>
       <td class="col-actions"><div class="row-actions">
-        <button class="icon-btn" data-view-visit="${v.id}" title="Bax">${ICON_EYE}</button>
-        <button class="icon-btn" data-edit-visit="${v.id}" title="Redaktə et">${ICON_EDIT}</button>
-        <button class="icon-btn danger" data-del-visit="${v.id}" title="Sil">${ICON_TRASH}</button>
+        ${kebabBtn([
+          { label: 'Bax', icon: ICON_EYE, onClick: () => openViewVisit(v.id) },
+          { label: 'Redaktə et', icon: ICON_EDIT, onClick: () => openEditVisit(v.id) },
+          { label: 'Sil', icon: ICON_TRASH, danger: true, onClick: () => deleteVisitDirect(v.id) },
+        ])}
       </div></td>
     </tr>`).join('') || '<tr><td colspan="8" class="empty">Tarixçə yoxdur.</td></tr>';
-  body.querySelectorAll('[data-view-visit]').forEach(b => b.addEventListener('click', () => openViewVisit(b.getAttribute('data-view-visit'))));
-  body.querySelectorAll('[data-edit-visit]').forEach(b => b.addEventListener('click', () => openEditVisit(b.getAttribute('data-edit-visit'))));
-  body.querySelectorAll('[data-del-visit]').forEach(b => b.addEventListener('click', () => deleteVisitDirect(b.getAttribute('data-del-visit'))));
   document.getElementById('customerDetail').classList.add('show');
 }
 
@@ -3697,26 +3738,16 @@ function openHistoryModal(id) {
         <div class="dt-h-bottom">
           <span class="dt-h-meta">${escapeHtml(v.payment || '—')} · ${escapeHtml(v.employee || 'Əməkdaş qeyd olunmayıb')}</span>
           <div class="row-actions">
-            <button class="icon-btn" data-hv-view="${v.id}" title="Bax">${ICON_EYE}</button>
-            <button class="icon-btn" data-hv-edit="${v.id}" title="Redaktə et">${ICON_EDIT}</button>
-            <button class="icon-btn danger" data-hv-del="${v.id}" title="Sil">${ICON_TRASH}</button>
+            ${kebabBtn([
+              { label: 'Bax', icon: ICON_EYE, onClick: () => { document.getElementById('historyOverlay').classList.remove('show'); openViewVisit(v.id); } },
+              { label: 'Redaktə et', icon: ICON_EDIT, onClick: () => { document.getElementById('historyOverlay').classList.remove('show'); openEditVisit(v.id); } },
+              { label: 'Sil', icon: ICON_TRASH, danger: true, onClick: () => { deleteVisitDirect(v.id); setTimeout(() => openHistoryModal(id), 300); } },
+            ])}
           </div>
         </div>
       </div>`;
     }).join('');
   }
-  body.querySelectorAll('[data-hv-view]').forEach(b => b.addEventListener('click', () => {
-    document.getElementById('historyOverlay').classList.remove('show');
-    openViewVisit(b.getAttribute('data-hv-view'));
-  }));
-  body.querySelectorAll('[data-hv-edit]').forEach(b => b.addEventListener('click', () => {
-    document.getElementById('historyOverlay').classList.remove('show');
-    openEditVisit(b.getAttribute('data-hv-edit'));
-  }));
-  body.querySelectorAll('[data-hv-del]').forEach(b => b.addEventListener('click', () => {
-    deleteVisitDirect(b.getAttribute('data-hv-del'));
-    setTimeout(() => openHistoryModal(id), 300);
-  }));
   document.getElementById('historyOverlay').classList.add('show');
 }
 document.getElementById('historyCloseBtn').addEventListener('click', () => {
@@ -4271,20 +4302,16 @@ function renderFinanceList(containerId, type) {
         <td style="color:${isIncome ? 'var(--teal-deep)' : 'var(--danger)'};">${isIncome ? '+' : '-'}${fmtAzn(f.amount)} ₼</td>
         <td>${f.category ? escapeHtml(f.category) : '—'}</td>
         <td class="col-actions"><div class="row-actions">
-          <button class="icon-btn" data-fin-view="${f.id}" title="Bax">${ICON_EYE}</button>
-          <button class="icon-btn" data-fin-edit="${f.id}" data-fin-type="${f.type}" title="Redaktə et">${ICON_EDIT}</button>
-          <button class="icon-btn danger" data-fin-del="${f.id}" title="Sil">${ICON_TRASH}</button>
+          ${kebabBtn([
+            { label: 'Bax', icon: ICON_EYE, onClick: () => renderViewModal(f.type === 'income' ? 'Mədaxil məlumatları' : 'Məxaric məlumatları', financeViewRows(f)) },
+            ...(hasPermission('finance', 'edit') ? [{ label: 'Redaktə et', icon: ICON_EDIT, onClick: () => openFinanceModal(f.type, f.id) }] : []),
+            ...(hasPermission('finance', 'delete') ? [{ label: 'Sil', icon: ICON_TRASH, danger: true, onClick: async () => {
+              if (!confirm('Bu əməliyyatı silmək istədiyinizə əminsiniz?')) return;
+              try { await db.doc('finance/' + f.id).delete(); } catch (e) { alert('Xəta baş verdi.'); }
+            } }] : []),
+          ])}
         </div></td>
       </tr>`).join('');
-    el.querySelectorAll('[data-fin-view]').forEach(b => b.addEventListener('click', () => {
-      const rec = allFinance.find(x => x.id === b.getAttribute('data-fin-view'));
-      if (rec) renderViewModal(rec.type === 'income' ? 'Mədaxil məlumatları' : 'Məxaric məlumatları', financeViewRows(rec));
-    }));
-    el.querySelectorAll('[data-fin-edit]').forEach(b => b.addEventListener('click', () => openFinanceModal(b.getAttribute('data-fin-type'), b.getAttribute('data-fin-edit'))));
-    el.querySelectorAll('[data-fin-del]').forEach(b => b.addEventListener('click', async () => {
-      if (!confirm('Bu əməliyyatı silmək istədiyinizə əminsiniz?')) return;
-      try { await db.doc('finance/' + b.getAttribute('data-fin-del')).delete(); } catch (e) { alert('Xəta baş verdi.'); }
-    }));
   }
   renderPagination(type + 'Pagination', containerId, financePage[type], totalPages, (p) => {
     financePage[type] = p;
@@ -4496,16 +4523,14 @@ function renderReminderTab() {
       <td>${fmtDate(c.lastDate)}</td>
       <td>${c.daysSince}</td>
       <td class="col-actions"><div class="row-actions">
-        <button class="icon-btn" data-rem-view="${c.id}" title="Bax">${ICON_EYE}</button>
-        <button class="icon-btn" data-rem-note="${c.id}" title="Qeyd əlavə et">${ICON_NOTE}</button>
-        <button class="icon-btn" data-rem-wa="${c.id}" data-rem-wa-name="${escapeHtml(c.name || '')}" data-rem-wa-phone="${escapeHtml(c.phone || '')}" title="WhatsApp-da yaz">${ICON_WA_OUTLINE}</button>
-        <button class="icon-btn" data-rem-wa-edit="${c.id}" data-rem-wa-edit-name="${escapeHtml(c.name || '')}" data-rem-wa-edit-phone="${escapeHtml(c.phone || '')}" title="Mesajı redaktə et">${ICON_EDIT}</button>
+        ${kebabBtn([
+          { label: 'Bax', icon: ICON_EYE, onClick: () => openViewCustomer(c.id) },
+          ...(hasPermission('loyalty', 'add') ? [{ label: 'Qeyd əlavə et', icon: ICON_NOTE, onClick: () => openAddNoteModal(c.id) }] : []),
+          { label: 'WhatsApp-da yaz', icon: ICON_WA_OUTLINE, onClick: () => sendWaReminder(c.id, c.name || '', c.phone || '') },
+          { label: 'Mesajı redaktə et', icon: ICON_EDIT, onClick: () => openWaEditModal(c.id, c.name || '', c.phone || '') },
+        ])}
       </div></td>
     </tr>`).join('');
-  body.querySelectorAll('[data-rem-view]').forEach(b => b.addEventListener('click', () => openViewCustomer(b.getAttribute('data-rem-view'))));
-  body.querySelectorAll('[data-rem-note]').forEach(b => b.addEventListener('click', () => openAddNoteModal(b.getAttribute('data-rem-note'))));
-  body.querySelectorAll('[data-rem-wa]').forEach(b => b.addEventListener('click', () => sendWaReminder(b.getAttribute('data-rem-wa'), b.getAttribute('data-rem-wa-name'), b.getAttribute('data-rem-wa-phone'))));
-  body.querySelectorAll('[data-rem-wa-edit]').forEach(b => b.addEventListener('click', () => openWaEditModal(b.getAttribute('data-rem-wa-edit'), b.getAttribute('data-rem-wa-edit-name'), b.getAttribute('data-rem-wa-edit-phone'))));
   renderPagination('reminderPagination', 'reminderTableBody', reminderPage, totalPages, (p) => { reminderPage = p; renderReminderTab(); });
 }
 document.getElementById('remSearch').addEventListener('input', renderReminderTab);
@@ -4899,19 +4924,16 @@ function renderSubTab() {
       <td>${fmtDate(s.nextPaymentDate)}</td>
       <td>${s.isOverdue ? `<span class="badge pts" style="background:#f6dcd4;color:#7a2e1a;">Gecikir (${s.overdueDays} gün)</span>` : '<span class="badge pts">Bu gün</span>'}</td>
       <td class="col-actions"><div class="row-actions">
-        <button class="icon-btn" data-sub-view="${s.id}" title="Bax">${ICON_EYE}</button>
-        <button class="icon-btn" data-sub-note="${s.customerId}" title="Qeyd əlavə et">${ICON_NOTE}</button>
-        <button class="icon-btn" data-sub-wa="${s.customerId}" data-sub-wa-name="${escapeHtml(s.customerName || '')}" data-sub-wa-phone="${escapeHtml(s.customerPhone || '')}" title="WhatsApp-da yaz">${ICON_WA_OUTLINE}</button>
-        <button class="icon-btn" data-sub-edit="${s.id}" title="Redaktə et">${ICON_EDIT}</button>
-        <button class="icon-btn danger" data-sub-del="${s.id}" title="Sil">${ICON_TRASH}</button>
+        ${kebabBtn([
+          { label: 'Bax', icon: ICON_EYE, onClick: () => openSubDetail(s.id) },
+          { label: 'Qeyd əlavə et', icon: ICON_NOTE, onClick: () => openAddNoteModal(s.customerId) },
+          { label: 'WhatsApp-da yaz', icon: ICON_WA_OUTLINE, onClick: () => sendWaReminder(s.customerId, s.customerName || '', s.customerPhone || '') },
+          ...(hasPermission('loyalty', 'edit') ? [{ label: 'Redaktə et', icon: ICON_EDIT, onClick: () => openEditSub(s.id) }] : []),
+          ...(hasPermission('loyalty', 'delete') ? [{ label: 'Sil', icon: ICON_TRASH, danger: true, onClick: () => deleteSub(s.id) }] : []),
+        ])}
       </div></td>
     </tr>`;
   }).join('');
-  body.querySelectorAll('[data-sub-view]').forEach(b => b.addEventListener('click', () => openSubDetail(b.getAttribute('data-sub-view'))));
-  body.querySelectorAll('[data-sub-edit]').forEach(b => b.addEventListener('click', () => openEditSub(b.getAttribute('data-sub-edit'))));
-  body.querySelectorAll('[data-sub-del]').forEach(b => b.addEventListener('click', () => deleteSub(b.getAttribute('data-sub-del'))));
-  body.querySelectorAll('[data-sub-note]').forEach(b => b.addEventListener('click', () => openAddNoteModal(b.getAttribute('data-sub-note'))));
-  body.querySelectorAll('[data-sub-wa]').forEach(b => b.addEventListener('click', () => sendWaReminder(b.getAttribute('data-sub-wa'), b.getAttribute('data-sub-wa-name'), b.getAttribute('data-sub-wa-phone'))));
   renderPagination('subPagination', 'subTableBody', subPage, totalPages, (p) => { subPage = p; renderSubTab(); });
 }
 document.getElementById('subSearch').addEventListener('input', renderSubTab);
@@ -4977,13 +4999,13 @@ function renderServicesTab() {
           <div class="svc-prices">${escapeHtml(priceTxt || '—')}</div>
         </div>
         <div class="row-actions">
-          <button class="icon-btn" data-svc-edit="${s.id}" title="Redaktə et">${ICON_EDIT}</button>
-          <button class="icon-btn danger" data-svc-del="${s.id}" title="Sil">${ICON_TRASH}</button>
+          ${kebabBtn([
+            ...(hasPermission('services', 'edit') ? [{ label: 'Redaktə et', icon: ICON_EDIT, onClick: () => openServiceModal(s.id) }] : []),
+            ...(hasPermission('services', 'delete') ? [{ label: 'Sil', icon: ICON_TRASH, danger: true, onClick: () => deleteService(s.id) }] : []),
+          ])}
         </div>
       </div>`;
   }).join('');
-  body.querySelectorAll('[data-svc-edit]').forEach(b => b.addEventListener('click', () => openServiceModal(b.getAttribute('data-svc-edit'))));
-  body.querySelectorAll('[data-svc-del]').forEach(b => b.addEventListener('click', () => deleteService(b.getAttribute('data-svc-del'))));
 }
 
 document.querySelectorAll('#svcCategoryGroup .chip').forEach(btn => {
@@ -5265,15 +5287,14 @@ function renderSalesList() {
         <td>${fmtDate(v.date)}</td>
         <td>${priceTxt}</td>
         <td class="col-actions"><div class="row-actions">
-          <button class="icon-btn" data-sv-view="${v.id}" title="Bax">${ICON_EYE}</button>
-          <button class="icon-btn" data-sv-edit="${v.id}" title="Redaktə et">${ICON_EDIT}</button>
-          <button class="icon-btn danger" data-sv-del="${v.id}" title="Sil">${ICON_TRASH}</button>
+          ${kebabBtn([
+            { label: 'Bax', icon: ICON_EYE, onClick: () => openViewVisit(v.id) },
+            ...(hasPermission('sale', 'edit') ? [{ label: 'Redaktə et', icon: ICON_EDIT, onClick: () => openEditVisit(v.id) }] : []),
+            ...(hasPermission('sale', 'delete') ? [{ label: 'Sil', icon: ICON_TRASH, danger: true, onClick: () => deleteVisitDirect(v.id) }] : []),
+          ])}
         </div></td>
       </tr>`;
   }).join('');
-  body.querySelectorAll('[data-sv-view]').forEach(b => b.addEventListener('click', () => openViewVisit(b.getAttribute('data-sv-view'))));
-  body.querySelectorAll('[data-sv-edit]').forEach(b => b.addEventListener('click', () => openEditVisit(b.getAttribute('data-sv-edit'))));
-  body.querySelectorAll('[data-sv-del]').forEach(b => b.addEventListener('click', () => deleteVisitDirect(b.getAttribute('data-sv-del'))));
   renderPagination('salesPagination', 'salesListBody', salesPage, totalPages, (p) => { salesPage = p; renderSalesList(); });
 }
 document.getElementById('saleListSearch').addEventListener('input', renderSalesList);
@@ -5361,18 +5382,16 @@ function renderDataTab() {
       <td>${escapeHtml(formatPhoneAZ(g.phone))}</td>
       <td>${g.count}</td>
       <td class="col-actions"><div class="row-actions">
-        <button class="icon-btn" data-view-cust="${g.id}" title="Müştəriyə bax">${ICON_EYE}</button>
-        <button class="icon-btn" data-edit-cust="${g.id}" title="Müştərini redaktə et">${ICON_EDIT}</button>
-        <button class="icon-btn danger" data-del-cust="${g.id}" title="Müştərini sil">${ICON_TRASH}</button>
-        <button class="icon-btn" data-history-cid="${g.id}" title="Tarixçəyə bax">${ICON_HISTORY}</button>
+        ${kebabBtn([
+          { label: 'Müştəriyə bax', icon: ICON_EYE, onClick: () => openViewCustomer(g.id) },
+          ...(hasPermission('data', 'edit') ? [{ label: 'Müştərini redaktə et', icon: ICON_EDIT, onClick: () => openEditCustomer(g.id) }] : []),
+          ...(hasPermission('data', 'delete') ? [{ label: 'Müştərini sil', icon: ICON_TRASH, danger: true, onClick: () => deleteCustomer(g.id) }] : []),
+          { label: 'Tarixçəyə bax', icon: ICON_HISTORY, onClick: () => openHistoryModal(g.id) },
+        ])}
       </div></td>
     </tr>`;
   }).join('');
 
-  body.querySelectorAll('[data-view-cust]').forEach(b => b.addEventListener('click', () => openViewCustomer(b.getAttribute('data-view-cust'))));
-  body.querySelectorAll('[data-edit-cust]').forEach(b => b.addEventListener('click', () => openEditCustomer(b.getAttribute('data-edit-cust'))));
-  body.querySelectorAll('[data-del-cust]').forEach(b => b.addEventListener('click', () => deleteCustomer(b.getAttribute('data-del-cust'))));
-  body.querySelectorAll('[data-history-cid]').forEach(b => b.addEventListener('click', () => openHistoryModal(b.getAttribute('data-history-cid'))));
   renderPagination('dataPagination', 'dataTableBody', dataPage, totalPages, (p) => { dataPage = p; renderDataTab(); });
 }
 
