@@ -409,6 +409,14 @@
     cursor: pointer;
   }
   .perm-check input[type="checkbox"] { width: 17px; height: 17px; accent-color: var(--teal); cursor: pointer; flex-shrink: 0; }
+  .perm-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .perm-table th, .perm-table td {
+    padding: 8px 6px; text-align: center; border-bottom: 1px solid var(--line);
+  }
+  .perm-table th { color: var(--ink-soft); font-weight: 700; font-size: 11.5px; }
+  .perm-table td:first-child { text-align: left; font-weight: 700; color: var(--ink); white-space: nowrap; }
+  .perm-table input[type="checkbox"] { width: 17px; height: 17px; accent-color: var(--teal); cursor: pointer; }
+  .perm-table .perm-na { color: var(--ink-faint); }
   .field { margin-bottom: 12px; }
   .field label { display: block; font-size: 12.5px; color: var(--ink-soft); margin-bottom: 5px; }
   .field input, .field select, .field textarea {
@@ -1403,17 +1411,57 @@
   </div>
 
   <div class="modal-overlay" id="permissionsOverlay">
-    <div class="modal-box">
+    <div class="modal-box" style="max-width: 480px;">
       <h3 id="permissionsTitle">İcazələr</h3>
-      <p class="desc" style="margin:0 0 10px;">Bu istifadəçinin daxil ola biləcəyi bölmələri və edə biləcəyi əməliyyatları seçin.</p>
-      <div class="perm-check-list">
-        <label class="perm-check"><input type="checkbox" id="permEdit"> Düzəliş (redaktə etmə)</label>
-        <label class="perm-check"><input type="checkbox" id="permDelete"> Silmək</label>
-        <label class="perm-check"><input type="checkbox" id="permCustomers"> Müştərilər bölməsi</label>
-        <label class="perm-check"><input type="checkbox" id="permData"> Data bölməsi</label>
-        <label class="perm-check"><input type="checkbox" id="permFinance"> Maliyyə bölməsi</label>
-        <label class="perm-check"><input type="checkbox" id="permLoyalty"> Loyallıq bölməsi</label>
-        <label class="perm-check"><input type="checkbox" id="permServices"> Xidmətlər bölməsi</label>
+      <p class="desc" style="margin:0 0 10px;">Bu istifadəçinin hər bölmədə edə biləcəyi əməliyyatları seçin.</p>
+      <div class="table-scroll">
+        <table class="perm-table">
+          <thead><tr><th></th><th>Görmə</th><th>Əlavə et</th><th>Düzəliş et</th><th>Sil</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>Satış</td>
+              <td class="perm-na">—</td>
+              <td><input type="checkbox" id="permSaleAdd"></td>
+              <td><input type="checkbox" id="permSaleEdit"></td>
+              <td><input type="checkbox" id="permSaleDelete"></td>
+            </tr>
+            <tr>
+              <td>Müştərilər</td>
+              <td><input type="checkbox" id="permCustomersView"></td>
+              <td><input type="checkbox" id="permCustomersAdd"></td>
+              <td><input type="checkbox" id="permCustomersEdit"></td>
+              <td><input type="checkbox" id="permCustomersDelete"></td>
+            </tr>
+            <tr>
+              <td>Data</td>
+              <td><input type="checkbox" id="permDataView"></td>
+              <td class="perm-na">—</td>
+              <td><input type="checkbox" id="permDataEdit"></td>
+              <td><input type="checkbox" id="permDataDelete"></td>
+            </tr>
+            <tr>
+              <td>Maliyyə</td>
+              <td><input type="checkbox" id="permFinanceView"></td>
+              <td><input type="checkbox" id="permFinanceAdd"></td>
+              <td><input type="checkbox" id="permFinanceEdit"></td>
+              <td><input type="checkbox" id="permFinanceDelete"></td>
+            </tr>
+            <tr>
+              <td>Loyallıq</td>
+              <td><input type="checkbox" id="permLoyaltyView"></td>
+              <td><input type="checkbox" id="permLoyaltyAdd"></td>
+              <td><input type="checkbox" id="permLoyaltyEdit"></td>
+              <td><input type="checkbox" id="permLoyaltyDelete"></td>
+            </tr>
+            <tr>
+              <td>Xidmətlər</td>
+              <td><input type="checkbox" id="permServicesView"></td>
+              <td><input type="checkbox" id="permServicesAdd"></td>
+              <td><input type="checkbox" id="permServicesEdit"></td>
+              <td><input type="checkbox" id="permServicesDelete"></td>
+            </tr>
+          </tbody>
+        </table>
       </div>
       <div class="modal-actions">
         <button class="btn-ghost" id="permissionsCancelBtn">Ləğv et</button>
@@ -1679,11 +1727,13 @@
 let allStaffUsers = [];
 let currentStaffUser = null;
 
-function hasPermission(key) {
+function hasPermission(section, action) {
   if (!currentStaffUser) return false;
   if (currentStaffUser.role === 'admin') return true;
   const perms = currentStaffUser.permissions || {};
-  return !!perms[key];
+  const sectionPerms = perms[section];
+  if (!sectionPerms || typeof sectionPerms !== 'object') return false;
+  return !!sectionPerms[action];
 }
 
 const PERM_TAB_MAP = { customers: 'customers', data: 'data', finance: 'finance', loyalty: 'loyalty', services: 'services' };
@@ -1693,18 +1743,36 @@ function applyTabVisibility() {
     if (tab === 'home' || tab === 'sale') { btn.style.display = ''; return; }
     const key = PERM_TAB_MAP[tab];
     if (!key) { btn.style.display = ''; return; }
-    btn.style.display = hasPermission(key) ? '' : 'none';
+    btn.style.display = hasPermission(key, 'view') ? '' : 'none';
   });
 }
 
-const PERM_EDIT_SELECTOR = '[data-sv-edit], [data-edit-cust], [data-fin-edit], [data-svc-edit], [data-edit-user]';
-const PERM_DELETE_SELECTOR = '[data-sv-del], [data-del-cust], [data-fin-del], [data-svc-del], [data-del-user]';
+const PERM_BUTTON_MAP = [
+  { selector: '#openNewSaleBtn', section: 'sale', action: 'add' },
+  { selector: '#tab-sale [data-sv-edit]', section: 'sale', action: 'edit' },
+  { selector: '#tab-sale [data-sv-del]', section: 'sale', action: 'delete' },
+  { selector: '#addCustomerBtn', section: 'customers', action: 'add' },
+  { selector: '#tab-customers [data-edit-cust]', section: 'customers', action: 'edit' },
+  { selector: '#tab-customers [data-del-cust]', section: 'customers', action: 'delete' },
+  { selector: '#tab-data [data-edit-cust]', section: 'data', action: 'edit' },
+  { selector: '#tab-data [data-del-cust]', section: 'data', action: 'delete' },
+  { selector: '#addIncomeBtn', section: 'finance', action: 'add' },
+  { selector: '#addExpenseBtn', section: 'finance', action: 'add' },
+  { selector: '[data-fin-edit]', section: 'finance', action: 'edit' },
+  { selector: '[data-fin-del]', section: 'finance', action: 'delete' },
+  { selector: '#tab-loyalty [data-rem-note]', section: 'loyalty', action: 'add' },
+  { selector: '#tab-loyalty [data-edit-cust]', section: 'loyalty', action: 'edit' },
+  { selector: '#tab-loyalty [data-del-cust]', section: 'loyalty', action: 'delete' },
+  { selector: '#svcAddBtn', section: 'services', action: 'add' },
+  { selector: '[data-svc-edit]', section: 'services', action: 'edit' },
+  { selector: '[data-svc-del]', section: 'services', action: 'delete' },
+];
 function applyPermissionVisibility() {
   if (!currentStaffUser) return;
-  const canEdit = hasPermission('edit');
-  const canDelete = hasPermission('delete');
-  document.querySelectorAll(PERM_EDIT_SELECTOR).forEach(el => { el.style.display = canEdit ? '' : 'none'; });
-  document.querySelectorAll(PERM_DELETE_SELECTOR).forEach(el => { el.style.display = canDelete ? '' : 'none'; });
+  PERM_BUTTON_MAP.forEach(({ selector, section, action }) => {
+    const allowed = hasPermission(section, action);
+    document.querySelectorAll(selector).forEach(el => { el.style.display = allowed ? '' : 'none'; });
+  });
 }
 let permObserverStarted = false;
 function startPermissionObserver() {
@@ -1889,14 +1957,36 @@ function startPermissionObserver() {
     if (!u) return;
     permEditingUserId = id;
     const p = u.permissions || {};
+    const sec = (name) => (p[name] && typeof p[name] === 'object') ? p[name] : {};
     document.getElementById('permissionsTitle').textContent = `İcazələr — ${u.name}`;
-    document.getElementById('permEdit').checked = !!p.edit;
-    document.getElementById('permDelete').checked = !!p.delete;
-    document.getElementById('permCustomers').checked = !!p.customers;
-    document.getElementById('permData').checked = !!p.data;
-    document.getElementById('permFinance').checked = !!p.finance;
-    document.getElementById('permLoyalty').checked = !!p.loyalty;
-    document.getElementById('permServices').checked = !!p.services;
+    const sale = sec('sale');
+    document.getElementById('permSaleAdd').checked = !!sale.add;
+    document.getElementById('permSaleEdit').checked = !!sale.edit;
+    document.getElementById('permSaleDelete').checked = !!sale.delete;
+    const customers = sec('customers');
+    document.getElementById('permCustomersView').checked = !!customers.view;
+    document.getElementById('permCustomersAdd').checked = !!customers.add;
+    document.getElementById('permCustomersEdit').checked = !!customers.edit;
+    document.getElementById('permCustomersDelete').checked = !!customers.delete;
+    const data = sec('data');
+    document.getElementById('permDataView').checked = !!data.view;
+    document.getElementById('permDataEdit').checked = !!data.edit;
+    document.getElementById('permDataDelete').checked = !!data.delete;
+    const finance = sec('finance');
+    document.getElementById('permFinanceView').checked = !!finance.view;
+    document.getElementById('permFinanceAdd').checked = !!finance.add;
+    document.getElementById('permFinanceEdit').checked = !!finance.edit;
+    document.getElementById('permFinanceDelete').checked = !!finance.delete;
+    const loyalty = sec('loyalty');
+    document.getElementById('permLoyaltyView').checked = !!loyalty.view;
+    document.getElementById('permLoyaltyAdd').checked = !!loyalty.add;
+    document.getElementById('permLoyaltyEdit').checked = !!loyalty.edit;
+    document.getElementById('permLoyaltyDelete').checked = !!loyalty.delete;
+    const services = sec('services');
+    document.getElementById('permServicesView').checked = !!services.view;
+    document.getElementById('permServicesAdd').checked = !!services.add;
+    document.getElementById('permServicesEdit').checked = !!services.edit;
+    document.getElementById('permServicesDelete').checked = !!services.delete;
     document.getElementById('permissionsMsg').className = 'save-msg';
     document.getElementById('permissionsOverlay').classList.add('show');
   }
@@ -1909,14 +1999,14 @@ function startPermissionObserver() {
   document.getElementById('permissionsSaveBtn').addEventListener('click', async () => {
     if (!permEditingUserId || !db) return;
     const msg = document.getElementById('permissionsMsg');
+    const c = (id) => document.getElementById(id).checked;
     const permissions = {
-      edit: document.getElementById('permEdit').checked,
-      delete: document.getElementById('permDelete').checked,
-      customers: document.getElementById('permCustomers').checked,
-      data: document.getElementById('permData').checked,
-      finance: document.getElementById('permFinance').checked,
-      loyalty: document.getElementById('permLoyalty').checked,
-      services: document.getElementById('permServices').checked,
+      sale: { add: c('permSaleAdd'), edit: c('permSaleEdit'), delete: c('permSaleDelete') },
+      customers: { view: c('permCustomersView'), add: c('permCustomersAdd'), edit: c('permCustomersEdit'), delete: c('permCustomersDelete') },
+      data: { view: c('permDataView'), edit: c('permDataEdit'), delete: c('permDataDelete') },
+      finance: { view: c('permFinanceView'), add: c('permFinanceAdd'), edit: c('permFinanceEdit'), delete: c('permFinanceDelete') },
+      loyalty: { view: c('permLoyaltyView'), add: c('permLoyaltyAdd'), edit: c('permLoyaltyEdit'), delete: c('permLoyaltyDelete') },
+      services: { view: c('permServicesView'), add: c('permServicesAdd'), edit: c('permServicesEdit'), delete: c('permServicesDelete') },
     };
     try {
       await db.doc('staffUsers/' + permEditingUserId).update({ permissions });
@@ -2006,7 +2096,14 @@ function startPermissionObserver() {
           applyPermissionVisibility();
         }
       } else {
-        const defaultPerms = { edit: false, delete: false, customers: false, data: false, finance: false, loyalty: false, services: false };
+        const defaultPerms = {
+          sale: { add: false, edit: false, delete: false },
+          customers: { view: false, add: false, edit: false, delete: false },
+          data: { view: false, edit: false, delete: false },
+          finance: { view: false, add: false, edit: false, delete: false },
+          loyalty: { view: false, add: false, edit: false, delete: false },
+          services: { view: false, add: false, edit: false, delete: false },
+        };
         const role = chosenRole || 'staff';
         const ref = await db.collection('staffUsers').add({ name, password, role, permissions: defaultPerms, createdAt: new Date().toISOString() });
         allStaffUsers.push({ id: ref.id, name, password, role, permissions: defaultPerms });
