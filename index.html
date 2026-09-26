@@ -1216,7 +1216,7 @@
     <div class="dataset-view" id="cds-ideal" style="display:none;">
       <div class="panel">
         <h2>İdeal müştərilər</h2>
-        <p class="desc">5-dən çox xidmət alan və ya "İdeal" statusu verilmiş müştərilər.</p>
+        <p class="desc">5 və ya daha çox xidmət alan (avtomatik) və ya əl ilə "İdeal" statusu verilmiş müştərilər.</p>
         <div class="table-scroll">
           <table>
             <thead><tr><th>№</th><th>Ad, soyad</th><th>Nömrə</th><th>Yuma sayı</th><th>Xal</th><th>Keşbek</th><th>Son yuma</th><th>Status</th><th class="col-actions"></th></tr></thead>
@@ -3479,6 +3479,14 @@ async function saveSale() {
       } catch (e) { /* non-fatal */ }
     }
     const n = priorStats.count + 1;
+    if (n >= 5) {
+      try {
+        const currentCustomer = allCustomers.find(cu => cu.id === customerId);
+        if (!currentCustomer || currentCustomer.status !== 'ideal') {
+          await db.doc('customers/' + customerId).update({ status: 'ideal' });
+        }
+      } catch (e) { /* non-fatal */ }
+    }
     if (salePayWithPoints) {
       const remainPts = priorStats.points - pointsUsedNow;
       msg.textContent = `✅ Satış yaddaşa verildi — ${customerName} üçün ${n}-cı yumadır. ${pointsUsedNow.toLocaleString('az-AZ')} xal istifadə edildi (qalıq ${remainPts.toLocaleString('az-AZ')} xal).`;
@@ -3625,7 +3633,7 @@ function customerMatchesQuickFilter(c, key) {
   const today = new Date(todayStr() + 'T00:00:00');
   const daysSince = c.lastDate ? Math.floor((today - new Date(c.lastDate + 'T00:00:00')) / 86400000) : null;
   if (key === 'repeat') return c.count >= 2;
-  if (key === 'ideal') return c.count > 5 || c.status === 'ideal';
+  if (key === 'ideal') return c.count >= 5 || c.status === 'ideal';
   if (key === 'active') return daysSince !== null && daysSince <= 30;
   if (key === 'passive') return daysSince !== null && daysSince >= 60;
   if (key === 'unhappy') return c.status === 'narazı';
