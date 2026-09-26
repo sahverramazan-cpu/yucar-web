@@ -918,6 +918,12 @@
      </div>
     </div>
 
+    <div class="chip-group" id="saleDatasetGroup" style="margin-bottom:16px; width:fit-content;">
+      <button class="chip active" data-saleds="sales">Satışlar</button>
+      <button class="chip" data-saleds="subs">Abunəliklər</button>
+    </div>
+
+    <div class="dataset-view" id="saleds-sales">
     <div class="panel">
       <div class="panel-head-row">
         <div>
@@ -1000,6 +1006,63 @@
         </table>
       </div>
       <div class="pagination" id="salesPagination"></div>
+    </div>
+    </div>
+
+    <div class="dataset-view" id="saleds-subs" style="display:none;">
+    <div class="panel">
+      <div class="panel-head-row">
+        <div>
+          <h2>Abunəliklər</h2>
+          <p class="desc">Aylıq təkrar xidmət paketi ilə müştərilərə endirim təklif edin.</p>
+        </div>
+        <button class="btn-add income" id="openNewSubBtn" style="width:auto;">+ Yeni abunəlik</button>
+      </div>
+      <input class="search-bar" id="subSearch" type="text" placeholder="Sərbəst axtarış: ad, nömrə…">
+      <button class="filter-toggle" id="subToggle">
+        <span>Ətraflı filtrlər</span>
+        <svg class="ft-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="filter-panel" id="subPanel">
+        <div class="row3">
+          <div class="field"><label>Ad, soyad</label><input id="subFName" type="text"></div>
+          <div class="field"><label>Nömrə</label><input id="subFPhone" type="text"></div>
+          <div class="field"><label>Vəziyyət</label>
+            <select id="subFStatus">
+              <option value="">Hamısı</option>
+              <option value="ontime">Bu gün</option>
+              <option value="overdue">Gecikir</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn-ghost" id="subClear">Filtrləri təmizlə</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="chart-head">
+        <div>
+          <h2>Abunəlik xülasəsi</h2>
+          <p class="desc">Kartlara klikləyərək uyğun abunəçiləri aşağıda görün.</p>
+        </div>
+      </div>
+      <div class="stat-row">
+        <div class="stat-card clickable" data-sub-filter="all"><div class="v" id="subStatActive">—</div><div class="l">Aktiv abunəçi</div></div>
+        <div class="stat-card clickable" data-sub-filter="overdue"><div class="v" id="subStatOverdue">—</div><div class="l">Gecikən abunəçi</div></div>
+        <div class="stat-card"><div class="v" id="subStatMonthly">—</div><div class="l">Aylıq gözlənilən gəlir (₼)</div></div>
+        <div class="stat-card"><div class="v" id="subStatDiscount">—</div><div class="l">Aylıq verilən endirim (₼)</div></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>№</th><th>Ad, soyad</th><th>Nömrə</th><th>Xidmətlər</th><th>Aylıq qiymət</th><th>Başlanğıc</th><th>Növbəti ödəniş</th><th>Vəziyyət</th><th class="col-actions"></th></tr></thead>
+          <tbody id="subTableBody"><tr><td colspan="9" class="empty">Yüklənir…</td></tr></tbody>
+        </table>
+      </div>
+      <div class="pagination" id="subPagination"></div>
+    </div>
     </div>
    </div>
   </section>
@@ -1279,7 +1342,6 @@
     <div class="chip-group" id="loyDatasetGroup" style="margin-bottom:16px; width:fit-content;">
       <button class="chip active" data-loyds="points">Xallar</button>
       <button class="chip" data-loyds="reminders">Xatırlatma</button>
-      <button class="chip" data-loyds="subs">Abunəliklər</button>
     </div>
 
     <div class="dataset-view" id="loyds-points">
@@ -1374,61 +1436,6 @@
     </div>
     </div>
 
-    <div class="dataset-view" id="loyds-subs" style="display:none;">
-    <div class="panel">
-      <div class="panel-head-row">
-        <div>
-          <h2>Abunəliklər</h2>
-          <p class="desc">Aylıq təkrar xidmət paketi ilə müştərilərə endirim təklif edin.</p>
-        </div>
-        <button class="btn-add income" id="openNewSubBtn" style="width:auto;">+ Yeni abunəlik</button>
-      </div>
-      <input class="search-bar" id="subSearch" type="text" placeholder="Sərbəst axtarış: ad, nömrə…">
-      <button class="filter-toggle" id="subToggle">
-        <span>Ətraflı filtrlər</span>
-        <svg class="ft-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-      </button>
-      <div class="filter-panel" id="subPanel">
-        <div class="row3">
-          <div class="field"><label>Ad, soyad</label><input id="subFName" type="text"></div>
-          <div class="field"><label>Nömrə</label><input id="subFPhone" type="text"></div>
-          <div class="field"><label>Vəziyyət</label>
-            <select id="subFStatus">
-              <option value="">Hamısı</option>
-              <option value="ontime">Bu gün</option>
-              <option value="overdue">Gecikir</option>
-            </select>
-          </div>
-        </div>
-        <button class="btn-ghost" id="subClear">Filtrləri təmizlə</button>
-      </div>
-    </div>
-
-    <div class="panel">
-      <div class="chart-head">
-        <div>
-          <h2>Abunəlik xülasəsi</h2>
-          <p class="desc">Kartlara klikləyərək uyğun abunəçiləri aşağıda görün.</p>
-        </div>
-      </div>
-      <div class="stat-row">
-        <div class="stat-card clickable" data-sub-filter="all"><div class="v" id="subStatActive">—</div><div class="l">Aktiv abunəçi</div></div>
-        <div class="stat-card clickable" data-sub-filter="overdue"><div class="v" id="subStatOverdue">—</div><div class="l">Gecikən abunəçi</div></div>
-        <div class="stat-card"><div class="v" id="subStatMonthly">—</div><div class="l">Aylıq gözlənilən gəlir (₼)</div></div>
-        <div class="stat-card"><div class="v" id="subStatDiscount">—</div><div class="l">Aylıq verilən endirim (₼)</div></div>
-      </div>
-    </div>
-
-    <div class="panel">
-      <div class="table-scroll">
-        <table>
-          <thead><tr><th>№</th><th>Ad, soyad</th><th>Nömrə</th><th>Xidmətlər</th><th>Aylıq qiymət</th><th>Başlanğıc</th><th>Növbəti ödəniş</th><th>Vəziyyət</th><th class="col-actions"></th></tr></thead>
-          <tbody id="subTableBody"><tr><td colspan="9" class="empty">Yüklənir…</td></tr></tbody>
-        </table>
-      </div>
-      <div class="pagination" id="subPagination"></div>
-    </div>
-    </div>
    </div>
   </section>
 
@@ -1898,7 +1905,7 @@ const PERM_BUTTON_MAP = [
   { selector: '#addCustomerBtn', section: 'customers', action: 'add' },
   { selector: '#addIncomeBtn', section: 'finance', action: 'add' },
   { selector: '#addExpenseBtn', section: 'finance', action: 'add' },
-  { selector: '#openNewSubBtn', section: 'loyalty', action: 'add' },
+  { selector: '#openNewSubBtn', section: 'sale', action: 'add' },
   { selector: '#svcAddBtn', section: 'services', action: 'add' },
 ];
 function applyPermissionVisibility() {
@@ -2770,7 +2777,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     if (btn.dataset.tab === 'finance') renderFinanceTab();
     if (btn.dataset.tab === 'loyalty') renderActiveLoyaltyDataset();
     if (btn.dataset.tab === 'services') renderServicesTab();
-    if (btn.dataset.tab === 'sale') renderSalesList();
+    if (btn.dataset.tab === 'sale') renderActiveSaleDataset();
   });
 });
 
@@ -4465,7 +4472,6 @@ function renderActiveLoyaltyDataset() {
   const active = document.querySelector('#loyDatasetGroup .chip.active');
   const ds = active ? active.getAttribute('data-loyds') : 'points';
   if (ds === 'reminders') renderReminderTab();
-  else if (ds === 'subs') renderSubTab();
   else renderLoyaltyTab();
 }
 document.querySelectorAll('#loyDatasetGroup .chip').forEach(btn => {
@@ -4475,8 +4481,24 @@ document.querySelectorAll('#loyDatasetGroup .chip').forEach(btn => {
     const ds = btn.getAttribute('data-loyds');
     document.getElementById('loyds-points').style.display = ds === 'points' ? '' : 'none';
     document.getElementById('loyds-reminders').style.display = ds === 'reminders' ? '' : 'none';
-    document.getElementById('loyds-subs').style.display = ds === 'subs' ? '' : 'none';
     renderActiveLoyaltyDataset();
+  });
+});
+
+function renderActiveSaleDataset() {
+  const active = document.querySelector('#saleDatasetGroup .chip.active');
+  const ds = active ? active.getAttribute('data-saleds') : 'sales';
+  if (ds === 'subs') renderSubTab();
+  else renderSalesList();
+}
+document.querySelectorAll('#saleDatasetGroup .chip').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#saleDatasetGroup .chip').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const ds = btn.getAttribute('data-saleds');
+    document.getElementById('saleds-sales').style.display = ds === 'sales' ? '' : 'none';
+    document.getElementById('saleds-subs').style.display = ds === 'subs' ? '' : 'none';
+    renderActiveSaleDataset();
   });
 });
 
@@ -4935,8 +4957,8 @@ function renderSubTab() {
           { label: 'Bax', icon: ICON_EYE, onClick: () => openSubDetail(s.id) },
           { label: 'Qeyd əlavə et', icon: ICON_NOTE, onClick: () => openAddNoteModal(s.customerId) },
           { label: 'WhatsApp-da yaz', icon: ICON_WA_OUTLINE, onClick: () => sendWaReminder(s.customerId, s.customerName || '', s.customerPhone || '') },
-          ...(hasPermission('loyalty', 'edit') ? [{ label: 'Redaktə et', icon: ICON_EDIT, onClick: () => openEditSub(s.id) }] : []),
-          ...(hasPermission('loyalty', 'delete') ? [{ label: 'Sil', icon: ICON_TRASH, danger: true, onClick: () => deleteSub(s.id) }] : []),
+          ...(hasPermission('sale', 'edit') ? [{ label: 'Redaktə et', icon: ICON_EDIT, onClick: () => openEditSub(s.id) }] : []),
+          ...(hasPermission('sale', 'delete') ? [{ label: 'Sil', icon: ICON_TRASH, danger: true, onClick: () => deleteSub(s.id) }] : []),
         ])}
       </div></td>
     </tr>`;
@@ -5425,7 +5447,7 @@ function setStatus(ok, text) {
 }
 function renderAll() {
   renderHome();
-  if (document.getElementById('tab-sale').classList.contains('active')) renderSalesList();
+  if (document.getElementById('tab-sale').classList.contains('active')) renderActiveSaleDataset();
   if (document.getElementById('tab-customers').classList.contains('active')) renderCustomerList();
   if (document.getElementById('tab-data').classList.contains('active')) renderDataTab();
   if (document.getElementById('tab-finance').classList.contains('active')) renderFinanceTab();
