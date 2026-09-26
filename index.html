@@ -1070,6 +1070,15 @@
   <!-- ================= CUSTOMERS ================= -->
   <section class="tabpage" id="tab-customers">
    <div class="subpage active" data-subpage="all">
+    <div class="chip-group" id="custDatasetGroup" style="margin-bottom:16px; width:fit-content;">
+      <button class="chip active" data-custds="all">Bütün müştərilər</button>
+      <button class="chip" data-custds="active">Aktiv müştərilər</button>
+      <button class="chip" data-custds="passive">Passiv müştərilər</button>
+      <button class="chip" data-custds="repeat">Təkrar müştərilər</button>
+      <button class="chip" data-custds="ideal">İdeal müştərilər</button>
+      <button class="chip" data-custds="unhappy">Narazı müştərilər</button>
+    </div>
+    <div class="dataset-view" id="cds-all">
     <div class="panel list-view" id="customersList">
       <div class="panel-head-row">
         <div>
@@ -1126,9 +1135,9 @@
       <div class="table-scroll">
         <table>
           <thead>
-            <tr><th>№</th><th>Ad, soyad</th><th>Nömrə</th><th>Yuma sayı</th><th>Xal</th><th>Keşbek</th><th>Son yuma</th></tr>
+            <tr><th>№</th><th>Ad, soyad</th><th>Nömrə</th><th>Yuma sayı</th><th>Xal</th><th>Keşbek</th><th>Son yuma</th><th>Status</th><th class="col-actions"></th></tr>
           </thead>
-          <tbody id="custListBody"><tr><td colspan="7" class="empty">Yüklənir…</td></tr></tbody>
+          <tbody id="custListBody"><tr><td colspan="9" class="empty">Yüklənir…</td></tr></tbody>
         </table>
       </div>
       <div class="pagination" id="custPagination"></div>
@@ -1158,6 +1167,77 @@
           <thead><tr><th>Tarix</th><th>Avtomobil</th><th>Xidmət</th><th>Əlavə xidmət</th><th>Yekun</th><th>Ödəniş</th><th>Əməkdaş</th><th class="col-actions"></th></tr></thead>
           <tbody id="detHistoryBody"></tbody>
         </table>
+      </div>
+    </div>
+    </div>
+
+    <div class="dataset-view" id="cds-active" style="display:none;">
+      <div class="panel">
+        <h2>Aktiv müştərilər</h2>
+        <p class="desc">Son 30 gündə xidmət alan müştərilər.</p>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>№</th><th>Ad, soyad</th><th>Nömrə</th><th>Yuma sayı</th><th>Xal</th><th>Keşbek</th><th>Son yuma</th><th>Status</th><th class="col-actions"></th></tr></thead>
+            <tbody id="custActiveTableBody"><tr><td colspan="9" class="empty">Yüklənir…</td></tr></tbody>
+          </table>
+        </div>
+        <div class="pagination" id="custActivePagination"></div>
+      </div>
+    </div>
+
+    <div class="dataset-view" id="cds-passive" style="display:none;">
+      <div class="panel">
+        <h2>Passiv müştərilər</h2>
+        <p class="desc">Son 60+ gündür xidmət almayan müştərilər.</p>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>№</th><th>Ad, soyad</th><th>Nömrə</th><th>Yuma sayı</th><th>Xal</th><th>Keşbek</th><th>Son yuma</th><th>Status</th><th class="col-actions"></th></tr></thead>
+            <tbody id="custPassiveTableBody"><tr><td colspan="9" class="empty">Yüklənir…</td></tr></tbody>
+          </table>
+        </div>
+        <div class="pagination" id="custPassivePagination"></div>
+      </div>
+    </div>
+
+    <div class="dataset-view" id="cds-repeat" style="display:none;">
+      <div class="panel">
+        <h2>Təkrar müştərilər</h2>
+        <p class="desc">2 dəfə və ya daha çox xidmət alan müştərilər.</p>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>№</th><th>Ad, soyad</th><th>Nömrə</th><th>Yuma sayı</th><th>Xal</th><th>Keşbek</th><th>Son yuma</th><th>Status</th><th class="col-actions"></th></tr></thead>
+            <tbody id="custRepeatTableBody"><tr><td colspan="9" class="empty">Yüklənir…</td></tr></tbody>
+          </table>
+        </div>
+        <div class="pagination" id="custRepeatPagination"></div>
+      </div>
+    </div>
+
+    <div class="dataset-view" id="cds-ideal" style="display:none;">
+      <div class="panel">
+        <h2>İdeal müştərilər</h2>
+        <p class="desc">5-dən çox xidmət alan və ya "İdeal" statusu verilmiş müştərilər.</p>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>№</th><th>Ad, soyad</th><th>Nömrə</th><th>Yuma sayı</th><th>Xal</th><th>Keşbek</th><th>Son yuma</th><th>Status</th><th class="col-actions"></th></tr></thead>
+            <tbody id="custIdealTableBody"><tr><td colspan="9" class="empty">Yüklənir…</td></tr></tbody>
+          </table>
+        </div>
+        <div class="pagination" id="custIdealPagination"></div>
+      </div>
+    </div>
+
+    <div class="dataset-view" id="cds-unhappy" style="display:none;">
+      <div class="panel">
+        <h2>Narazı müştərilər</h2>
+        <p class="desc">"Narazı" statusu verilmiş müştərilər.</p>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>№</th><th>Ad, soyad</th><th>Nömrə</th><th>Yuma sayı</th><th>Xal</th><th>Keşbek</th><th>Son yuma</th><th>Status</th><th class="col-actions"></th></tr></thead>
+            <tbody id="custUnhappyTableBody"><tr><td colspan="9" class="empty">Yüklənir…</td></tr></tbody>
+          </table>
+        </div>
+        <div class="pagination" id="custUnhappyPagination"></div>
       </div>
     </div>
    </div>
@@ -1652,6 +1732,22 @@
       <div class="modal-actions">
         <div style="flex:1;"></div>
         <button class="btn-ghost" id="subDetailCloseBtn">Bağla</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="statusChangeOverlay">
+    <div class="modal-box">
+      <h3>Statusu dəyiş</h3>
+      <p class="desc" style="margin:0 0 12px;" id="statusChangeName"></p>
+      <div class="perm-check-list">
+        <button class="user-menu-item" data-status-choice="normal" style="border:1px solid var(--line); border-radius:10px;">Normal</button>
+        <button class="user-menu-item" data-status-choice="ideal" style="border:1px solid var(--line); border-radius:10px;">İdeal müştəri</button>
+        <button class="user-menu-item" data-status-choice="narazı" style="border:1px solid var(--line); border-radius:10px;">Narazı müştəri</button>
+      </div>
+      <div class="modal-actions">
+        <div style="flex:1;"></div>
+        <button class="btn-ghost" id="statusChangeCancelBtn">Ləğv et</button>
       </div>
     </div>
   </div>
@@ -2366,6 +2462,7 @@ const ICON_EYE = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" st
 const ICON_HISTORY = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v5h5"/><path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"/><path d="M12 7v5l4 2"/></svg>';
 const ICON_NOTE = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12h6"/><path d="M9 16h6"/><path d="M13 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8Z"/><path d="M13 3v5h5"/></svg>';
 const ICON_PERM = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/></svg>';
+const ICON_FLAG = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>';
 
 document.getElementById('fDate').value = todayStr();
 
@@ -2791,7 +2888,7 @@ function customerDirectory() {
   allCustomers.forEach(c => map.set(c.id, {
     id: c.id, name: c.name, phone: c.phone, location: c.location || '', password: c.password || '',
     fatherName: c.fatherName || '', finCode: c.finCode || '', idSeries: c.idSeries || '',
-    createdAt: c.createdAt || '',
+    createdAt: c.createdAt || '', status: c.status || 'normal',
   }));
   // for customers with no explicit doc, use their EARLIEST visit as the creation proxy
   // (allVisits is fetched newest-first, so we must find the minimum, not the first seen)
@@ -2807,7 +2904,7 @@ function customerDirectory() {
     if (!cid) return;
     if (!map.has(cid)) map.set(cid, {
       id: cid, name: v.name, phone: v.phone, location: v.location || '', password: '',
-      fatherName: v.fatherName || '', finCode: '', idSeries: '', createdAt: earliestVisitCreatedAt[cid] || '',
+      fatherName: v.fatherName || '', finCode: '', idSeries: '', createdAt: earliestVisitCreatedAt[cid] || '', status: 'normal',
     });
   });
   return Array.from(map.values());
@@ -3415,8 +3512,62 @@ document.getElementById('saveBtn').addEventListener('click', saveSale);
 function showCustomerList() {
   document.getElementById('customersList').classList.remove('hidden');
   document.getElementById('customerDetail').classList.remove('show');
-  renderCustomerList();
+  renderActiveCustomerDataset();
 }
+let statusChangeCustomerId = null;
+function openStatusChangeModal(id) {
+  const c = customerDirectory().find(x => x.id === id);
+  if (!c) return;
+  statusChangeCustomerId = id;
+  document.getElementById('statusChangeName').textContent = c.name || '';
+  document.getElementById('statusChangeOverlay').classList.add('show');
+}
+document.getElementById('statusChangeCancelBtn').addEventListener('click', () => {
+  document.getElementById('statusChangeOverlay').classList.remove('show');
+});
+document.getElementById('statusChangeOverlay').addEventListener('click', (e) => {
+  if (e.target.id === 'statusChangeOverlay') document.getElementById('statusChangeOverlay').classList.remove('show');
+});
+document.querySelectorAll('[data-status-choice]').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    if (!statusChangeCustomerId || !db) return;
+    const status = btn.getAttribute('data-status-choice');
+    try {
+      const existing = allCustomers.find(c => c.id === statusChangeCustomerId);
+      if (existing) {
+        await db.doc('customers/' + statusChangeCustomerId).update({ status });
+      } else {
+        const c = customerDirectory().find(x => x.id === statusChangeCustomerId);
+        if (c) {
+          await db.doc('customers/' + statusChangeCustomerId).set({
+            name: c.name, phone: c.phone, location: c.location || '',
+            fatherName: c.fatherName || '', createdAt: c.createdAt || new Date().toISOString(), status,
+          });
+        }
+      }
+      document.getElementById('statusChangeOverlay').classList.remove('show');
+    } catch (e) {
+      alert('Xəta baş verdi, yenidən cəhd edin.');
+    }
+  });
+});
+
+function customerStatusLabel(status) {
+  if (status === 'ideal') return '<span class="badge pts">İdeal</span>';
+  if (status === 'narazı') return '<span class="badge pts" style="background:#f6dcd4;color:#7a2e1a;">Narazı</span>';
+  return '<span class="badge pts" style="background:var(--surface-2);color:var(--ink-soft);">Normal</span>';
+}
+function customerRowKebabActions(c) {
+  return [
+    { label: 'Müştəriyə bax', icon: ICON_EYE, onClick: () => openViewCustomer(c.id) },
+    ...(hasPermission('customers', 'edit') ? [{ label: 'Müştərini redaktə et', icon: ICON_EDIT, onClick: () => openEditCustomer(c.id) }] : []),
+    ...(hasPermission('customers', 'delete') ? [{ label: 'Müştərini sil', icon: ICON_TRASH, danger: true, onClick: () => deleteCustomer(c.id) }] : []),
+    { label: 'Tarixçəyə bax', icon: ICON_HISTORY, onClick: () => openHistoryModal(c.id) },
+    { label: 'Qeyd əlavə et', icon: ICON_NOTE, onClick: () => openAddNoteModal(c.id) },
+    { label: 'Statusu dəyiş', icon: ICON_FLAG, onClick: () => openStatusChangeModal(c.id) },
+  ];
+}
+
 function customerSeqMap() {
   const dir = [...customerDirectory()].sort((a, b) =>
     (a.createdAt || '').localeCompare(b.createdAt || ''));
@@ -3474,9 +3625,10 @@ function customerMatchesQuickFilter(c, key) {
   const today = new Date(todayStr() + 'T00:00:00');
   const daysSince = c.lastDate ? Math.floor((today - new Date(c.lastDate + 'T00:00:00')) / 86400000) : null;
   if (key === 'repeat') return c.count >= 2;
-  if (key === 'ideal') return c.count > 10;
+  if (key === 'ideal') return c.count > 5 || c.status === 'ideal';
   if (key === 'active') return daysSince !== null && daysSince <= 30;
   if (key === 'passive') return daysSince !== null && daysSince >= 60;
+  if (key === 'unhappy') return c.status === 'narazı';
   return true;
 }
 function renderCustomerSummary() {
@@ -3574,13 +3726,13 @@ function renderCustomerList() {
   if (custPage > totalPages) custPage = totalPages;
   if (custPage < 1) custPage = 1;
   if (rows.length === 0) {
-    body.innerHTML = '<tr><td colspan="7" class="empty">Müştəri tapılmadı.</td></tr>';
+    body.innerHTML = '<tr><td colspan="9" class="empty">Müştəri tapılmadı.</td></tr>';
     renderPagination('custPagination', 'custListBody', custPage, totalPages, (p) => { custPage = p; renderCustomerList(); });
     return;
   }
   const startIdx = (custPage - 1) * PAGE_SIZE;
   body.innerHTML = rows.slice(startIdx, startIdx + PAGE_SIZE).map(c => `
-    <tr class="data-row" data-id="${c.id}">
+    <tr class="data-row">
       <td>#${seqMap.get(c.id) || 0}</td>
       <td>${escapeHtml(c.name || '—')}</td>
       <td>${escapeHtml(formatPhoneAZ(c.phone))}</td>
@@ -3588,12 +3740,76 @@ function renderCustomerList() {
       <td>${c.points}</td>
       <td>${fmtAzn(c.cashback)} ₼</td>
       <td>${fmtDate(c.lastDate)}</td>
+      <td>${customerStatusLabel(c.status)}</td>
+      <td class="col-actions"><div class="row-actions">${kebabBtn(customerRowKebabActions(c))}</div></td>
     </tr>`).join('');
-  body.querySelectorAll('.data-row').forEach(el => {
-    el.addEventListener('click', () => openCustomerDetail(el.getAttribute('data-id')));
-  });
   renderPagination('custPagination', 'custListBody', custPage, totalPages, (p) => { custPage = p; renderCustomerList(); });
 }
+let customerSegmentPage = { active: 1, passive: 1, repeat: 1, ideal: 1, unhappy: 1 };
+const CUSTOMER_SEGMENT_CONFIG = {
+  active: { bodyId: 'custActiveTableBody', paginationId: 'custActivePagination' },
+  passive: { bodyId: 'custPassiveTableBody', paginationId: 'custPassivePagination' },
+  repeat: { bodyId: 'custRepeatTableBody', paginationId: 'custRepeatPagination' },
+  ideal: { bodyId: 'custIdealTableBody', paginationId: 'custIdealPagination' },
+  unhappy: { bodyId: 'custUnhappyTableBody', paginationId: 'custUnhappyPagination' },
+};
+function renderCustomerSegment(key) {
+  const cfg = CUSTOMER_SEGMENT_CONFIG[key];
+  if (!cfg) return;
+  const dir = customerDirectory().map(c => ({ ...c, ...statsFor(c.id) }))
+    .filter(c => c.count > 0 || allCustomers.some(x => x.id === c.id));
+  const rows = dir.filter(c => customerMatchesQuickFilter(c, key));
+  rows.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+  const seqMap = customerSeqMap();
+  const body = document.getElementById(cfg.bodyId);
+  const totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
+  if (customerSegmentPage[key] > totalPages) customerSegmentPage[key] = totalPages;
+  if (customerSegmentPage[key] < 1) customerSegmentPage[key] = 1;
+  if (rows.length === 0) {
+    body.innerHTML = '<tr><td colspan="9" class="empty">Müştəri tapılmadı.</td></tr>';
+    document.getElementById(cfg.paginationId).innerHTML = '';
+    return;
+  }
+  const startIdx = (customerSegmentPage[key] - 1) * PAGE_SIZE;
+  body.innerHTML = rows.slice(startIdx, startIdx + PAGE_SIZE).map(c => `
+    <tr class="data-row">
+      <td>#${seqMap.get(c.id) || 0}</td>
+      <td>${escapeHtml(c.name || '—')}</td>
+      <td>${escapeHtml(formatPhoneAZ(c.phone))}</td>
+      <td>${c.count}</td>
+      <td>${c.points}</td>
+      <td>${fmtAzn(c.cashback)} ₼</td>
+      <td>${fmtDate(c.lastDate)}</td>
+      <td>${customerStatusLabel(c.status)}</td>
+      <td class="col-actions"><div class="row-actions">${kebabBtn(customerRowKebabActions(c))}</div></td>
+    </tr>`).join('');
+  renderPagination(cfg.paginationId, cfg.bodyId, customerSegmentPage[key], totalPages, (p) => {
+    customerSegmentPage[key] = p;
+    renderCustomerSegment(key);
+  });
+}
+
+function renderActiveCustomerDataset() {
+  const active = document.querySelector('#custDatasetGroup .chip.active');
+  const ds = active ? active.getAttribute('data-custds') : 'all';
+  if (ds === 'all') renderCustomerList();
+  else renderCustomerSegment(ds);
+}
+document.querySelectorAll('#custDatasetGroup .chip').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#custDatasetGroup .chip').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const ds = btn.getAttribute('data-custds');
+    document.getElementById('cds-all').style.display = ds === 'all' ? '' : 'none';
+    document.getElementById('cds-active').style.display = ds === 'active' ? '' : 'none';
+    document.getElementById('cds-passive').style.display = ds === 'passive' ? '' : 'none';
+    document.getElementById('cds-repeat').style.display = ds === 'repeat' ? '' : 'none';
+    document.getElementById('cds-ideal').style.display = ds === 'ideal' ? '' : 'none';
+    document.getElementById('cds-unhappy').style.display = ds === 'unhappy' ? '' : 'none';
+    renderActiveCustomerDataset();
+  });
+});
+
 document.getElementById('custSearch').addEventListener('input', renderCustomerList);
 document.getElementById('cfName').addEventListener('input', renderCustomerList);
 document.getElementById('cfPhone').addEventListener('input', renderCustomerList);
@@ -5466,7 +5682,7 @@ function setStatus(ok, text) {
 function renderAll() {
   renderHome();
   if (document.getElementById('tab-sale').classList.contains('active')) renderActiveSaleDataset();
-  if (document.getElementById('tab-customers').classList.contains('active')) renderCustomerList();
+  if (document.getElementById('tab-customers').classList.contains('active')) renderActiveCustomerDataset();
   if (document.getElementById('tab-data').classList.contains('active')) renderDataTab();
   if (document.getElementById('tab-finance').classList.contains('active')) renderFinanceTab();
   if (document.getElementById('tab-loyalty').classList.contains('active')) renderActiveLoyaltyDataset();
