@@ -3276,6 +3276,7 @@ document.getElementById('openNewSaleBtn').addEventListener('click', () => {
 });
 document.getElementById('newSaleOverlay').addEventListener('click', (e) => {
   if (e.target.id === 'newSaleOverlay') {
+    if (!confirm('Pəncərəni bağlamaq istədiyinizə əminsiniz? Daxil etdiyiniz məlumatlar itəcək.')) return;
     document.getElementById('newSaleOverlay').classList.remove('show');
     resetSelection(true);
   }
@@ -4588,6 +4589,12 @@ document.addEventListener('click', (e) => {
 });
 document.querySelector('#newSubOverlay .modal-box').addEventListener('scroll', () => {
   if (subSuggBox.classList.contains('show')) subPositionSuggestions();
+});
+document.getElementById('newSubOverlay').addEventListener('click', (e) => {
+  if (e.target.id === 'newSubOverlay') {
+    if (!confirm('Pəncərəni bağlamaq istədiyinizə əminsiniz? Daxil etdiyiniz məlumatlar itəcək.')) return;
+    document.getElementById('newSubOverlay').classList.remove('show');
+  }
 });
 
 function subSelectCustomer(id) {
