@@ -3506,7 +3506,8 @@ function renderCustomerSummary() {
   document.getElementById('csTotalRevenue').textContent = totalRevenue.toLocaleString('az-AZ', { maximumFractionDigits: 0 });
 }
 document.querySelectorAll('[data-cs-filter]').forEach(card => {
-  card.addEventListener('click', () => {
+  card.addEventListener('click', (e) => {
+    e.stopPropagation();
     const key = card.getAttribute('data-cs-filter');
     customerQuickFilter = (customerQuickFilter === key) ? null : key;
     document.querySelectorAll('[data-cs-filter]').forEach(c => c.classList.remove('active-filter'));
@@ -3514,6 +3515,14 @@ document.querySelectorAll('[data-cs-filter]').forEach(card => {
     custPage = 1;
     renderCustomerList();
   });
+});
+document.addEventListener('click', (e) => {
+  if (customerQuickFilter && !e.target.closest('[data-cs-filter]')) {
+    customerQuickFilter = null;
+    document.querySelectorAll('[data-cs-filter]').forEach(c => c.classList.remove('active-filter'));
+    custPage = 1;
+    renderCustomerList();
+  }
 });
 
 let dataSummaryPeriodMode = 'today';
@@ -4979,7 +4988,8 @@ document.getElementById('subToggle').addEventListener('click', () => {
   document.getElementById('subToggle').classList.toggle('open');
 });
 document.querySelectorAll('[data-sub-filter]').forEach(card => {
-  card.addEventListener('click', () => {
+  card.addEventListener('click', (e) => {
+    e.stopPropagation();
     const key = card.getAttribute('data-sub-filter');
     subQuickFilter = (subQuickFilter === key) ? null : key;
     document.querySelectorAll('[data-sub-filter]').forEach(c => c.classList.remove('active-filter'));
@@ -4987,6 +4997,14 @@ document.querySelectorAll('[data-sub-filter]').forEach(card => {
     subPage = 1;
     renderSubTab();
   });
+});
+document.addEventListener('click', (e) => {
+  if (subQuickFilter && !e.target.closest('[data-sub-filter]')) {
+    subQuickFilter = null;
+    document.querySelectorAll('[data-sub-filter]').forEach(c => c.classList.remove('active-filter'));
+    subPage = 1;
+    renderSubTab();
+  }
 });
 
 /* ---------- SERVICES TAB ---------- */
