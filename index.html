@@ -1770,6 +1770,12 @@
       <h3 id="svcModalTitle">Yeni xidmət</h3>
       <div class="field"><label>Ad</label><input id="svcName" type="text"></div>
       <div class="field" id="svcFlatPriceField"><label>Qiymət (₼)</label><input id="svcFlatPrice" type="number" step="0.01"></div>
+      <div id="svcPackageFields" style="display:none;">
+        <div class="lbl" style="font-weight:700; margin-bottom:6px;">Əsas xidmətlər</div>
+        <div id="svcPackageCoreList" style="margin-bottom:14px;"></div>
+        <div class="lbl" style="font-weight:700; margin-bottom:6px;">Əlavə xidmətlər</div>
+        <div id="svcPackageAddonList" style="margin-bottom:14px;"></div>
+      </div>
       <div class="field" id="svcPricingModeField" style="display:none;">
         <label>Qiymətləndirmə növü</label>
         <select id="svcPricingMode">
@@ -5263,11 +5269,15 @@ function renderServicesTab() {
     } else {
       priceTxt = `${s.price || 0} ₼`;
     }
+    const includedTxt = svcCategory === 'package'
+      ? [...(s.coreServices || []), ...(s.addonServices || [])].join(', ')
+      : '';
     return `
       <div class="svc-item">
         <div class="svc-info">
           <div class="svc-name">${escapeHtml(s.name || '—')}</div>
           <div class="svc-prices">${escapeHtml(priceTxt || '—')}</div>
+          ${includedTxt ? `<div class="svc-prices" style="margin-top:2px;">Daxildir: ${escapeHtml(includedTxt)}</div>` : ''}
         </div>
         <div class="row-actions">
           ${kebabBtn([
@@ -5320,19 +5330,39 @@ function openServiceModal(id) {
   const modeField = document.getElementById('svcPricingModeField');
   const bySizeFields = document.getElementById('svcBySizeFields');
   const byQtyFields = document.getElementById('svcByQtyFields');
+  const packageFields = document.getElementById('svcPackageFields');
 
   if (svcCategory === 'addon') {
     flatField.style.display = 'none';
     modeField.style.display = '';
+    packageFields.style.display = 'none';
     const mode = s ? (s.pricingMode || 'bySize') : 'bySize';
     document.getElementById('svcPricingMode').value = mode;
     renderAddonPriceFields(mode, s);
     document.getElementById('svcPricingMode').onchange = () => renderAddonPriceFields(document.getElementById('svcPricingMode').value, s);
+  } else if (svcCategory === 'package') {
+    flatField.style.display = '';
+    modeField.style.display = 'none';
+    bySizeFields.style.display = 'none';
+    byQtyFields.style.display = 'none';
+    packageFields.style.display = '';
+    document.getElementById('svcFlatPrice').value = s ? (s.price || 0) : '';
+    const includedCore = (s && s.coreServices) || [];
+    const includedAddon = (s && s.addonServices) || [];
+    document.getElementById('svcPackageCoreList').innerHTML = CORE_SERVICES.map(c => `
+      <div class="sub-svc-row">
+        <label class="sub-svc-check"><input type="checkbox" class="svcPkgCoreCk" value="${escapeHtml(c.name)}" ${includedCore.includes(c.name) ? 'checked' : ''}> ${escapeHtml(c.name)} (${c.price} ₼)</label>
+      </div>`).join('') || '<div class="empty">Əsas xidmət yoxdur.</div>';
+    document.getElementById('svcPackageAddonList').innerHTML = SIZE_ADDONS.map(a => `
+      <div class="sub-svc-row">
+        <label class="sub-svc-check"><input type="checkbox" class="svcPkgAddonCk" value="${escapeHtml(a.label)}" ${includedAddon.includes(a.label) ? 'checked' : ''}> ${escapeHtml(a.label)}</label>
+      </div>`).join('') || '<div class="empty">Əlavə xidmət yoxdur.</div>';
   } else {
     flatField.style.display = '';
     modeField.style.display = 'none';
     bySizeFields.style.display = 'none';
     byQtyFields.style.display = 'none';
+    packageFields.style.display = 'none';
     document.getElementById('svcFlatPrice').value = s ? (s.price || 0) : '';
   }
 
@@ -5407,6 +5437,10 @@ async function saveService() {
         '2': parseFloat(document.getElementById('svcQty2Price').value) || 0,
       };
     }
+  } else if (svcCategory === 'package') {
+    data.price = parseFloat(document.getElementById('svcFlatPrice').value) || 0;
+    data.coreServices = Array.from(document.querySelectorAll('.svcPkgCoreCk:checked')).map(el => el.value);
+    data.addonServices = Array.from(document.querySelectorAll('.svcPkgAddonCk:checked')).map(el => el.value);
   } else {
     data.price = parseFloat(document.getElementById('svcFlatPrice').value) || 0;
   }
